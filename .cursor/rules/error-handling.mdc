@@ -1,0 +1,69 @@
+---
+description: Hierarquia de exceções de domínio, error handling consistente, zero try-catch em controllers
+globs: "apps/api/**/*.ts"
+alwaysApply: false
+---
+
+# Error Handling — Exceções de Domínio
+
+## Hierarquia
+
+Toda exceção de negócio herda de `DomainException`. O `DomainExceptionFilter` global converte para HTTP response.
+
+```typescript
+// packages/types/src/exceptions/domain.exception.ts
+export abstract class DomainException extends Error {
+  abstract readonly code: string;        // 'CLIENT_NOT_FOUND', 'INVALID_STATUS_TRANSITION'
+  abstract readonly httpStatus: number;  // 404, 422, 403, etc.
+  readonly metadata?: Record<string, unknown>;
+
+  constructor(message: string, metadata?: Record<string, unknown>) {
+    super(message);
+    this.name = this.constructor.name;
+    this.metadata = metadata;
+  }
+}
+```
+
+## Convenções
+
+1. **Uma exceção por situação de erro.** `ClientNotFoundException`, `MissingDocumentsException`, não `GenericError('client not found')`.
+2. **Exceções vivem em `domain/exceptions/`** do módulo que as define.
+3. **Controllers nunca fazem try/catch.** O `DomainExceptionFilter` converte automaticamente.
+4. **UseCases podem capturar exceções de infra** e traduzir para exceções de domínio.
+5. **Mensagens de erro são para desenvolvedores**, não para o usuário final. O frontend mapeia `code` → mensagem i18n.
+
+## Response Format
+
+```json
+{
+  "error": {
+    "code": "INVALID_STATUS_TRANSITION",
+    "message": "Cannot transition from 'draft' to 'credit_analysis'",
+    "statusCode": 422,
+    "correlationId": "abc-123-def",
+    "timestamp": "2026-02-11T10:00:00Z"
+  }
+}
+```
+
+## ExceptionFilter
+
+```typescript
+@Catch(DomainException)
+export class DomainExceptionFilter implements ExceptionFilter {
+  catch(exception: DomainException, host: ArgumentsHost) {
+    const response = host.switchToHttp().getResponse();
+    const request = host.switchToHttp().getRequest();
+    response.status(exception.httpStatus).send({
+      error: {
+        code: exception.code,
+        message: exception.message,
+        statusCode: exception.httpStatus,
+        correlationId: request.headers['x-correlation-id'],
+        timestamp: new Date().toISOString(),
+      },
+    });
+  }
+}
+```

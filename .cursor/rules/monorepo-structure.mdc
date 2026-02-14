@@ -1,0 +1,48 @@
+---
+description: Convenções do monorepo Turborepo - packages, imports, dependências, naming
+alwaysApply: true
+---
+
+# Monorepo — Convenções
+
+## Package Naming
+
+- Scope: `@nexus/` para todos os packages internos.
+- `@nexus/types` — tipos TypeScript compartilhados (domain types, DTOs, enums).
+- `@nexus/validators` — schemas Zod compartilhados (front e back usam o mesmo schema).
+- `@nexus/ui` — componentes de design system (shadcn/ui customizados).
+- `@nexus/config` — configs compartilhadas (ESLint, TS, Tailwind, ROLE_PERMISSIONS).
+- `@nexus/utils` — funções utilitárias (formatCNPJ, formatCurrency, permissions helpers).
+
+## Regras de Dependência
+
+```
+apps/ podem importar de packages/
+packages/ NÃO importam de apps/
+packages/ podem importar de outros packages/
+```
+
+- `@nexus/types` não depende de nenhum outro package (leaf node).
+- `@nexus/validators` depende de `@nexus/types` (schemas usam os types).
+- `@nexus/utils` depende de `@nexus/types`.
+- `@nexus/config` depende de `@nexus/types`.
+
+## Turborepo
+
+- `turbo.json` define o pipeline: `build → typecheck → lint → test`.
+- `build` depende de `^build` (build das dependências primeiro).
+- `dev` não cacheia. `lint` e `typecheck` cacheiam.
+- Deploy usa `--filter=` para buildar apenas o workspace afetado.
+
+## Novo Código
+
+Antes de criar um arquivo, pergunte: "Outro app vai precisar disso?"
+- **Sim** → vai pra `packages/`.
+- **Não** → vai pra `apps/{app}/`.
+
+## Variáveis de Ambiente
+
+- `.env.local` por app (nunca na raiz do monorepo).
+- `.env.example` commitado com todas as variáveis sem valores.
+- Validação de env vars via Zod no bootstrap de cada app.
+- Secrets nunca hardcoded — sempre via env var.

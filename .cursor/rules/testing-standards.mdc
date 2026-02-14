@@ -1,0 +1,63 @@
+---
+description: Padrões de teste - unit no domain, integration nos use-cases, e2e nos endpoints
+globs: "**/*.spec.ts,**/*.test.ts,**/test/**/*.ts"
+alwaysApply: false
+---
+
+# Testing — 3 Níveis
+
+## 1. Unit Tests (Domain)
+
+Testam domain entities e value objects. **Sem mocks, sem banco, sem framework.**
+
+```typescript
+// test/unit/client.entity.spec.ts
+describe('Client Entity', () => {
+  it('should transition from pending_documents to document_validation', () => {
+    const client = ClientFactory.create({ status: 'pending_documents' });
+    const checklist = ChecklistFactory.allUploaded();
+    client.submitForAnalysis(checklist);
+    expect(client.status).toBe('document_validation');
+  });
+
+  it('should throw when submitting with missing documents', () => {
+    const client = ClientFactory.create({ status: 'pending_documents' });
+    const checklist = ChecklistFactory.withMissing(['balance_sheet_dre']);
+    expect(() => client.submitForAnalysis(checklist))
+      .toThrow(MissingDocumentsException);
+  });
+});
+```
+
+**Cobertura alvo:** 90%+ nas domain entities.
+
+## 2. Integration Tests (Use Cases)
+
+Testam use-cases com repositories reais (banco de teste) ou in-memory.
+
+```typescript
+// test/integration/submit-client.use-case.spec.ts
+describe('SubmitClientUseCase', () => {
+  it('should submit client and emit event', async () => {
+    const useCase = new SubmitClientUseCase(inMemoryClientRepo, inMemoryChecklistService);
+    await useCase.execute({ clientId: 'abc-123' });
+    expect(inMemoryClientRepo.findById('abc-123')).resolves.toHaveProperty('status', 'document_validation');
+  });
+});
+```
+
+## 3. E2E Tests (Endpoints)
+
+Testam o endpoint HTTP completo (auth → guard → controller → use-case → DB).
+
+- Usam `supertest` com app NestJS bootstrapped.
+- Banco de teste isolado (reset entre suites).
+- Testam happy path + error paths + permissões (RBAC).
+
+## Convenções
+
+- Arquivo de teste ao lado do arquivo testado ou em `test/{unit|integration|e2e}/`.
+- Sufixo `.spec.ts` para unit e integration, `.e2e-spec.ts` para e2e.
+- Factories em `test/factories/` para criar entities de teste.
+- Sem `console.log` em testes. Assertions explícitas.
+- Todo bug fix acompanha um teste que reproduz o bug.
