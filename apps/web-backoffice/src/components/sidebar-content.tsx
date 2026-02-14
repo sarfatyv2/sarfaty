@@ -11,11 +11,17 @@ interface SidebarContentProps {
   onNavigate?: () => void;
 }
 
+const USER_MENU_SECTION = 'Meu Espaço';
+
 export function SidebarContent({ role, onNavigate }: SidebarContentProps) {
   const pathname = usePathname();
   const config = ROLE_PERMISSIONS[role];
 
-  const allRoutes = config.sidebar.flatMap((s) => s.items.map((i) => i.route));
+  const sidebarSections = config.sidebar.filter(
+    (section) => section.section !== USER_MENU_SECTION,
+  );
+
+  const allRoutes = sidebarSections.flatMap((s) => s.items.map((i) => i.route));
   const activeRoute = allRoutes
     .filter((route) => pathname === route || pathname.startsWith(route + '/'))
     .sort((a, b) => b.length - a.length)[0];
@@ -27,7 +33,7 @@ export function SidebarContent({ role, onNavigate }: SidebarContentProps) {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-4 py-4">
-        {config.sidebar.map((section) => (
+        {sidebarSections.map((section) => (
           <div key={section.section} className="mb-8">
             <p className="px-4 py-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
               {section.section}
