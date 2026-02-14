@@ -1,8 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { CreateClientDto } from '@nexus/validators';
 import { Client } from '../domain/client.entity';
 import { CLIENT_REPOSITORY, type ClientRepository } from '../domain/client.repository';
 import { CnpjAlreadyExistsException } from '../domain/exceptions/cnpj-already-exists.exception';
+import { ClientCreatedEvent } from '../../notifications/domain/events/client-events';
 
 export interface CreateClientInput {
   dto: CreateClientDto;
@@ -16,6 +18,7 @@ export class CreateClientUseCase {
   constructor(
     @Inject(CLIENT_REPOSITORY)
     private readonly clientRepository: ClientRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(input: CreateClientInput): Promise<Client> {
@@ -52,6 +55,19 @@ export class CreateClientUseCase {
       cnpjValidatedAt: null,
     });
 
-    return this.clientRepository.save(client);
+    const saved = await this.clientRepository.save(client);
+
+    this.eventEmitter.emit(
+      ClientCreatedEvent.EVENT_NAME,
+      new ClientCreatedEvent(
+        saved.id,
+        saved.companyName,
+        input.assignedTo,
+        input.dto.companyName,
+        input.teamId,
+      ),
+    );
+
+    return saved;
   }
 }

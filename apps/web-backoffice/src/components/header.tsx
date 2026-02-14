@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@nexus/ui';
 import { type Role } from '@nexus/types';
 import { Menu } from 'lucide-react';
+import { NotificationBell } from './notification-bell';
 import { UserMenu } from './user-menu';
 
 interface HeaderProps {
@@ -34,7 +35,10 @@ export function Header({ fullName, role, email, avatarUrl, onMenuClick }: Readon
           <Image src="/logo.svg" alt="Grupo Sarfaty" width={100} height={30} className="h-7 w-auto" />
         </Link>
       </div>
-      <UserMenu fullName={fullName} role={role} email={email} avatarUrl={avatarUrl} />
+      <div className="flex items-center gap-2">
+        <NotificationBell />
+        <UserMenu fullName={fullName} role={role} email={email} avatarUrl={avatarUrl} />
+      </div>
     </header>
   );
 }

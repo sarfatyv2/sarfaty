@@ -57,7 +57,7 @@ export function UserMenu({ fullName, role, email, avatarUrl }: Readonly<UserMenu
           type="button"
           className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-0"
         >
-          <Avatar className="h-8 w-8 shrink-0">
+          <Avatar className="h-10 w-10 shrink-0">
             {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
             <AvatarFallback className="text-xs">
               {initials || email.slice(0, 2).toUpperCase()}

@@ -1,13 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { Reimbursement } from '../domain/reimbursement.entity';
 import type { ReimbursementRepository } from '../domain/reimbursement.repository';
 import { REIMBURSEMENT_REPOSITORY } from '../domain/reimbursement.repository';
+import { ReimbursementRejectedEvent } from '../../notifications/domain/events/people-events';
 
 @Injectable()
 export class RejectReimbursementUseCase {
   constructor(
     @Inject(REIMBURSEMENT_REPOSITORY)
     private readonly reimbursementRepository: ReimbursementRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(
@@ -36,6 +39,18 @@ export class RejectReimbursementUseCase {
     if (!updated) {
       throw new Error('Failed to reject reimbursement');
     }
+
+    this.eventEmitter.emit(
+      ReimbursementRejectedEvent.EVENT_NAME,
+      new ReimbursementRejectedEvent(
+        reimbursementId,
+        reimbursement.collaboratorId,
+        reimbursement.title,
+        reason.trim(),
+        profileId,
+      ),
+    );
+
     return updated;
   }
 }
