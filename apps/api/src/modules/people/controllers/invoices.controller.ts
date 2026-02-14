@@ -15,6 +15,7 @@ import { Auditable } from '../../../common/decorators/auditable.decorator';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
+import { ROLES } from '@nexus/types';
 import {
   listInvoicesQuerySchema,
   type ListInvoicesQueryDto,
@@ -49,7 +50,7 @@ export class InvoicesController {
   ) {}
 
   @Get()
-  @Roles('employee', 'people_manager', 'hr', 'dp', 'hr_admin', 'admin')
+  @Roles(...ROLES)
   async list(
     @Query(new ZodValidationPipe(listInvoicesQuerySchema)) query: ListInvoicesQueryDto,
     @CurrentUser() user: { id: string; user_metadata?: { role?: string; collaborator_id?: string } },
@@ -86,7 +87,7 @@ export class InvoicesController {
   }
 
   @Post(':id/upload')
-  @Roles('employee', 'people_manager', 'hr', 'dp', 'hr_admin', 'admin')
+  @Roles(...ROLES)
   @Auditable({ action: 'invoice.upload', entity: 'pj_invoice' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
