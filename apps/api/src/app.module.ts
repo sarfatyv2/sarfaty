@@ -1,9 +1,11 @@
 import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { AuthGuard } from './common/guards/auth.guard';
+import { RbacGuard } from './common/guards/rbac.guard';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
@@ -20,6 +22,7 @@ import { LearningModule } from './modules/learning/learning.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     LoggerModule.forRoot({
       pinoHttp: {
         transport: process.env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined,
@@ -41,6 +44,8 @@ import { LearningModule } from './modules/learning/learning.module';
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: RbacGuard },
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
     { provide: APP_INTERCEPTOR, useClass: TimeoutInterceptor },

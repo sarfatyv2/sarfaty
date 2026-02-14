@@ -1,6 +1,7 @@
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
+import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
@@ -18,6 +19,9 @@ async function bootstrap() {
     { bufferLogs: true },
   );
 
+  await app.register(helmet, {
+    contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false,
+  });
   await app.register(multipart, {
     limits: { fileSize: 10 * 1024 * 1024 },
     attachFieldsToBody: true,

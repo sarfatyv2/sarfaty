@@ -1,11 +1,12 @@
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint'],
+  plugins: ['@typescript-eslint', 'security', 'no-secrets'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
+    'plugin:security/recommended-legacy',
     'prettier',
   ],
   rules: {
@@ -21,6 +22,8 @@ module.exports = {
       { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
     ],
     'no-console': 'warn',
+    'no-secrets/no-secrets': 'error',
+    'security/detect-object-injection': 'off',
   },
   ignorePatterns: ['dist', 'node_modules', '.turbo', 'coverage'],
 };
