@@ -1,0 +1,31 @@
+{
+  "name": "@nexus/utils",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./src/*.ts",
+      "import": "./src/*.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@nexus/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@nexus/config": "workspace:*",
+    "typescript": "^5.7.3"
+  }
+}

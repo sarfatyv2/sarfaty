@@ -1,0 +1,10 @@
+{
+  "name": "@nexus/config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./typescript/*": "./typescript/*",
+    "./eslint/*": "./eslint/*",
+    "./tailwind/preset": "./tailwind/preset.ts"
+  }
+}
