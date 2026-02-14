@@ -6,5 +6,9 @@
     "./typescript/*": "./typescript/*",
     "./eslint/*": "./eslint/*",
     "./tailwind/preset": "./tailwind/preset.ts"
+  },
+  "devDependencies": {
+    "eslint-plugin-no-secrets": "^2.2.2",
+    "eslint-plugin-security": "^3.0.1"
   }
 }

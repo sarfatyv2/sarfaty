@@ -15,6 +15,11 @@ export function SidebarContent({ role, onNavigate }: SidebarContentProps) {
   const pathname = usePathname();
   const config = ROLE_PERMISSIONS[role];
 
+  const allRoutes = config.sidebar.flatMap((s) => s.items.map((i) => i.route));
+  const activeRoute = allRoutes
+    .filter((route) => pathname === route || pathname.startsWith(route + '/'))
+    .sort((a, b) => b.length - a.length)[0];
+
   return (
     <>
       <div className="p-6 flex items-center justify-center shrink-0">
@@ -30,7 +35,7 @@ export function SidebarContent({ role, onNavigate }: SidebarContentProps) {
             <div className="space-y-2">
               {section.items.map((item) => {
                 const IconComponent = icons[item.icon as keyof typeof icons];
-                const isActive = pathname.startsWith(item.route);
+                const isActive = item.route === activeRoute;
                 return (
                   <Link
                     key={item.route}
