@@ -348,6 +348,9 @@ O frontend consome esse mapa e renderiza por composição — zero condicionais 
 | `spec_modulo_people.md` | Módulo People: tabelas, RLS, fluxos (reembolso, NF, onboarding, avaliação), dashboards, endpoints | ~1430 |
 | `people_implementacao.md` | Implementação colaboradores: tabs (Dados/Editar/Dependentes), CLT/PJ, máscaras, layout scroll | ~180 |
 | `spec_ux_interface_adaptativa.md` | ROLE_PERMISSIONS completo, sidebar, dashboard modules, abas, ações, notificações | ~1260 |
+| `seguranca.md` | Segurança: SAST, DAST, SCA, secret scanning, hardening, RLS, CI/CD security pipeline | ~390 |
+| `dicionario_dados.md` | Dicionário de dados: todas as 36 tabelas, colunas, tipos, constraints, FKs, RLS, diagrama ER | ~750 |
+| `audit_trail.md` | Sistema de auditoria centralizado: interceptor, tabela, correlação | ~300 |
 
 ---
 
@@ -362,6 +365,14 @@ O frontend consome esse mapa e renderiza por composição — zero condicionais 
 | Criação de usuários | NestJS endpoint (não Edge Function) |
 | Signup público | Desabilitado (só admin/RH criam) |
 | Temporal.io | Cloud (não self-hosted) |
+| SAST | Semgrep + CodeQL (complementares) |
+| DAST | OWASP ZAP (baseline semanal) |
+| Secret scanning | Gitleaks (CI + pre-commit) |
+| HTTP security headers | @fastify/helmet (API) + custom headers (Next.js) |
+| Rate limiting | @nestjs/throttler (100 req/min global) |
+| RBAC enforcement | RbacGuard global (por action, não só por role) |
+| ESLint security | eslint-plugin-security + eslint-plugin-no-secrets |
+| Dependency scanning | pnpm audit (CI) + Dependabot (semanal) |
 
 **Decisões pendentes:** hosting da API (Railway vs Fly.io), fornecedor WhatsApp (Twilio vs Meta), assinatura digital (Clicksign vs D4Sign), design system (shadcn ou customizar mais).
 
