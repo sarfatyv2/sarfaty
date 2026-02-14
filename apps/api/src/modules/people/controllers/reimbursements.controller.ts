@@ -16,6 +16,7 @@ import { Auditable } from '../../../common/decorators/auditable.decorator';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
+import { ROLES } from '@nexus/types';
 import {
   createReimbursementSchema,
   type CreateReimbursementDto,
@@ -54,7 +55,7 @@ export class ReimbursementsController {
   ) {}
 
   @Get()
-  @Roles('employee', 'people_manager', 'hr', 'dp', 'hr_admin', 'admin')
+  @Roles(...ROLES)
   async list(
     @Query(new ZodValidationPipe(listReimbursementsQuerySchema)) query: ListReimbursementsQueryDto,
     @CurrentUser() user: { id: string; user_metadata?: { role?: string; collaborator_id?: string } },
@@ -81,7 +82,7 @@ export class ReimbursementsController {
   }
 
   @Post()
-  @Roles('employee', 'people_manager', 'hr', 'dp', 'hr_admin', 'admin')
+  @Roles(...ROLES)
   @Auditable({ action: 'reimbursement.create', entity: 'reimbursement' })
   async create(
     @Body(new ZodValidationPipe(createReimbursementSchema)) dto: CreateReimbursementDto,
@@ -95,14 +96,14 @@ export class ReimbursementsController {
   }
 
   @Get(':id/receipt-url')
-  @Roles('employee', 'people_manager', 'hr', 'dp', 'hr_admin', 'admin')
+  @Roles(...ROLES)
   async getReceiptUrl(@Param('id') id: string) {
     const result = await this.getReceiptUrlUseCase.execute(id);
     return { data: result };
   }
 
   @Post(':id/upload')
-  @Roles('employee', 'people_manager', 'hr', 'dp', 'hr_admin', 'admin')
+  @Roles(...ROLES)
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -140,7 +141,7 @@ export class ReimbursementsController {
   }
 
   @Patch(':id')
-  @Roles('employee', 'people_manager', 'hr', 'dp', 'hr_admin', 'admin')
+  @Roles(...ROLES)
   async update(
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateReimbursementSchema)) dto: UpdateReimbursementDto,
