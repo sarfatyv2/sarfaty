@@ -46,6 +46,7 @@ export function UserMenu({ fullName, role, email, avatarUrl }: Readonly<UserMenu
 
   async function handleLogout() {
     await supabase.auth.signOut();
+    router.refresh();
     router.push('/login');
   }
 

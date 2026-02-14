@@ -33,6 +33,7 @@ export default function LoginPage() {
 
     const role = data.user?.user_metadata?.role as Role | undefined;
     const homeRoute = role ? ROLE_PERMISSIONS[role]?.homeRoute : '/overview';
+    router.refresh();
     router.push(homeRoute ?? '/overview');
   }
 
