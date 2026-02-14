@@ -27,6 +27,8 @@ import { ApproveReimbursementUseCase } from './use-cases/approve-reimbursement.u
 import { RejectReimbursementUseCase } from './use-cases/reject-reimbursement.use-case';
 import { PayReimbursementUseCase } from './use-cases/pay-reimbursement.use-case';
 import { UploadReceiptUseCase } from './use-cases/upload-receipt.use-case';
+import { GetReceiptUrlUseCase } from './use-cases/get-receipt-url.use-case';
+import { UploadAvatarUseCase } from './use-cases/upload-avatar.use-case';
 import { GenerateMonthlyPjInvoicesUseCase } from './use-cases/generate-monthly-pj-invoices.use-case';
 import { PjInvoiceCronService } from './pj-invoice-cron.service';
 import { DrizzleCollaboratorRepository } from './infra/drizzle-collaborator.repository';
@@ -72,6 +74,8 @@ import { REIMBURSEMENT_REPOSITORY } from './domain/reimbursement.repository';
     RejectReimbursementUseCase,
     PayReimbursementUseCase,
     UploadReceiptUseCase,
+    GetReceiptUrlUseCase,
+    UploadAvatarUseCase,
     GenerateMonthlyPjInvoicesUseCase,
     PjInvoiceCronService,
     // Repositories

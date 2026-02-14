@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,6 +13,7 @@ import {
   CardTitle,
   Badge,
   Avatar,
+  AvatarImage,
   AvatarFallback,
   Button,
   Input,
@@ -29,7 +30,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from '@nexus/ui';
-import { Loader2, Save } from 'lucide-react';
+import { Camera, Loader2, Save } from 'lucide-react';
 import { api } from '@/lib/api';
 import { MaskedInput, PHONE_MASK, CEP_MASK } from '@/components/masked-input';
 
@@ -72,6 +73,7 @@ interface CollaboratorProfile {
   bankAccount: string | null;
   bankAccountType: string | null;
   hasMedicalAssistance: boolean;
+  avatarUrl: string | null;
 }
 
 interface DependentData {
@@ -116,6 +118,8 @@ export default function MyProfilePage() {
   const [profile, setProfile] = useState<CollaboratorProfile | null>(null);
   const [dependents, setDependents] = useState<DependentData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const {
     control,
@@ -178,6 +182,28 @@ export default function MyProfilePage() {
     }
   }
 
+  async function handleAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.postFormData<{ avatarUrl: string }>('/people/me/avatar', formData);
+      setProfile((prev) => prev ? { ...prev, avatarUrl: response.data.avatarUrl } : prev);
+      toast.success('Foto de perfil atualizada');
+      router.refresh();
+    } catch {
+      toast.error('Erro ao enviar foto. Use JPEG, PNG ou WebP (max 2MB).');
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = '';
+      }
+    }
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -204,9 +230,34 @@ export default function MyProfilePage() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-start gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarFallback className="text-lg">{getInitials(profile.fullName)}</AvatarFallback>
-            </Avatar>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+            <button
+              type="button"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={uploadingAvatar}
+              className="relative group shrink-0"
+              title="Alterar foto de perfil"
+            >
+              <Avatar className="h-16 w-16">
+                {profile.avatarUrl && (
+                  <AvatarImage src={profile.avatarUrl} alt={profile.fullName} />
+                )}
+                <AvatarFallback className="text-lg">{getInitials(profile.fullName)}</AvatarFallback>
+              </Avatar>
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                {uploadingAvatar ? (
+                  <Loader2 size={20} className="text-white animate-spin" />
+                ) : (
+                  <Camera size={20} className="text-white" />
+                )}
+              </div>
+            </button>
             <div>
               <div className="flex items-center gap-3">
                 <h2 className="text-xl font-bold">{profile.fullName}</h2>

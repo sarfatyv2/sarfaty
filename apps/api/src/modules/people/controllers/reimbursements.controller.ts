@@ -35,6 +35,7 @@ import { ApproveReimbursementUseCase } from '../use-cases/approve-reimbursement.
 import { RejectReimbursementUseCase } from '../use-cases/reject-reimbursement.use-case';
 import { PayReimbursementUseCase } from '../use-cases/pay-reimbursement.use-case';
 import { UploadReceiptUseCase } from '../use-cases/upload-receipt.use-case';
+import { GetReceiptUrlUseCase } from '../use-cases/get-receipt-url.use-case';
 
 @ApiTags('People - Reimbursements')
 @ApiBearerAuth()
@@ -49,6 +50,7 @@ export class ReimbursementsController {
     private readonly rejectReimbursementUseCase: RejectReimbursementUseCase,
     private readonly payReimbursementUseCase: PayReimbursementUseCase,
     private readonly uploadReceiptUseCase: UploadReceiptUseCase,
+    private readonly getReceiptUrlUseCase: GetReceiptUrlUseCase,
   ) {}
 
   @Get()
@@ -90,6 +92,13 @@ export class ReimbursementsController {
       data: dto,
     });
     return { data: reimbursement.toPlainObject() };
+  }
+
+  @Get(':id/receipt-url')
+  @Roles('employee', 'people_manager', 'hr', 'dp', 'hr_admin', 'admin')
+  async getReceiptUrl(@Param('id') id: string) {
+    const result = await this.getReceiptUrlUseCase.execute(id);
+    return { data: result };
   }
 
   @Post(':id/upload')

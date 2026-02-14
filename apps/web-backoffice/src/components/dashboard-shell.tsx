@@ -11,10 +11,11 @@ interface DashboardShellProps {
   role: Role;
   fullName: string;
   email: string;
+  avatarUrl?: string;
   children: React.ReactNode;
 }
 
-export function DashboardShell({ role, fullName, email, children }: DashboardShellProps) {
+export function DashboardShell({ role, fullName, email, avatarUrl, children }: Readonly<DashboardShellProps>) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -33,6 +34,7 @@ export function DashboardShell({ role, fullName, email, children }: DashboardShe
           fullName={fullName}
           role={role}
           email={email}
+          avatarUrl={avatarUrl}
           onMenuClick={() => setMobileMenuOpen(true)}
         />
         <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:px-10 bg-muted/30">
