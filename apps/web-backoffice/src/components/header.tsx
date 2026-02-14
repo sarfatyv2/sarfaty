@@ -11,10 +11,11 @@ interface HeaderProps {
   fullName: string;
   role: Role;
   email: string;
+  avatarUrl?: string;
   onMenuClick?: () => void;
 }
 
-export function Header({ fullName, role, email, onMenuClick }: Readonly<HeaderProps>) {
+export function Header({ fullName, role, email, avatarUrl, onMenuClick }: Readonly<HeaderProps>) {
   return (
     <header className="h-14 border-b bg-white px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2 min-w-0">
@@ -33,7 +34,7 @@ export function Header({ fullName, role, email, onMenuClick }: Readonly<HeaderPr
           <Image src="/logo.svg" alt="Grupo Sarfaty" width={100} height={30} className="h-7 w-auto" />
         </Link>
       </div>
-      <UserMenu fullName={fullName} role={role} email={email} />
+      <UserMenu fullName={fullName} role={role} email={email} avatarUrl={avatarUrl} />
     </header>
   );
 }

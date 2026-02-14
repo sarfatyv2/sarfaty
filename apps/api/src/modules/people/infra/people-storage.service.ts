@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { supabaseAdmin } from '../../../config/supabase';
+import { env } from '../../../config/env';
 
 const BUCKET_ID = 'collaborator-documents';
+const AVATAR_BUCKET_ID = 'avatars';
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
 const ALLOWED_INVOICE_MIME_TYPES = ['application/pdf'];
 const ALLOWED_RECEIPT_MIME_TYPES = [
   'application/pdf',
@@ -10,6 +13,17 @@ const ALLOWED_RECEIPT_MIME_TYPES = [
   'image/png',
   'image/webp',
 ];
+const ALLOWED_AVATAR_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+];
+
+const MIME_TO_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
 
 export interface UploadResult {
   path: string;
@@ -89,6 +103,57 @@ export class PeopleStorageService {
     };
   }
 
+  async uploadAvatar(
+    profileId: string,
+    file: { buffer: Buffer; mimetype: string },
+  ): Promise<string> {
+    this.validateFile(
+      file.buffer,
+      file.mimetype,
+      ALLOWED_AVATAR_MIME_TYPES,
+      'Avatar must be an image (JPEG, PNG, or WebP)',
+      MAX_AVATAR_SIZE_BYTES,
+    );
+
+    const ext = MIME_TO_EXT[file.mimetype] ?? 'jpg';
+    const path = `${profileId}/avatar.${ext}`;
+
+    // Remove any existing avatar files for this profile
+    const { data: existingFiles } = await supabaseAdmin.storage
+      .from(AVATAR_BUCKET_ID)
+      .list(profileId);
+
+    if (existingFiles && existingFiles.length > 0) {
+      const filesToRemove = existingFiles.map((f) => `${profileId}/${f.name}`);
+      await supabaseAdmin.storage.from(AVATAR_BUCKET_ID).remove(filesToRemove);
+    }
+
+    const { error } = await supabaseAdmin.storage
+      .from(AVATAR_BUCKET_ID)
+      .upload(path, file.buffer, {
+        contentType: file.mimetype,
+        upsert: true,
+      });
+
+    if (error) {
+      throw new Error(`Avatar upload failed: ${error.message}`);
+    }
+
+    const publicUrl = `${env.SUPABASE_URL}/storage/v1/object/public/${AVATAR_BUCKET_ID}/${path}`;
+    return publicUrl;
+  }
+
+  async deleteAvatar(profileId: string): Promise<void> {
+    const { data: existingFiles } = await supabaseAdmin.storage
+      .from(AVATAR_BUCKET_ID)
+      .list(profileId);
+
+    if (existingFiles && existingFiles.length > 0) {
+      const filesToRemove = existingFiles.map((f) => `${profileId}/${f.name}`);
+      await supabaseAdmin.storage.from(AVATAR_BUCKET_ID).remove(filesToRemove);
+    }
+  }
+
   async getSignedUrl(path: string, expiresInSeconds = 3600): Promise<string | null> {
     const { data } = await supabaseAdmin.storage
       .from(BUCKET_ID)
@@ -101,9 +166,10 @@ export class PeopleStorageService {
     mimetype: string,
     allowedTypes: string[],
     message: string,
+    maxSize: number = MAX_FILE_SIZE_BYTES,
   ): void {
-    if (buffer.length > MAX_FILE_SIZE_BYTES) {
-      throw new Error(`File exceeds maximum size of ${MAX_FILE_SIZE_BYTES / 1024 / 1024}MB`);
+    if (buffer.length > maxSize) {
+      throw new Error(`File exceeds maximum size of ${maxSize / 1024 / 1024}MB`);
     }
     if (!allowedTypes.includes(mimetype)) {
       throw new Error(message);
