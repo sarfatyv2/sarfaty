@@ -34,6 +34,7 @@ interface CollaboratorData {
   roleLevel: string | null;
   company: string;
   branch: string | null;
+  managerId: string | null;
   startDateOriginal: string | null;
   registrationNumber: string | null;
   badgeNumber: string | null;
