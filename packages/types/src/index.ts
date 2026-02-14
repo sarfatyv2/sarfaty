@@ -41,3 +41,9 @@ export {
   type QuizQuestion,
   type LessonMaterial,
 } from './learning';
+export {
+  NOTIFICATION_TYPES,
+  type NotificationType,
+  type NotificationEventType,
+  type NotificationEventPayload,
+} from './notification';

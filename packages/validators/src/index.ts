@@ -50,6 +50,12 @@ export {
   type ListClientsQueryDto,
 } from './client.schema';
 
+// Notification schemas
+export {
+  listNotificationsQuerySchema,
+  type ListNotificationsQueryDto,
+} from './notification.schema';
+
 // Learning schemas
 export {
   createCourseSchema,

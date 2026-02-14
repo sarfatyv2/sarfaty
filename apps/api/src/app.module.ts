@@ -1,4 +1,5 @@
 import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -18,9 +19,11 @@ import { UsersModule } from './modules/users/users.module';
 import { PeopleModule } from './modules/people/people.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { LearningModule } from './modules/learning/learning.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot({ wildcard: true }),
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     LoggerModule.forRoot({
@@ -41,6 +44,7 @@ import { LearningModule } from './modules/learning/learning.module';
     PeopleModule,
     ClientsModule,
     LearningModule,
+    NotificationsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
