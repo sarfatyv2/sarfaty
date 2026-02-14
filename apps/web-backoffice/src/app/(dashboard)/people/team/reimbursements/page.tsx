@@ -24,6 +24,9 @@ interface Reimbursement {
   status: string;
   receiptFileName: string | null;
   receiptPath: string | null;
+  rejectionReason: string | null;
+  rejectedBy: string | null;
+  rejectedAt: string | null;
   approvedBy: string | null;
   [key: string]: unknown;
 }
