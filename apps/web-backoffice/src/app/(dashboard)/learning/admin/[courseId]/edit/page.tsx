@@ -47,6 +47,11 @@ const ROLE_LABELS: Record<string, string> = {
   admin: 'Administrador',
 };
 
+interface Material {
+  name: string;
+  storagePath: string;
+}
+
 interface Module {
   id: string;
   title: string;
@@ -54,9 +59,11 @@ interface Module {
   lessons: {
     id: string;
     title: string;
+    description: string | null;
     youtubeVideoId: string;
     durationSeconds: number;
     sortOrder: number;
+    materials: Material[] | null;
     quiz: unknown;
   }[];
 }
