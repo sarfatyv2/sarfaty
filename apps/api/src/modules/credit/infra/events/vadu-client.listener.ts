@@ -2,7 +2,7 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { eq } from 'drizzle-orm';
 import { SyncVaduClientUseCase } from '../../use-cases/sync-vadu-client.use-case';
-import { ClientSubmittedEvent } from '../../../notifications/domain/events/client-events';
+import { ClientSubmittedEvent, ClientCreatedEvent } from '../../../notifications/domain/events/client-events';
 import { DRIZZLE, type DrizzleDB } from '../../../../database/database.module';
 import { clients, clientAuthorizedPersons } from '../../../../database/schema';
 
@@ -16,9 +16,10 @@ export class VaduClientListener {
     private readonly syncVaduClientUseCase: SyncVaduClientUseCase,
   ) {}
 
+  @OnEvent(ClientCreatedEvent.EVENT_NAME, { async: true })
   @OnEvent(ClientSubmittedEvent.EVENT_NAME, { async: true })
-  async handleClientSubmittedEvent(event: ClientSubmittedEvent): Promise<void> {
-    this.logger.log(`Handling ClientSubmittedEvent for client ${event.clientId}`);
+  async handleClientSyncEvent(event: ClientCreatedEvent | ClientSubmittedEvent): Promise<void> {
+    this.logger.log(`Handling Vadu sync event for client ${event.clientId}`);
 
     try {
       // 1. Fetch client CNPJ
