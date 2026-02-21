@@ -97,3 +97,4 @@ export { learningLessonCompletions } from './learning-lesson-completions';
 // Vadu
 export { vaduCompanyResults } from './vadu-company-results';
 export { vaduPersonResults } from './vadu-person-results';
+export { creditboxReports } from './creditbox-reports';

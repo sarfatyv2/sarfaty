@@ -29,6 +29,7 @@ import { ClientContactsTab } from './tabs/client-contacts-tab';
 import { ClientAddressesTab } from './tabs/client-addresses-tab';
 import { ClientBankAccountsTab } from './tabs/client-bank-accounts-tab';
 import { ClientAuthorizedPersonsTab } from './tabs/client-authorized-persons-tab';
+import { ClientCreditAnalysisTab } from './tabs/client-credit-analysis-tab';
 
 interface ClientData {
   id: string;
@@ -192,6 +193,7 @@ export function ClientDetail({ client, segmentName, productName }: ClientDetailP
       <Tabs defaultValue="dados">
         <TabsList>
           <TabsTrigger value="dados">Dados</TabsTrigger>
+          <TabsTrigger value="bureau">Bureau</TabsTrigger>
           <TabsTrigger value="documentos">Documentos</TabsTrigger>
           <TabsTrigger value="contatos">Contatos</TabsTrigger>
           <TabsTrigger value="enderecos">Endereços</TabsTrigger>
@@ -251,6 +253,10 @@ export function ClientDetail({ client, segmentName, productName }: ClientDetailP
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="bureau" className="mt-4">
+          <ClientCreditAnalysisTab clientId={client.id} />
         </TabsContent>
 
         <TabsContent value="documentos" className="mt-4">

@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { env } from '../../../../config/env';
 
 export interface VaduAuthResult {
   token: string;
@@ -34,14 +35,17 @@ export class VaduAdapter {
       return this.cachedToken;
     }
 
-    const apiKey = process.env['VADU_API_KEY'];
-    if (!apiKey) throw new Error('VADU_API_KEY is not configured');
+    const apiKey = env.VADU_API_KEY;
+    if (!apiKey || apiKey === 'dummy') throw new Error('VADU_API_KEY is not configured');
     
+    // Strip surrounding quotes if present
+    const cleanApiKey = apiKey.replace(/^"|"$/g, '');
+
     this.logger.debug('Fetching new Vadu token');
     const response = await fetch(`${this.baseUrl}/Autenticacao/JSONPegarToken`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${cleanApiKey}`,
       },
     });
 
@@ -53,9 +57,19 @@ export class VaduAdapter {
     // Usually Vadu responds with the token in the body as plain text or JSON
     const text = await response.text();
     let token = text.trim();
-    // Remove quotes if the API returned a quoted string JSON
-    if (token.startsWith('"') && token.endsWith('"')) {
-      token = token.slice(1, -1);
+    
+    try {
+      if (token.startsWith('{')) {
+        const json = JSON.parse(token);
+        if (json.token) {
+          token = json.token;
+        }
+      } else if (token.startsWith('"') && token.endsWith('"')) {
+        // Remove quotes if the API returned a quoted string JSON
+        token = token.slice(1, -1);
+      }
+    } catch (e) {
+      // Ignore parse errors, fallback to raw text
     }
 
     this.cachedToken = token;
