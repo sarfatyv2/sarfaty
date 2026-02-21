@@ -25,6 +25,10 @@ import {
 } from '@nexus/utils';
 import type { DocumentChecklistItem, CanSubmitResult } from '@nexus/types';
 import { DocumentChecklist } from '../../new/_components/document-checklist';
+import { ClientContactsTab } from './tabs/client-contacts-tab';
+import { ClientAddressesTab } from './tabs/client-addresses-tab';
+import { ClientBankAccountsTab } from './tabs/client-bank-accounts-tab';
+import { ClientAuthorizedPersonsTab } from './tabs/client-authorized-persons-tab';
 
 interface ClientData {
   id: string;
@@ -189,6 +193,10 @@ export function ClientDetail({ client, segmentName, productName }: ClientDetailP
         <TabsList>
           <TabsTrigger value="dados">Dados</TabsTrigger>
           <TabsTrigger value="documentos">Documentos</TabsTrigger>
+          <TabsTrigger value="contatos">Contatos</TabsTrigger>
+          <TabsTrigger value="enderecos">Endereços</TabsTrigger>
+          <TabsTrigger value="contas">Contas Bancárias</TabsTrigger>
+          <TabsTrigger value="pessoas">Pessoas Autorizadas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados" className="space-y-6 mt-4">
@@ -287,6 +295,22 @@ export function ClientDetail({ client, segmentName, productName }: ClientDetailP
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="contatos" className="mt-4">
+          <ClientContactsTab clientId={client.id} />
+        </TabsContent>
+
+        <TabsContent value="enderecos" className="mt-4">
+          <ClientAddressesTab clientId={client.id} />
+        </TabsContent>
+
+        <TabsContent value="contas" className="mt-4">
+          <ClientBankAccountsTab clientId={client.id} />
+        </TabsContent>
+
+        <TabsContent value="pessoas" className="mt-4">
+          <ClientAuthorizedPersonsTab clientId={client.id} />
         </TabsContent>
       </Tabs>
     </div>

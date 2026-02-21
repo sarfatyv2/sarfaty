@@ -1,6 +1,6 @@
 # Status do Projeto — Plataforma Sarfaty
 
-**Última atualização:** 13 de Fevereiro de 2026  
+**Última atualização:** 20 de Fevereiro de 2026  
 **Referência rápida para contexto do projeto**
 
 ---
@@ -86,11 +86,14 @@ sarfaty/
 | `people/collaborators` | `GET/PATCH /api/people/collaborators`, `GET/POST/DELETE /api/people/collaborators/:id/dependents`, `GET/PATCH /api/people/me` | Listagem, detalhe, edição (CLT/PJ), dependentes, visibilidade por role |
 | `people/reimbursements` | `GET/POST/PATCH /api/people/reimbursements`, `POST :id/upload`, `POST :id/approve`, `POST :id/reject`, `POST :id/pay` | Fluxo colaborador → gestor → DP; upload comprovante; visibilidade por role |
 | `people/invoices` | `GET /api/people/invoices`, `GET /overdue`, `POST :id/upload`, `POST :id/approve`, `POST :id/reject`, `POST :id/pay`, `POST /generate-monthly`, `POST /send-reminders` | NF PJ mensal; CRON dia 20; aprovação/pagamento DP |
-| `clients` | `POST/GET/PATCH /api/clients`, `POST :id/submit`, `GET/POST/DELETE :id/documents`, `GET :id/documents/checklist`, `GET :id/documents/can-submit` | CRUD cliente + submit + checklist dinâmico + upload docs |
+| `clients` | `POST/GET/PATCH /api/clients`, `POST :id/submit`, `GET/POST/DELETE :id/documents`, `GET :id/documents/checklist`, `GET :id/documents/can-submit`, `GET/POST/PATCH/DELETE :id/contacts`, `GET/POST/PATCH/DELETE :id/addresses`, `GET/POST/PATCH/DELETE :id/bank-accounts`, `GET/POST/PATCH/DELETE :id/authorized-persons` | CRUD cliente + submit + checklist + docs + sub-resources (contatos, endereços, contas bancárias, pessoas autorizadas) |
 | `cnpj` | `GET /api/cnpj/:cnpj/validate` | Validação CNPJ via BrasilAPI + sugestão de segmento |
 | `segments` | `GET /api/segments`, `GET /credit-products`, `GET /guarantee-types` | Lookup de segmentos, produtos e garantias |
+| `drawees` | `POST/GET/PATCH /api/drawees`, `GET/POST/PATCH/DELETE :id/contacts`, `GET/POST/PATCH/DELETE :id/addresses`, `GET/POST/PATCH/DELETE :id/bank-accounts` | CRUD sacados (PJ e PF) + sub-resources |
+| `goals` | `POST/GET/PATCH/DELETE /api/goals`, `GET /api/goals/ranking` | CRUD metas comerciais (individual/equipe/região) + ranking |
+| `pipeline` | `GET /api/pipeline`, `GET /api/pipeline/metrics` | Listagem do funil + métricas por fase |
 
-**Database — 16 schemas Drizzle (módulo People) + 14 schemas (módulo Comercial):**
+**Database — 72 schemas Drizzle:**
 
 | # | Schema | Tabela | Módulo |
 |---|--------|--------|--------|
@@ -119,11 +122,53 @@ sarfaty/
 | 23 | `product-document-templates.ts` | `product_document_templates` | Comercial |
 | 24 | `guarantee-document-templates.ts` | `guarantee_document_templates` | Comercial |
 | 25 | `cnae-segment-mapping.ts` | `cnae_segment_mapping` | Comercial |
-| 26 | `clients.ts` | `clients` | Comercial |
+| 26 | `clients.ts` | `clients` (enriquecida com 18 campos PJ/compliance) | Comercial |
 | 27 | `client-guarantees.ts` | `client_guarantees` | Comercial |
 | 28 | `client-documents.ts` | `client_documents` | Comercial |
 | 29 | `client-status-history.ts` | `client_status_history` | Comercial |
-| 30 | `notifications.ts` | `notifications` | Comercial |
+| 30 | `client-contacts.ts` | `client_contacts` | Comercial |
+| 31 | `client-addresses.ts` | `client_addresses` | Comercial |
+| 32 | `client-bank-accounts.ts` | `client_bank_accounts` | Comercial |
+| 33 | `client-authorized-persons.ts` | `client_authorized_persons` | Comercial |
+| 34 | `sales-goals.ts` | `sales_goals` (individual/equipe/região) | Comercial |
+| 35 | `notifications.ts` | `notifications` | Comercial |
+| 36 | `drawees.ts` | `drawees` (PJ e PF) | Sacados |
+| 37 | `drawee-contacts.ts` | `drawee_contacts` | Sacados |
+| 38 | `drawee-addresses.ts` | `drawee_addresses` (com campos billing legados) | Sacados |
+| 39 | `drawee-bank-accounts.ts` | `drawee_bank_accounts` | Sacados |
+| 40 | `drawee-documents.ts` | `drawee_documents` | Sacados |
+| 41 | `drawee-groups.ts` | `drawee_groups` (Drawee ↔ EconomicGroup) | Sacados |
+| 42 | `drawee-enabled-products.ts` | `drawee_enabled_products` | Sacados |
+| 43 | `economic-groups.ts` | `economic_groups` | Grupos Econômicos |
+| 44 | `economic-group-members.ts` | `economic_group_members` (FK clients) | Grupos Econômicos |
+| 45 | `economic-group-persons.ts` | `economic_group_persons` | Grupos Econômicos |
+| 46 | `economic-group-bank-accounts.ts` | `economic_group_bank_accounts` | Grupos Econômicos |
+| 47 | `financial-accounts.ts` | `financial_accounts` (FK clients) | Financeiro |
+| 48 | `financial-event-types.ts` | `financial_event_types` (lookup) | Financeiro |
+| 49 | `financial-transactions.ts` | `financial_transactions` | Financeiro |
+| 50 | `financial-pendencies.ts` | `financial_pendencies` | Financeiro |
+| 51 | `financial-settlements.ts` | `financial_settlements` | Financeiro |
+| 52 | `portfolio-positions.ts` | `portfolio_positions` (posições de fundo) | Portfólio |
+| 53 | `market-rates.ts` | `market_rates` (CDI, SELIC, IPCA) | Portfólio |
+| 54 | `debenture-issuers.ts` | `debenture_issuers` | Debêntures |
+| 55 | `debenture-issuances.ts` | `debenture_issuances` | Debêntures |
+| 56 | `debenture-series.ts` | `debenture_series` | Debêntures |
+| 57 | `debenture-subscriptions.ts` | `debenture_subscriptions` (FK clients) | Debêntures |
+| 58 | `debenture-valuations.ts` | `debenture_valuations` (cálculo diário) | Debêntures |
+| 59 | `debenture-redemptions.ts` | `debenture_redemptions` | Debêntures |
+| 60 | `suppliers.ts` | `suppliers` (PJ e PF) | Fornecedores |
+| 61 | `supplier-contacts.ts` | `supplier_contacts` | Fornecedores |
+| 62 | `supplier-addresses.ts` | `supplier_addresses` | Fornecedores |
+| 63 | `supplier-bank-accounts.ts` | `supplier_bank_accounts` | Fornecedores |
+| 64 | `supplier-documents.ts` | `supplier_documents` | Fornecedores |
+| 65 | `vadu-company-results.ts` | `vadu_company_results` (resultado CNPJ) | Integrações |
+| 66 | `vadu-person-results.ts` | `vadu_person_results` (resultado CPF) | Integrações |
+| 67 | `audit.ts` | `audit_logs` | Core |
+| 68 | `learning-courses.ts` | `learning_courses` | Learning |
+| 69 | `learning-modules.ts` | `learning_modules` | Learning |
+| 70 | `learning-lessons.ts` | `learning_lessons` | Learning |
+| 71 | `learning-enrollments.ts` | `learning_enrollments` | Learning |
+| 72 | `learning-lesson-completions.ts` | `learning_lesson_completions` | Learning |
 
 **Env vars do backend:** `NODE_ENV`, `PORT` (4000), `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CORS_ORIGINS`.
 
@@ -162,6 +207,18 @@ src/app/
     │       └── invoices/
     │           ├── page.tsx           # Notas Fiscais PJ
     │           └── overdue/page.tsx   # NFs atrasadas
+    ├── clients/
+    │   ├── page.tsx                   # Lista de clientes (cards + pipeline summary)
+    │   ├── new/page.tsx               # Formulário multi-step (3 etapas)
+    │   └── [id]/page.tsx              # Detalhe + tabs (Dados, Documentos, Contatos, Endereços, Contas, Pessoas Autorizadas)
+    ├── drawees/
+    │   ├── page.tsx                   # Lista de sacados (com filtro PJ/PF)
+    │   ├── new/page.tsx               # Formulário multi-step PJ/PF
+    │   └── [id]/page.tsx              # Detalhe + tabs (Dados, Contatos, Endereços, Contas Bancárias)
+    ├── pipeline/
+    │   └── page.tsx                   # Board kanban + métricas por fase
+    ├── goals/
+    │   └── page.tsx                   # Dashboard de metas (progress cards, ranking, tabela)
     └── [...slug]/page.tsx              # Catch-all "em construção"
 ```
 
@@ -176,9 +233,21 @@ src/app/
 **`@nexus/types`** — 18 roles definidos:
 `sales_rep`, `sales_supervisor`, `sales_manager`, `sales_director`, `credit_analyst`, `compliance_officer`, `approver`, `backoffice`, `legal`, `risk_manager`, `recovery`, `litigation`, `employee`, `people_manager`, `hr`, `dp`, `hr_admin`, `admin`
 
-**`@nexus/types` — ROLE_PERMISSIONS:** Mapa completo com sidebar, dashboardModules, clientTabs, clientActions, globalActions e notifications para cada role.
+**`@nexus/types` — ROLE_PERMISSIONS:** Mapa completo com sidebar (inclui "Sacados" para roles comerciais/crédito), dashboardModules, clientTabs, clientActions, globalActions e notifications para cada role.
 
-**`@nexus/validators`** — Schemas: `loginSchema`, `createUserSchema`, `createCollaboratorSchema`, `updateCollaboratorSchema`, `updateCollaboratorAdminSchema`, `listCollaboratorsQuerySchema`, `paginationQuerySchema`, `emailSchema`, `cpfSchema`, `cnpjSchema`, `phoneSchema`, `uuidSchema`, `dateStringSchema`, `createClientSchema`, `updateClientSchema`, `uploadDocumentSchema`, `listClientsQuerySchema`.
+**`@nexus/types` — Novos types adicionados:**
+- `client-extended.ts`: `ClientContact`, `ClientAddress`, `ClientBankAccount`, `ClientAuthorizedPerson`
+- `drawee.ts`: `PersonType`, `Drawee`, `DraweeContact`, `DraweeAddress`, `DraweeBankAccount`, `DraweeDocument`
+- `goal.ts`: `Goal`, `GoalScope`
+- `pipeline.ts`: `PipelineMetrics`, `PipelineClient`
+
+**`@nexus/validators`** — Schemas: `loginSchema`, `createUserSchema`, `createCollaboratorSchema`, `updateCollaboratorSchema`, `updateCollaboratorAdminSchema`, `listCollaboratorsQuerySchema`, `paginationQuerySchema`, `emailSchema`, `cpfSchema`, `cnpjSchema`, `phoneSchema`, `uuidSchema`, `dateStringSchema`, `createClientSchema`, `updateClientSchema` (estendido com campos PJ/compliance), `uploadDocumentSchema`, `listClientsQuerySchema`.
+
+**`@nexus/validators` — Novos schemas adicionados:**
+- `client-sub-resources.schema.ts`: `createClientContactSchema`, `createClientAddressSchema`, `createClientBankAccountSchema`, `createClientAuthorizedPersonSchema` (e variantes `update`)
+- `drawee.schema.ts`: `createDraweeSchema` (com superRefine PJ/PF), `updateDraweeSchema`, `listDraweesQuerySchema`, `createDraweeContactSchema`, `createDraweeAddressSchema`, `createDraweeBankAccountSchema`
+- `goal.schema.ts`: `createGoalSchema`, `updateGoalSchema`, `listGoalsQuerySchema`
+- `pipeline.schema.ts`: `pipelineQuerySchema`
 
 **`@nexus/ui`** — 16+ componentes: Button, Input, Label, Card, Badge, Avatar, Separator, Skeleton, Dialog, Sheet, Select, ScrollArea, Switch, Table, Tabs, Textarea, Sonner (toast). Ver `design-system-ui-melhorias.md` para layout responsivo e tokens de design.
 
@@ -186,7 +255,7 @@ src/app/
 
 ### 4.4 Banco de Dados e Storage (Supabase)
 
-- 16 tabelas People + 14 tabelas Comercial + 1 view (`collaborators_with_computed`) + trigger `on_auth_user_created`
+- 72 tabelas (16 People + 35 Comercial/Sacados + 4 Grupos Econômicos + 5 Financeiro + 2 Portfólio + 6 Debêntures + 5 Fornecedores + 2 Integrações + 1 Core + 5 Learning) + 1 view (`collaborators_with_computed`) + trigger `on_auth_user_created`
 - **Não existe signup público** — todo acesso criado por admin/RH
 - Cadeia: `auth.users` -> trigger -> `profiles` -> `collaborators`
 - **RLS policies (tabelas):** NENHUMA criada ainda
@@ -223,9 +292,17 @@ src/app/
 - [x] Supabase Storage: bucket `client-documents` com RLS
 - [x] Tipos compartilhados (`@nexus/types` — `ClientStatus`, `DocumentChecklistItem`, `BASE_DOCUMENT_TYPES`, etc.)
 - [x] Schemas Zod compartilhados (`@nexus/validators` — `createClientSchema`, `uploadDocumentSchema`, etc.)
-- [ ] Módulo NestJS `pipeline` — métricas do funil (materialized view)
-- [ ] Módulo NestJS `goals` — metas individuais/equipe/região + trigger de atualização
-- [ ] Frontend: lista de clientes, cadastro step 1-2-3, checklist dinâmico, pipeline kanban/funil, metas, atividades
+- [x] Client enrichment PJ — 18 novos campos na entity `Client` e schema `clients` (inscrições, datas, compliance, grupo econômico, legados)
+- [x] Client sub-resources — contatos, endereços, contas bancárias e pessoas autorizadas (DDD completo + endpoints CRUD)
+- [x] Módulo NestJS `drawees` — CRUD sacados PJ/PF + sub-resources (contacts, addresses, bank accounts)
+- [x] Módulo NestJS `pipeline` — listagem do funil + métricas por fase
+- [x] Módulo NestJS `goals` — metas individuais/equipe/região + ranking
+- [x] Frontend: lista de clientes, cadastro step 1-2-3, checklist dinâmico (completo)
+- [x] Frontend: detalhe de cliente com tabs (Dados, Documentos, Contatos, Endereços, Contas, Pessoas Autorizadas)
+- [x] Frontend: módulo sacados (lista, cadastro multi-step PJ/PF, detalhe com tabs)
+- [x] Frontend: pipeline (board kanban + métricas)
+- [x] Frontend: goals (dashboard com progress cards, ranking, tabela)
+- [ ] Frontend: atividades comerciais
 
 **Módulo People (spec: `spec_modulo_people.md`, impl: `people_implementacao.md`):**
 
@@ -344,12 +421,12 @@ O frontend consome esse mapa e renderiza por composição — zero condicionais 
 | `sprint_0_entrega.md` | Tudo que foi entregue no Sprint 0 | ~480 |
 | `arquitetura_sistema_plataforma_credito.md` | Arquitetura completa, decisões, diagramas, workflows Temporal, adapters, deploy | ~1390 |
 | `spec_tecnico_modulo_comercial.md` | Módulo comercial: tabelas, RLS, fluxo, checklist dinâmico, pipeline, metas, endpoints | ~1800 |
-| `comercial_implementacao.md` | Implementação comercial: tabelas, schemas, módulo NestJS clients, endpoints, checklist, CNPJ | ~250 |
+| `comercial_implementacao.md` | Implementação comercial: clients (enriquecido + sub-resources), drawees, goals, pipeline | ~250 |
 | `spec_modulo_people.md` | Módulo People: tabelas, RLS, fluxos (reembolso, NF, onboarding, avaliação), dashboards, endpoints | ~1430 |
 | `people_implementacao.md` | Implementação colaboradores: tabs (Dados/Editar/Dependentes), CLT/PJ, máscaras, layout scroll | ~180 |
 | `spec_ux_interface_adaptativa.md` | ROLE_PERMISSIONS completo, sidebar, dashboard modules, abas, ações, notificações | ~1260 |
 | `seguranca.md` | Segurança: SAST, DAST, SCA, secret scanning, hardening, RLS, CI/CD security pipeline | ~390 |
-| `dicionario_dados.md` | Dicionário de dados: todas as 36 tabelas, colunas, tipos, constraints, FKs, RLS, diagrama ER | ~750 |
+| `dicionario_dados.md` | Dicionário de dados: todas as 72 tabelas, colunas, tipos, constraints, FKs, RLS, diagrama ER | ~750 |
 | `audit_trail.md` | Sistema de auditoria centralizado: interceptor, tabela, correlação | ~300 |
 
 ---

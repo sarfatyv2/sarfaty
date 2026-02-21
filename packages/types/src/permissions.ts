@@ -40,6 +40,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Dashboard', icon: 'LayoutDashboard', route: '/dashboard' },
           { label: 'Meus Clientes', icon: 'Users', route: '/clients' },
+          { label: 'Sacados', icon: 'Building2', route: '/drawees' },
           { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
           { label: 'Atividades', icon: 'Calendar', route: '/activities' },
           { label: 'Minha Meta', icon: 'Target', route: '/goals' },
@@ -95,6 +96,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Dashboard', icon: 'LayoutDashboard', route: '/dashboard' },
           { label: 'Clientes', icon: 'Users', route: '/clients' },
+          { label: 'Sacados', icon: 'Building2', route: '/drawees' },
           { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
           { label: 'Atividades', icon: 'Calendar', route: '/activities' },
         ],
@@ -157,6 +159,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Dashboard', icon: 'LayoutDashboard', route: '/dashboard' },
           { label: 'Clientes', icon: 'Users', route: '/clients' },
+          { label: 'Sacados', icon: 'Building2', route: '/drawees' },
           { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
         ],
       },
@@ -218,6 +221,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Dashboard', icon: 'LayoutDashboard', route: '/dashboard' },
           { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
           { label: 'Clientes', icon: 'Users', route: '/clients' },
+          { label: 'Sacados', icon: 'Building2', route: '/drawees' },
         ],
       },
       {
@@ -270,6 +274,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         section: 'Crédito',
         items: [
           { label: 'Fila de Análise', icon: 'ClipboardList', route: '/credit/queue' },
+          { label: 'Sacados', icon: 'Building2', route: '/drawees' },
           { label: 'Relatórios', icon: 'FileText', route: '/credit/reports' },
           { label: 'Histórico', icon: 'History', route: '/credit/history' },
         ],
@@ -913,6 +918,8 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Visão Geral', icon: 'LayoutDashboard', route: '/admin/overview' },
           { label: 'Usuários', icon: 'Users', route: '/admin/users' },
+          { label: 'Clientes', icon: 'Users', route: '/clients' },
+          { label: 'Sacados', icon: 'Building2', route: '/drawees' },
           { label: 'Regiões', icon: 'Globe', route: '/admin/regions' },
           { label: 'Equipes', icon: 'UsersRound', route: '/admin/teams' },
         ],

@@ -32,6 +32,20 @@ export {
   CONDITIONAL_DOCUMENT_TYPES,
 } from './client';
 export {
+  type ClientContact,
+  type ClientAddress,
+  type ClientBankAccount,
+  type ClientAuthorizedPerson,
+} from './client-extended';
+export {
+  type PersonType,
+  type Drawee,
+  type DraweeContact,
+  type DraweeAddress,
+  type DraweeBankAccount,
+  type DraweeDocument,
+} from './drawee';
+export {
   COURSE_STATUSES,
   type CourseStatus,
   ENROLLMENT_STATUSES,
@@ -47,3 +61,16 @@ export {
   type NotificationEventType,
   type NotificationEventPayload,
 } from './notification';
+export {
+  GOAL_LEVELS,
+  type GoalLevel,
+  type SalesGoal,
+  type GoalWithDetails,
+  type RankingEntry,
+} from './goal';
+export {
+  FUNNEL_STAGES,
+  type FunnelStage,
+  type FunnelStageData,
+  type PipelineMetrics,
+} from './pipeline';

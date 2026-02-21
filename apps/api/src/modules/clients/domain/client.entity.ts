@@ -1,10 +1,13 @@
 import { type ClientStatus, EDITABLE_STATUSES } from '@nexus/types';
 import { InvalidStatusTransitionException } from './exceptions/invalid-status-transition.exception';
 
+export type RegistrationStatus = 'prospect' | 'active' | 'inactive' | 'blocked' | 'closed';
+
 export interface ClientProps {
   id: string;
   companyName: string;
-  cnpj: string;
+  cnpj: string | null;
+  cnpjRoot: string | null;
   tradeName: string | null;
   segmentId: string;
   phone: string;
@@ -23,6 +26,24 @@ export interface ClientProps {
   isJudicialRecovery: boolean;
   workingCapitalNotes: unknown;
   status: ClientStatus;
+  registrationStatus: RegistrationStatus;
+  stateRegistration: string | null;
+  cityRegistration: string | null;
+  foundedAt: string | null;
+  establishedAt: string | null;
+  closedAt: Date | null;
+  closureReason: string | null;
+  isPep: boolean;
+  isPepRelated: boolean;
+  isOfacListed: boolean;
+  hasRiskProfession: boolean;
+  hasRiskActivity: boolean;
+  hasRiskCity: boolean;
+  riskRating: string | null;
+  revenueSituation: string | null;
+  economicGroupId: string | null;
+  legacySgsId: number | null;
+  legacyNfId: number | null;
   assignedTo: string;
   teamId: string | null;
   regionId: string | null;
@@ -38,7 +59,8 @@ export interface ClientProps {
 export class Client {
   readonly id: string;
   readonly companyName: string;
-  readonly cnpj: string;
+  readonly cnpj: string | null;
+  readonly cnpjRoot: string | null;
   readonly tradeName: string | null;
   readonly segmentId: string;
   readonly phone: string;
@@ -57,6 +79,24 @@ export class Client {
   readonly isJudicialRecovery: boolean;
   readonly workingCapitalNotes: unknown;
   readonly status: ClientStatus;
+  readonly registrationStatus: RegistrationStatus;
+  readonly stateRegistration: string | null;
+  readonly cityRegistration: string | null;
+  readonly foundedAt: string | null;
+  readonly establishedAt: string | null;
+  readonly closedAt: Date | null;
+  readonly closureReason: string | null;
+  readonly isPep: boolean;
+  readonly isPepRelated: boolean;
+  readonly isOfacListed: boolean;
+  readonly hasRiskProfession: boolean;
+  readonly hasRiskActivity: boolean;
+  readonly hasRiskCity: boolean;
+  readonly riskRating: string | null;
+  readonly revenueSituation: string | null;
+  readonly economicGroupId: string | null;
+  readonly legacySgsId: number | null;
+  readonly legacyNfId: number | null;
   readonly assignedTo: string;
   readonly teamId: string | null;
   readonly regionId: string | null;
@@ -72,6 +112,7 @@ export class Client {
     this.id = props.id;
     this.companyName = props.companyName;
     this.cnpj = props.cnpj;
+    this.cnpjRoot = props.cnpjRoot;
     this.tradeName = props.tradeName;
     this.segmentId = props.segmentId;
     this.phone = props.phone;
@@ -90,6 +131,24 @@ export class Client {
     this.isJudicialRecovery = props.isJudicialRecovery;
     this.workingCapitalNotes = props.workingCapitalNotes;
     this.status = props.status;
+    this.registrationStatus = props.registrationStatus;
+    this.stateRegistration = props.stateRegistration;
+    this.cityRegistration = props.cityRegistration;
+    this.foundedAt = props.foundedAt;
+    this.establishedAt = props.establishedAt;
+    this.closedAt = props.closedAt;
+    this.closureReason = props.closureReason;
+    this.isPep = props.isPep;
+    this.isPepRelated = props.isPepRelated;
+    this.isOfacListed = props.isOfacListed;
+    this.hasRiskProfession = props.hasRiskProfession;
+    this.hasRiskActivity = props.hasRiskActivity;
+    this.hasRiskCity = props.hasRiskCity;
+    this.riskRating = props.riskRating;
+    this.revenueSituation = props.revenueSituation;
+    this.economicGroupId = props.economicGroupId;
+    this.legacySgsId = props.legacySgsId;
+    this.legacyNfId = props.legacyNfId;
     this.assignedTo = props.assignedTo;
     this.teamId = props.teamId;
     this.regionId = props.regionId;
@@ -102,7 +161,7 @@ export class Client {
     this.homologatedAt = props.homologatedAt;
   }
 
-  static create(props: Omit<ClientProps, 'id' | 'status' | 'approvedAmount' | 'createdAt' | 'updatedAt' | 'submittedAt' | 'approvedAt' | 'homologatedAt'> & { id?: string }): Client {
+  static create(props: Omit<ClientProps, 'id' | 'status' | 'registrationStatus' | 'approvedAmount' | 'createdAt' | 'updatedAt' | 'submittedAt' | 'approvedAt' | 'homologatedAt'> & { id?: string }): Client {
     Client.validateCompanyName(props.companyName);
     Client.validateEmail(props.email);
 
@@ -110,6 +169,7 @@ export class Client {
       ...props,
       id: props.id ?? '',
       status: 'draft',
+      registrationStatus: 'prospect',
       approvedAmount: null,
       createdAt: null,
       updatedAt: null,
@@ -151,6 +211,7 @@ export class Client {
       id: this.id,
       companyName: this.companyName,
       cnpj: this.cnpj,
+      cnpjRoot: this.cnpjRoot,
       tradeName: this.tradeName,
       segmentId: this.segmentId,
       phone: this.phone,
@@ -169,6 +230,24 @@ export class Client {
       isJudicialRecovery: this.isJudicialRecovery,
       workingCapitalNotes: this.workingCapitalNotes,
       status: this.status,
+      registrationStatus: this.registrationStatus,
+      stateRegistration: this.stateRegistration,
+      cityRegistration: this.cityRegistration,
+      foundedAt: this.foundedAt,
+      establishedAt: this.establishedAt,
+      closedAt: this.closedAt?.toISOString() ?? null,
+      closureReason: this.closureReason,
+      isPep: this.isPep,
+      isPepRelated: this.isPepRelated,
+      isOfacListed: this.isOfacListed,
+      hasRiskProfession: this.hasRiskProfession,
+      hasRiskActivity: this.hasRiskActivity,
+      hasRiskCity: this.hasRiskCity,
+      riskRating: this.riskRating,
+      revenueSituation: this.revenueSituation,
+      economicGroupId: this.economicGroupId,
+      legacySgsId: this.legacySgsId,
+      legacyNfId: this.legacyNfId,
       assignedTo: this.assignedTo,
       teamId: this.teamId,
       regionId: this.regionId,

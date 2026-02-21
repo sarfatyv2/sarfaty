@@ -31,7 +31,61 @@ export { clients } from './clients';
 export { clientGuarantees } from './client-guarantees';
 export { clientDocuments } from './client-documents';
 export { clientStatusHistory } from './client-status-history';
+export { clientContacts } from './client-contacts';
+export { clientAddresses } from './client-addresses';
+export { clientBankAccounts } from './client-bank-accounts';
+export { clientAuthorizedPersons } from './client-authorized-persons';
 export { notifications } from './notifications';
+
+// Entity Registry
+export { economicGroups } from './economic-groups';
+export { economicGroupMembers } from './economic-group-members';
+export { economicGroupPersons } from './economic-group-persons';
+export { economicGroupBankAccounts } from './economic-group-bank-accounts';
+
+// Drawees
+export { drawees } from './drawees';
+export { draweeDocuments } from './drawee-documents';
+export { draweeContacts } from './drawee-contacts';
+export { draweeAddresses } from './drawee-addresses';
+export { draweeBankAccounts } from './drawee-bank-accounts';
+export { draweeGroups } from './drawee-groups';
+export { draweeEnabledProducts } from './drawee-enabled-products';
+
+// Suppliers
+export { suppliers } from './suppliers';
+export { supplierDocuments } from './supplier-documents';
+export { supplierContacts } from './supplier-contacts';
+export { supplierAddresses } from './supplier-addresses';
+export { supplierBankAccounts } from './supplier-bank-accounts';
+
+// Financial Accounts
+export { financialEventTypes } from './financial-event-types';
+export { financialAccounts } from './financial-accounts';
+export { financialTransactions } from './financial-transactions';
+export { financialPendencies } from './financial-pendencies';
+export { financialSettlements } from './financial-settlements';
+
+// Debentures
+export { investmentAssetGroups } from './investment-asset-groups';
+export { investmentAssets } from './investment-assets';
+export { debentureIssuers } from './debenture-issuers';
+export { debentureIssuances } from './debenture-issuances';
+export { debentureSeries } from './debenture-series';
+export { debentureSubscriptions } from './debenture-subscriptions';
+export { debentureRedemptions } from './debenture-redemptions';
+export { debentureValuations } from './debenture-valuations';
+
+// Market Rates
+export { marketRates } from './market-rates';
+export { iofRates } from './iof-rates';
+export { irRates } from './ir-rates';
+
+// Portfolio
+export { portfolioPositions } from './portfolio-positions';
+
+// Goals
+export { salesGoals } from './sales-goals';
 
 // Learning
 export { learningCourses } from './learning-courses';
@@ -39,3 +93,7 @@ export { learningModules } from './learning-modules';
 export { learningLessons } from './learning-lessons';
 export { learningEnrollments } from './learning-enrollments';
 export { learningLessonCompletions } from './learning-lesson-completions';
+
+// Vadu
+export { vaduCompanyResults } from './vadu-company-results';
+export { vaduPersonResults } from './vadu-person-results';

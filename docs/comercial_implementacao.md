@@ -1,7 +1,7 @@
 # Implementação do Módulo Comercial — Cadastro de Cliente e Documentação
 
-**Versão:** 2.0  
-**Data:** 14 de Fevereiro de 2026  
+**Versão:** 3.0  
+**Data:** 20 de Fevereiro de 2026  
 **Status:** Backend + Frontend completos  
 **Referência:** `spec_tecnico_modulo_comercial.md`  
 
@@ -22,10 +22,8 @@ Este documento descreve a implementação do módulo comercial: cadastro de clie
 
 ### 1.2 Escopo Pendente
 
-- Pipeline kanban/funil (página stub criada em `/pipeline`)
-- Metas comerciais (página stub criada em `/goals`)
-- Atividades comerciais (página stub criada em `/activities`)
-- Dashboard do comercial (página stub criada em `/dashboard`)
+- Atividades comerciais (página stub em `/activities`)
+- Dashboard do comercial (página stub em `/dashboard`)
 
 ---
 
@@ -560,3 +558,230 @@ Tratamento de erros:
 | Ternários aninhados | Extraídos para funções helper (`getCircleClass`, `getLabelClass`, `getStatusBadgeVariant`) |
 | Imports não utilizados | Removidos (`Separator`, `DOCUMENT_CATEGORY_LABELS`, `EDITABLE_STATUSES`) |
 | Variáveis não utilizadas | Removidas (`canUpload`) |
+
+---
+
+## 15. Client Enrichment — Campos PJ
+
+A entity `Client` e o schema `clients` foram enriquecidos com 18 novos campos para suportar dados completos de Pessoa Jurídica, compliance e rastreabilidade legada.
+
+### 15.1 Novos campos na entity e tabela `clients`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `cnpj_root` | text \| null | Raiz do CNPJ (primeiros 8 dígitos) |
+| `state_registration` | text \| null | Inscrição Estadual |
+| `city_registration` | text \| null | Inscrição Municipal |
+| `founded_at` | date \| null | Data de fundação |
+| `established_at` | date \| null | Data de constituição |
+| `closed_at` | timestamp \| null | Data de encerramento |
+| `closure_reason` | text \| null | Motivo do encerramento |
+| `is_pep` | boolean | Sócio/representante é Pessoa Politicamente Exposta |
+| `is_pep_related` | boolean | Relacionado a PEP |
+| `is_ofac_listed` | boolean | Constante na lista OFAC |
+| `has_risk_profession` | boolean | Profissão de risco (compliance) |
+| `has_risk_activity` | boolean | Atividade econômica de risco |
+| `has_risk_city` | boolean | Município de risco |
+| `risk_rating` | text \| null | Rating de risco atribuído |
+| `revenue_situation` | text \| null | Situação de faturamento |
+| `economic_group_id` | uuid \| null | FK → `economic_groups` |
+| `legacy_sgs_id` | integer \| null | ID no sistema legado SGS |
+| `legacy_nf_id` | integer \| null | ID no sistema legado NF |
+
+### 15.2 Impacto em schemas Zod
+
+O `updateClientSchema` (`@nexus/validators`) foi estendido com todos esses campos como opcionais. O `createClientSchema` mantém apenas os campos obrigatórios de criação.
+
+### 15.3 Frontend
+
+O formulário de cadastro (`clients/new/page.tsx`) expõe campos complementares na Etapa 1: `stateRegistration`, `cityRegistration`, `foundedAt` e o switch `isPep`.
+
+---
+
+## 16. Client Sub-resources
+
+Quatro novos sub-módulos DDD foram adicionados ao módulo `clients`, cada um com entity, repository interface, repositório Drizzle, mapper, 4 use-cases (list, create, update, delete) e controller próprio.
+
+### 16.1 Estrutura adicionada em `modules/clients/`
+
+```
+clients/
+├── domain/
+│   ├── client-contact.entity.ts
+│   ├── client-contact.repository.ts
+│   ├── client-address.entity.ts
+│   ├── client-address.repository.ts
+│   ├── client-bank-account.entity.ts
+│   ├── client-bank-account.repository.ts
+│   ├── client-authorized-person.entity.ts
+│   └── client-authorized-person.repository.ts
+├── infra/
+│   ├── drizzle-client-contact.repository.ts
+│   ├── drizzle-client-address.repository.ts
+│   ├── drizzle-client-bank-account.repository.ts
+│   ├── drizzle-client-authorized-person.repository.ts
+│   └── mappers/
+│       ├── client-contact.mapper.ts
+│       ├── client-address.mapper.ts
+│       ├── client-bank-account.mapper.ts
+│       └── client-authorized-person.mapper.ts
+├── use-cases/
+│   ├── list-client-contacts.use-case.ts
+│   ├── create-client-contact.use-case.ts
+│   ├── update-client-contact.use-case.ts
+│   ├── delete-client-contact.use-case.ts
+│   └── (análogo para addresses, bank-accounts, authorized-persons)
+└── controllers/
+    ├── client-contacts.controller.ts
+    ├── client-addresses.controller.ts
+    ├── client-bank-accounts.controller.ts
+    └── client-authorized-persons.controller.ts
+```
+
+### 16.2 Endpoints
+
+| Método | Endpoint | Roles | Descrição |
+|--------|----------|-------|-----------|
+| GET | `/api/clients/:id/contacts` | sales_*, credit_analyst, admin | Listar contatos |
+| POST | `/api/clients/:id/contacts` | sales_*, admin | Criar contato |
+| PATCH | `/api/clients/:id/contacts/:subId` | sales_*, admin | Atualizar contato |
+| DELETE | `/api/clients/:id/contacts/:subId` | sales_*, admin | Remover contato |
+| GET | `/api/clients/:id/addresses` | sales_*, credit_analyst, admin | Listar endereços |
+| POST | `/api/clients/:id/addresses` | sales_*, admin | Criar endereço |
+| PATCH | `/api/clients/:id/addresses/:subId` | sales_*, admin | Atualizar endereço |
+| DELETE | `/api/clients/:id/addresses/:subId` | sales_*, admin | Remover endereço |
+| GET | `/api/clients/:id/bank-accounts` | sales_*, credit_analyst, admin | Listar contas bancárias |
+| POST | `/api/clients/:id/bank-accounts` | sales_*, admin | Criar conta bancária |
+| PATCH | `/api/clients/:id/bank-accounts/:subId` | sales_*, admin | Atualizar conta |
+| DELETE | `/api/clients/:id/bank-accounts/:subId` | sales_*, admin | Remover conta |
+| GET | `/api/clients/:id/authorized-persons` | sales_*, credit_analyst, admin | Listar pessoas autorizadas |
+| POST | `/api/clients/:id/authorized-persons` | sales_*, admin | Criar pessoa autorizada |
+| PATCH | `/api/clients/:id/authorized-persons/:subId` | sales_*, admin | Atualizar |
+| DELETE | `/api/clients/:id/authorized-persons/:subId` | sales_*, admin | Remover |
+
+### 16.3 Frontend
+
+A página de detalhe do cliente (`clients/[id]`) foi expandida com 4 novas abas: Contatos, Endereços, Contas Bancárias e Pessoas Autorizadas. Cada aba é um componente independente em `_components/tabs/` que carrega dados sob demanda e oferece dialogs de criação/edição/exclusão.
+
+---
+
+## 17. Módulo Drawees (Sacados)
+
+Módulo independente para cadastro e gestão de sacados (devedores em duplicatas/operações). Suporta Pessoa Jurídica (`company`) e Pessoa Física (`individual`).
+
+### 17.1 Contexto de Negócio
+
+O sacado é a entidade que deve pagar a duplicata ao cliente. A relação Cliente ↔ Sacado é estabelecida no nível da operação/título, não no cadastro. Um mesmo sacado pode ter duplicatas de múltiplos clientes, e seu perfil de crédito e compliance é gerenciado de forma independente.
+
+### 17.2 Estrutura DDD
+
+```
+modules/drawees/
+├── drawees.module.ts
+├── controllers/
+│   ├── drawees.controller.ts
+│   ├── drawee-contacts.controller.ts
+│   ├── drawee-addresses.controller.ts
+│   └── drawee-bank-accounts.controller.ts
+├── use-cases/
+│   ├── create-drawee.use-case.ts       # Valida CNPJ/CPF duplicado antes de criar
+│   ├── get-drawee.use-case.ts
+│   ├── list-drawees.use-case.ts
+│   └── update-drawee.use-case.ts
+├── domain/
+│   ├── drawee.entity.ts                # Suporta PJ e PF
+│   ├── drawee.repository.ts
+│   └── exceptions/
+│       ├── drawee-not-found.exception.ts
+│       └── cnpj-already-exists.exception.ts
+└── infra/
+    ├── drizzle-drawee.repository.ts
+    ├── drizzle-drawee-contact.repository.ts
+    ├── drizzle-drawee-address.repository.ts
+    ├── drizzle-drawee-bank-account.repository.ts
+    └── mappers/
+        └── drawee.mapper.ts
+```
+
+### 17.3 Campos específicos de Sacados
+
+Além dos campos comuns com Clientes (nome, CNPJ/CPF, compliance, grupo econômico), sacados têm:
+
+- **PF:** `rg`, `birth_date`, `gender`, `rg_document_id`, `cnh_document_id`
+- **Contatos extras:** `billing_email`, `xml_email` (entrega de NF-e), `billing_phone`
+- **Endereço de cobrança:** campos `billing_*` paralelos ao endereço principal (legado SGS)
+- **Habilitação por produto:** tabela `drawee_enabled_products` (FK `credit_products`)
+- **Vínculo a grupo econômico:** tabela `drawee_groups` (FK `economic_groups`)
+- **Documentos:** tabela `drawee_documents` com `extracted_data jsonb` para OCR futuro
+
+### 17.4 Endpoints
+
+| Método | Endpoint | Roles | Descrição |
+|--------|----------|-------|-----------|
+| POST | `/api/drawees` | sales_*, admin | Criar sacado |
+| GET | `/api/drawees` | sales_*, credit_analyst, admin | Listar (filtros: status, personType, search) |
+| GET | `/api/drawees/:id` | sales_*, credit_analyst, admin | Detalhe |
+| PATCH | `/api/drawees/:id` | sales_*, admin | Atualizar |
+| GET/POST/PATCH/DELETE | `/api/drawees/:id/contacts` | sales_*, credit_analyst, admin | Sub-resource contatos |
+| GET/POST/PATCH/DELETE | `/api/drawees/:id/addresses` | sales_*, credit_analyst, admin | Sub-resource endereços |
+| GET/POST/PATCH/DELETE | `/api/drawees/:id/bank-accounts` | sales_*, credit_analyst, admin | Sub-resource contas bancárias |
+
+### 17.5 Schemas de Validação (`@nexus/validators`)
+
+`createDraweeSchema` usa `superRefine` para validação condicional: CNPJ obrigatório para `personType = 'company'`, CPF obrigatório para `personType = 'individual'`.
+
+### 17.6 Frontend
+
+```
+drawees/
+├── page.tsx                       # Lista com filtros (search, status, personType)
+├── _components/
+│   ├── drawees-table.tsx          # Tabela com formatação CNPJ/CPF
+│   ├── drawee-filters.tsx         # Filtros
+│   └── drawee-status-badge.tsx    # Badge por status
+├── new/
+│   └── page.tsx                   # Formulário multi-step: tipo (PJ/PF) → dados → contato → endereço → conta
+└── [id]/
+    ├── page.tsx
+    └── _components/
+        ├── drawee-detail.tsx
+        └── tabs/
+            ├── drawee-contacts-tab.tsx
+            ├── drawee-addresses-tab.tsx
+            └── drawee-bank-accounts-tab.tsx
+```
+
+---
+
+## 18. Módulos Goals e Pipeline
+
+### 18.1 Módulo Goals (Metas Comerciais)
+
+**Estrutura:** DDD completo com entity `Goal`, repository, 5 use-cases, controller.
+
+**Escopo de meta:** Exatamente um de `profile_id`, `team_id` ou `region_id` deve estar preenchido (constraint no banco). Determina se é meta individual, de equipe ou regional.
+
+**Endpoints:**
+
+| Método | Endpoint | Roles | Descrição |
+|--------|----------|-------|-----------|
+| POST | `/api/goals` | sales_supervisor, sales_manager, sales_director, admin | Criar meta |
+| GET | `/api/goals` | sales_rep, sales_supervisor, sales_manager, sales_director, admin | Listar metas (filtros: year, month, teamId, regionId) |
+| GET | `/api/goals/ranking` | sales_supervisor, sales_manager, sales_director, admin | Ranking por período |
+| PATCH | `/api/goals/:id` | sales_supervisor, sales_manager, sales_director, admin | Atualizar meta |
+| DELETE | `/api/goals/:id` | sales_director, admin | Excluir meta |
+
+**Frontend (`goals/page.tsx`):** Dashboard com progress cards (realizado vs meta), tabela de metas do período, ranking de performance e seletor de período (mês/ano).
+
+### 18.2 Módulo Pipeline
+
+**Estrutura:** Repository + 2 use-cases (`GetPipelineClientsUseCase`, `GetPipelineMetricsUseCase`) + controller. Sem entity própria — lê da tabela `clients`.
+
+**Endpoints:**
+
+| Método | Endpoint | Roles | Descrição |
+|--------|----------|-------|-----------|
+| GET | `/api/pipeline` | sales_rep, sales_supervisor, sales_manager, sales_director, credit_analyst, admin | Listagem kanban (filtros: segmentId, teamId, regionId — aplicados conforme role) |
+| GET | `/api/pipeline/metrics` | (mesmo acima) | Contagem e valor por fase do funil |
+
+**Frontend (`pipeline/page.tsx`):** Board kanban com colunas por fase do pipeline, cards de clientes arrastáveis, métricas de contagem e valor total por fase no topo.

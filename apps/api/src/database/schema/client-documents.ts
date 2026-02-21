@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, boolean, timestamp, index, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, boolean, numeric, date, timestamp, index, jsonb } from 'drizzle-orm/pg-core';
 import { clients } from './clients';
 import { segmentDocumentTemplates } from './segment-document-templates';
 import { productDocumentTemplates } from './product-document-templates';
@@ -28,6 +28,21 @@ export const clientDocuments = pgTable('client_documents', {
   validatedAt: timestamp('validated_at', { withTimezone: true }),
   extractedData: jsonb('extracted_data'),
   uploadedBy: uuid('uploaded_by').notNull().references(() => profiles.id),
+
+  // Checagem de canhoto (legado: credito_canhoto_checagem)
+  canhotoReference: text('canhoto_reference'),
+  canhotoDate: date('canhoto_date'),
+  canhotoStatus: text('canhoto_status'),          // 'received' | 'pending' | 'lost'
+  collectionOrder: text('collection_order'),
+  collectionStatus: text('collection_status'),    // 'scheduled' | 'done' | 'cancelled'
+  verificationDate: date('verification_date'),
+  verificationStatus: text('verification_status'), // 'pending' | 'approved' | 'rejected'
+  verificationNotes: text('verification_notes'),
+  confirmationType: text('confirmation_type'),    // 'physical' | 'digital' | 'implicit'
+  confirmationStatus: text('confirmation_status'), // 'pending' | 'confirmed' | 'rejected'
+  nfeNumber: text('nfe_number'),
+  nfeValue: numeric('nfe_value', { precision: 18, scale: 4 }),
+
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
   clientIdx: index('idx_client_docs_client').on(table.clientId),

@@ -1,9 +1,9 @@
 # Dicionario de Dados — Plataforma Sarfaty
 
-**Versao:** 1.0  
-**Data:** 14 de Fevereiro de 2026  
+**Versao:** 2.0  
+**Data:** 20 de Fevereiro de 2026  
 **Banco:** Supabase PostgreSQL 15+ (schema `public`)  
-**Total de tabelas:** 36  
+**Total de tabelas:** 72  
 
 ---
 
@@ -16,37 +16,73 @@
 | 3 | Core | `teams` | Times dentro de regioes |
 | 4 | Core | `notifications` | Notificacoes in-app |
 | 5 | Core | `audit_logs` | Trail de auditoria |
-| 6 | Comercial | `clients` | Clientes (empresas) em pipeline de credito |
+| 6 | Comercial | `clients` | Clientes PJ em pipeline de credito (enriquecida) |
 | 7 | Comercial | `client_documents` | Documentos enviados por clientes |
 | 8 | Comercial | `client_guarantees` | Garantias vinculadas a clientes |
 | 9 | Comercial | `client_status_history` | Historico de mudancas de status do cliente |
-| 10 | Credito | `segments` | Segmentos de mercado |
-| 11 | Credito | `segment_document_templates` | Templates de documentos por segmento |
-| 12 | Credito | `credit_products` | Produtos de credito |
-| 13 | Credito | `product_document_templates` | Templates de documentos por produto |
-| 14 | Credito | `guarantee_types` | Tipos de garantia |
-| 15 | Credito | `guarantee_document_templates` | Templates de documentos por garantia |
-| 16 | Credito | `cnae_segment_mapping` | Mapeamento CNAE para segmentos |
-| 17 | Credito | `range_age` | Faixas etarias (dashboards) |
-| 18 | Credito | `range_tenure` | Faixas de tempo de empresa (dashboards) |
-| 19 | People | `collaborators` | Colaboradores (dados completos de RH) |
-| 20 | People | `collaborator_clt_data` | Dados especificos CLT |
-| 21 | People | `collaborator_pj_data` | Dados especificos PJ |
-| 22 | People | `collaborator_dependents` | Dependentes de colaboradores |
-| 23 | People | `collaborator_documents` | Documentos de colaboradores |
-| 24 | People | `collaborator_compensation` | Historico de movimentacoes salariais |
-| 25 | People | `medical_plan_entries` | Plano medico (titulares e dependentes) |
-| 26 | People | `reimbursements` | Solicitacoes de reembolso |
-| 27 | People | `pj_invoices` | Notas fiscais PJ (mensal) |
-| 28 | People | `onboarding_templates` | Templates de tarefas de onboarding |
-| 29 | People | `onboarding_tasks` | Tarefas de onboarding por colaborador |
-| 30 | People | `performance_review_cycles` | Ciclos de avaliacao de desempenho |
-| 31 | People | `performance_reviews` | Avaliacoes individuais |
-| 32 | Learning | `learning_courses` | Cursos |
-| 33 | Learning | `learning_modules` | Modulos dentro de cursos |
-| 34 | Learning | `learning_lessons` | Aulas dentro de modulos |
-| 35 | Learning | `learning_enrollments` | Matriculas de colaboradores em cursos |
-| 36 | Learning | `learning_lesson_completions` | Progresso por aula |
+| 10 | Comercial | `client_contacts` | Contatos do cliente |
+| 11 | Comercial | `client_addresses` | Enderecos do cliente |
+| 12 | Comercial | `client_bank_accounts` | Contas bancarias do cliente |
+| 13 | Comercial | `client_authorized_persons` | Pessoas autorizadas a representar o cliente |
+| 14 | Comercial | `sales_goals` | Metas comerciais (individual/equipe/regiao) |
+| 15 | Credito | `segments` | Segmentos de mercado |
+| 16 | Credito | `segment_document_templates` | Templates de documentos por segmento |
+| 17 | Credito | `credit_products` | Produtos de credito |
+| 18 | Credito | `product_document_templates` | Templates de documentos por produto |
+| 19 | Credito | `guarantee_types` | Tipos de garantia |
+| 20 | Credito | `guarantee_document_templates` | Templates de documentos por garantia |
+| 21 | Credito | `cnae_segment_mapping` | Mapeamento CNAE para segmentos |
+| 22 | Credito | `range_age` | Faixas etarias (dashboards) |
+| 23 | Credito | `range_tenure` | Faixas de tempo de empresa (dashboards) |
+| 24 | Sacados | `drawees` | Sacados (PJ e PF) |
+| 25 | Sacados | `drawee_contacts` | Contatos do sacado |
+| 26 | Sacados | `drawee_addresses` | Enderecos do sacado (com campos billing legados) |
+| 27 | Sacados | `drawee_bank_accounts` | Contas bancarias do sacado |
+| 28 | Sacados | `drawee_documents` | Documentos do sacado |
+| 29 | Sacados | `drawee_groups` | Vinculo sacado-grupo economico |
+| 30 | Sacados | `drawee_enabled_products` | Produtos habilitados por sacado |
+| 31 | Grupos Economicos | `economic_groups` | Grupos economicos |
+| 32 | Grupos Economicos | `economic_group_members` | Membros do grupo (FK clients) |
+| 33 | Grupos Economicos | `economic_group_persons` | Pessoas fisicas do grupo |
+| 34 | Grupos Economicos | `economic_group_bank_accounts` | Contas bancarias do grupo |
+| 35 | Financeiro | `financial_accounts` | Contas financeiras de clientes |
+| 36 | Financeiro | `financial_event_types` | Tipos de eventos financeiros (lookup) |
+| 37 | Financeiro | `financial_transactions` | Transacoes financeiras |
+| 38 | Financeiro | `financial_pendencies` | Pendencias financeiras |
+| 39 | Financeiro | `financial_settlements` | Liquidacoes de pendencias |
+| 40 | Portfolio | `portfolio_positions` | Posicoes de fundo (titulos) |
+| 41 | Portfolio | `market_rates` | Taxas de mercado (CDI, SELIC, IPCA) |
+| 42 | Debentures | `debenture_issuers` | Emissores de debentures |
+| 43 | Debentures | `debenture_issuances` | Emissoes de debentures |
+| 44 | Debentures | `debenture_series` | Series de uma emissao |
+| 45 | Debentures | `debenture_subscriptions` | Subscricoes (FK clients como debentistas) |
+| 46 | Debentures | `debenture_valuations` | Calculos diarios de rendimento |
+| 47 | Debentures | `debenture_redemptions` | Resgates de debentures |
+| 48 | Fornecedores | `suppliers` | Fornecedores (PJ e PF) |
+| 49 | Fornecedores | `supplier_contacts` | Contatos do fornecedor |
+| 50 | Fornecedores | `supplier_addresses` | Enderecos do fornecedor |
+| 51 | Fornecedores | `supplier_bank_accounts` | Contas bancarias do fornecedor |
+| 52 | Fornecedores | `supplier_documents` | Documentos do fornecedor |
+| 53 | Integracoes | `vadu_company_results` | Resultado de consulta CNPJ (Vadu) |
+| 54 | Integracoes | `vadu_person_results` | Resultado de consulta CPF (Vadu) |
+| 55 | People | `collaborators` | Colaboradores (dados completos de RH) |
+| 56 | People | `collaborator_clt_data` | Dados especificos CLT |
+| 57 | People | `collaborator_pj_data` | Dados especificos PJ |
+| 58 | People | `collaborator_dependents` | Dependentes de colaboradores |
+| 59 | People | `collaborator_documents` | Documentos de colaboradores |
+| 60 | People | `collaborator_compensation` | Historico de movimentacoes salariais |
+| 61 | People | `medical_plan_entries` | Plano medico (titulares e dependentes) |
+| 62 | People | `reimbursements` | Solicitacoes de reembolso |
+| 63 | People | `pj_invoices` | Notas fiscais PJ (mensal) |
+| 64 | People | `onboarding_templates` | Templates de tarefas de onboarding |
+| 65 | People | `onboarding_tasks` | Tarefas de onboarding por colaborador |
+| 66 | People | `performance_review_cycles` | Ciclos de avaliacao de desempenho |
+| 67 | People | `performance_reviews` | Avaliacoes individuais |
+| 68 | Learning | `learning_courses` | Cursos |
+| 69 | Learning | `learning_modules` | Modulos dentro de cursos |
+| 70 | Learning | `learning_lessons` | Aulas dentro de modulos |
+| 71 | Learning | `learning_enrollments` | Matriculas de colaboradores em cursos |
+| 72 | Learning | `learning_lesson_completions` | Progresso por aula |
 
 ---
 
@@ -192,6 +228,25 @@ Clientes (empresas) no pipeline de credito.
 | `assigned_to` | uuid | NO | — | FK -> profiles.id (responsavel) |
 | `team_id` | uuid | YES | — | FK -> teams.id |
 | `region_id` | uuid | YES | — | FK -> regions.id |
+| `cnpj_root` | text | YES | — | Raiz do CNPJ (primeiros 8 digitos) |
+| `state_registration` | text | YES | — | Inscricao Estadual |
+| `city_registration` | text | YES | — | Inscricao Municipal |
+| `founded_at` | date | YES | — | Data de fundacao |
+| `established_at` | date | YES | — | Data de constituicao |
+| `closed_at` | timestamptz | YES | — | Data de encerramento |
+| `closure_reason` | text | YES | — | Motivo do encerramento |
+| `is_pep` | boolean | NO | false | Socio/representante e Pessoa Politicamente Exposta |
+| `is_pep_related` | boolean | NO | false | Relacionado a PEP |
+| `is_ofac_listed` | boolean | NO | false | Constante na lista OFAC |
+| `has_risk_profession` | boolean | NO | false | Profissao de risco |
+| `has_risk_activity` | boolean | NO | false | Atividade economica de risco |
+| `has_risk_city` | boolean | NO | false | Municipio de risco |
+| `risk_rating` | text | YES | — | Rating de risco atribuido |
+| `revenue_situation` | text | YES | — | Situacao de faturamento |
+| `economic_group_id` | uuid | YES | — | FK -> economic_groups.id |
+| `legacy_sgs_id` | integer | YES | — | ID no sistema legado SGS |
+| `legacy_nf_id` | integer | YES | — | ID no sistema legado NF |
+| `registration_status` | text | NO | 'prospect' | Status de cadastro (prospect, active, inactive, blocked, closed) |
 | `cnpj_status` | text | YES | — | Status da validacao CNPJ |
 | `cnpj_validated_at` | timestamptz | YES | — | Quando CNPJ foi validado |
 | `created_at` | timestamptz | YES | now() | |
@@ -200,7 +255,7 @@ Clientes (empresas) no pipeline de credito.
 | `approved_at` | timestamptz | YES | — | Quando foi aprovado |
 | `homologated_at` | timestamptz | YES | — | Quando foi homologado |
 
-**Constraints:** PK(id), UNIQUE(cnpj), FK(segment_id, credit_product_id, assigned_to, team_id, region_id)  
+**Constraints:** PK(id), UNIQUE(cnpj), FK(segment_id, credit_product_id, assigned_to, team_id, region_id, economic_group_id)  
 **RLS:** Policies por role (sales_rep, supervisor, manager, director, operational, admin)
 
 ---
@@ -837,6 +892,956 @@ Instancias de tarefas por colaborador.
 
 ---
 
+## Modulo Comercial — Sub-resources de Clientes
+
+### 37. client_contacts
+
+Contatos vinculados a um cliente (comercial, financeiro, operacional, cobranca).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `contact_name` | text | YES | — | Nome do contato |
+| `use_type` | text | YES | — | Tipo de uso (commercial, financial, operational, billing) |
+| `email` | text | YES | — | Email principal |
+| `email_secondary` | text | YES | — | Email secundario |
+| `phone` | text | YES | — | Telefone fixo |
+| `phone_mobile` | text | YES | — | Celular |
+| `phone_sms` | text | YES | — | Telefone SMS |
+| `whatsapp` | boolean | NO | false | Aceita WhatsApp |
+| `homepage` | text | YES | — | Site |
+| `notes` | text | YES | — | Observacoes |
+| `is_primary` | boolean | NO | false | Contato principal |
+| `is_active` | boolean | NO | true | Ativo |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(client_id)
+
+---
+
+### 38. client_addresses
+
+Enderecos de um cliente por tipo de uso.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `use_type` | text | YES | — | Tipo (commercial, fiscal, correspondence, billing) |
+| `street` | text | YES | — | Logradouro |
+| `number` | text | YES | — | Numero |
+| `without_number` | boolean | NO | false | Sem numero |
+| `complement` | text | YES | — | Complemento |
+| `neighborhood` | text | YES | — | Bairro |
+| `zip_code` | text | YES | — | CEP |
+| `city` | text | YES | — | Cidade |
+| `state` | char(2) | YES | — | UF |
+| `is_primary` | boolean | NO | false | Endereco principal |
+| `is_active` | boolean | NO | true | Ativo |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(client_id)
+
+---
+
+### 39. client_bank_accounts
+
+Contas bancarias de um cliente.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `bank_code` | text | YES | — | Codigo do banco |
+| `bank_name` | text | YES | — | Nome do banco |
+| `branch` | text | YES | — | Agencia |
+| `account_number` | text | YES | — | Numero da conta |
+| `account_type` | text | YES | — | Tipo (checking, savings, payment) |
+| `pix_key` | text | YES | — | Chave PIX |
+| `nickname` | text | YES | — | Apelido da conta |
+| `opened_at` | date | YES | — | Data de abertura |
+| `closed_at` | date | YES | — | Data de encerramento |
+| `status` | text | NO | 'active' | Status (active, closed, blocked) |
+| `is_primary` | boolean | NO | false | Conta principal |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(client_id)
+
+---
+
+### 40. client_authorized_persons
+
+Pessoas autorizadas a representar o cliente (socios, procuradores, representantes legais).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `authorization_type` | text | YES | — | Tipo (partner, attorney, legal_representative, authorized) |
+| `full_name` | text | NO | — | Nome completo |
+| `cpf` | text | YES | — | CPF |
+| `phone` | text | YES | — | Telefone |
+| `email` | text | YES | — | Email |
+| `is_active` | boolean | NO | true | Ativo |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(client_id)
+
+---
+
+### 41. sales_goals
+
+Metas comerciais por periodo. Exatamente um de `profile_id`, `team_id` ou `region_id` deve estar preenchido.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `profile_id` | uuid | YES | — | FK -> profiles.id (meta individual) |
+| `team_id` | uuid | YES | — | FK -> teams.id (meta de equipe) |
+| `region_id` | uuid | YES | — | FK -> regions.id (meta regional) |
+| `period_year` | integer | NO | — | Ano |
+| `period_month` | integer | NO | — | Mes (1-12) |
+| `goal_amount` | numeric(15,2) | NO | — | Valor meta |
+| `goal_count` | integer | YES | — | Quantidade meta |
+| `achieved_amount` | numeric(15,2) | NO | 0 | Valor realizado |
+| `achieved_count` | integer | NO | 0 | Quantidade realizada |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** CHECK(exatamente um de profile_id/team_id/region_id nao nulo), FK(profile_id, team_id, region_id)
+
+---
+
+## Modulo Sacados
+
+### 42. drawees
+
+Sacados (devedores de duplicatas). Suporta Pessoa Juridica (`company`) e Pessoa Fisica (`individual`).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `person_type` | text | NO | 'company' | Tipo (company, individual) |
+| `cpf` | text | YES | — | CPF (PF) |
+| `cnpj` | text | YES | — | CNPJ (PJ, UNIQUE) |
+| `cnpj_root` | text | YES | — | Raiz do CNPJ (primeiros 8 digitos) |
+| `trade_name` | text | YES | — | Nome fantasia |
+| `company_name` | text | NO | — | Razao social / nome |
+| `legal_name` | text | YES | — | Nome legal |
+| `rg` | text | YES | — | RG (PF) |
+| `birth_date` | date | YES | — | Data de nascimento (PF) |
+| `gender` | text | YES | — | Genero (PF) |
+| `rg_document_id` | uuid | YES | — | FK -> drawee_documents (documento RG) |
+| `cnh_document_id` | uuid | YES | — | FK -> drawee_documents (documento CNH) |
+| `is_pep` | boolean | NO | false | Pessoa Politicamente Exposta |
+| `is_ofac_listed` | boolean | NO | false | Constante na lista OFAC |
+| `risk_rating` | text | YES | — | Rating de risco |
+| `credit_score` | integer | YES | — | Score de credito |
+| `assigned_to` | uuid | YES | — | FK -> profiles.id |
+| `segment_id` | uuid | YES | — | FK -> segments.id |
+| `economic_group_id` | uuid | YES | — | FK -> economic_groups.id |
+| `status` | text | NO | 'active' | Status (active, inactive, blocked) |
+| `blocked_at` | timestamptz | YES | — | Data de bloqueio |
+| `block_reason` | text | YES | — | Motivo do bloqueio |
+| `legacy_sgs_id` | integer | YES | — | ID no sistema legado SGS |
+| `legacy_nf_id` | integer | YES | — | ID no sistema legado NF |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** UNIQUE(cnpj), FK(assigned_to, segment_id, economic_group_id)
+
+---
+
+### 43. drawee_contacts
+
+Contatos do sacado. Possui campos extras em relacao a `client_contacts` para operacoes financeiras.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `drawee_id` | uuid | NO | — | FK -> drawees.id |
+| `contact_name` | text | YES | — | Nome do contato |
+| `use_type` | text | YES | — | Tipo (commercial, financial, operational, billing) |
+| `email` | text | YES | — | Email principal |
+| `email_secondary` | text | YES | — | Email secundario |
+| `billing_email` | text | YES | — | Email de cobranca |
+| `xml_email` | text | YES | — | Email para entrega de NF-e (XML) |
+| `phone` | text | YES | — | Telefone fixo |
+| `phone_mobile` | text | YES | — | Celular |
+| `phone_sms` | text | YES | — | Telefone SMS |
+| `billing_phone` | text | YES | — | Telefone de cobranca |
+| `whatsapp` | boolean | NO | false | Aceita WhatsApp |
+| `homepage` | text | YES | — | Site |
+| `notes` | text | YES | — | Observacoes |
+| `is_primary` | boolean | NO | false | Contato principal |
+| `is_active` | boolean | NO | true | Ativo |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(drawee_id)
+
+---
+
+### 44. drawee_addresses
+
+Enderecos do sacado. Possui campos `billing_*` legados do sistema SGS para endereco de cobranca separado.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `drawee_id` | uuid | NO | — | FK -> drawees.id |
+| `use_type` | text | YES | — | Tipo (commercial, fiscal, correspondence, billing) |
+| `street` | text | YES | — | Logradouro |
+| `number` | text | YES | — | Numero |
+| `without_number` | boolean | NO | false | Sem numero |
+| `complement` | text | YES | — | Complemento |
+| `neighborhood` | text | YES | — | Bairro |
+| `zip_code` | text | YES | — | CEP |
+| `city` | text | YES | — | Cidade |
+| `state` | char(2) | YES | — | UF |
+| `billing_street` | text | YES | — | Logradouro cobranca (legado) |
+| `billing_number` | text | YES | — | Numero cobranca (legado) |
+| `billing_complement` | text | YES | — | Complemento cobranca (legado) |
+| `billing_neighborhood` | text | YES | — | Bairro cobranca (legado) |
+| `billing_zip_code` | text | YES | — | CEP cobranca (legado) |
+| `billing_city` | text | YES | — | Cidade cobranca (legado) |
+| `billing_state` | char(2) | YES | — | UF cobranca (legado) |
+| `is_primary` | boolean | NO | false | Endereco principal |
+| `is_active` | boolean | NO | true | Ativo |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(drawee_id)
+
+---
+
+### 45. drawee_bank_accounts
+
+Contas bancarias do sacado.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `drawee_id` | uuid | NO | — | FK -> drawees.id |
+| `bank_code` | text | YES | — | Codigo do banco |
+| `bank_name` | text | YES | — | Nome do banco |
+| `branch` | text | YES | — | Agencia |
+| `account_number` | text | YES | — | Numero da conta |
+| `account_type` | text | YES | — | Tipo (checking, savings, payment) |
+| `pix_key` | text | YES | — | Chave PIX |
+| `nickname` | text | YES | — | Apelido |
+| `opened_at` | date | YES | — | Data de abertura |
+| `closed_at` | date | YES | — | Data de encerramento |
+| `status` | text | NO | 'active' | Status (active, closed, blocked) |
+| `is_primary` | boolean | NO | false | Conta principal |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(drawee_id)
+
+---
+
+### 46. drawee_documents
+
+Documentos do sacado. Campo `extracted_data` reservado para OCR/IA futura.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `drawee_id` | uuid | NO | — | FK -> drawees.id |
+| `document_type` | text | NO | — | Tipo do documento |
+| `document_category` | text | NO | 'base' | Categoria |
+| `document_label` | text | YES | — | Label amigavel |
+| `storage_path` | text | NO | — | Path no Storage |
+| `file_name` | text | NO | — | Nome original do arquivo |
+| `file_size` | integer | YES | — | Tamanho em bytes |
+| `mime_type` | text | YES | — | Tipo MIME |
+| `validation_status` | text | YES | 'pending' | Status de validacao |
+| `validation_result` | jsonb | YES | — | Resultado da validacao |
+| `validated_at` | timestamptz | YES | — | Quando validado |
+| `extracted_data` | jsonb | YES | — | Dados extraidos (futuro OCR/IA) |
+| `uploaded_by` | uuid | NO | — | FK -> profiles.id |
+| `created_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(drawee_id, uploaded_by)
+
+---
+
+### 47. drawee_groups
+
+Vincula sacados a grupos economicos.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `drawee_id` | uuid | NO | — | FK -> drawees.id |
+| `economic_group_id` | uuid | NO | — | FK -> economic_groups.id |
+| `joined_at` | date | YES | — | Data de entrada no grupo |
+| `left_at` | date | YES | — | Data de saida do grupo |
+| `is_headquarters` | boolean | NO | false | E a sede do grupo |
+| `created_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(drawee_id, economic_group_id)
+
+---
+
+### 48. drawee_enabled_products
+
+Produtos de credito habilitados para um sacado.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `drawee_id` | uuid | NO | — | FK -> drawees.id |
+| `credit_product_id` | uuid | NO | — | FK -> credit_products.id |
+| `enabled_at` | date | YES | — | Data de habilitacao |
+| `disabled_at` | date | YES | — | Data de desabilitacao |
+| `disabled_reason` | text | YES | — | Motivo da desabilitacao |
+| `is_active` | boolean | NO | true | Habilitado |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(drawee_id, credit_product_id)
+
+---
+
+## Modulo Grupos Economicos
+
+### 49. economic_groups
+
+Grupos economicos que agregam clientes e sacados relacionados.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `name` | text | NO | — | Nome do grupo |
+| `type` | text | YES | — | Tipo do grupo |
+| `active_since` | date | YES | — | Data de inicio das atividades |
+| `inactive_since` | date | YES | — | Data de inatividade |
+| `status` | text | NO | 'active' | Status |
+| `legacy_sgs_id` | integer | YES | — | ID no sistema legado SGS |
+| `legacy_nf_id` | integer | YES | — | ID no sistema legado NF |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+---
+
+### 50. economic_group_members
+
+Membros (clientes) de um grupo economico.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `economic_group_id` | uuid | NO | — | FK -> economic_groups.id |
+| `member_type` | text | NO | — | Tipo de membro |
+| `client_id` | uuid | YES | — | FK -> clients.id |
+| `joined_at` | date | YES | — | Data de entrada |
+| `left_at` | date | YES | — | Data de saida |
+| `is_headquarters` | boolean | NO | false | E a sede do grupo |
+| `created_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(economic_group_id, client_id)
+
+---
+
+### 51. economic_group_persons
+
+Pessoas fisicas vinculadas ao grupo economico (socios, representantes).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `economic_group_id` | uuid | NO | — | FK -> economic_groups.id |
+| `relationship_type` | text | YES | — | Tipo de vinculo |
+| `full_name` | text | NO | — | Nome completo |
+| `cpf_cnpj` | text | YES | — | CPF ou CNPJ |
+| `is_active` | boolean | NO | true | Ativo |
+| `created_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(economic_group_id)
+
+---
+
+### 52. economic_group_bank_accounts
+
+Contas bancarias do grupo economico.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `economic_group_id` | uuid | NO | — | FK -> economic_groups.id |
+| `bank_code` | text | YES | — | Codigo do banco |
+| `bank_name` | text | YES | — | Nome do banco |
+| `branch` | text | YES | — | Agencia |
+| `account_number` | text | YES | — | Numero da conta |
+| `account_type` | text | YES | — | Tipo |
+| `pix_key` | text | YES | — | Chave PIX |
+| `nickname` | text | YES | — | Apelido |
+| `opened_at` | date | YES | — | Data de abertura |
+| `closed_at` | date | YES | — | Data de encerramento |
+| `status` | text | NO | 'active' | Status |
+| `is_primary` | boolean | NO | false | Conta principal |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(economic_group_id)
+
+---
+
+## Modulo Financeiro
+
+### 53. financial_accounts
+
+Contas financeiras de clientes no sistema legado (SGS/NF). Usadas para rastrear saldos e movimentos.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `account_type` | text | NO | — | Tipo de conta |
+| `bank_code` | text | YES | — | Codigo do banco |
+| `branch` | text | YES | — | Agencia |
+| `account_number` | text | YES | — | Numero da conta |
+| `status` | text | NO | 'active' | Status (active, blocked, closed) |
+| `block_type` | text | YES | — | Tipo de bloqueio |
+| `block_reason` | text | YES | — | Motivo do bloqueio |
+| `fees` | numeric(18,4) | YES | — | Tarifas |
+| `opened_at` | date | YES | — | Data de abertura |
+| `closed_at` | date | YES | — | Data de encerramento |
+| `legacy_nf_id` | integer | YES | — | ID no sistema legado NF |
+| `legacy_sgs_id` | integer | YES | — | ID no sistema legado SGS |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(client_id)
+
+---
+
+### 54. financial_event_types
+
+Lookup de tipos de eventos financeiros (debitos, creditos, taxas).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `legacy_nf_code` | integer | YES | — | Codigo no sistema NF |
+| `legacy_sgs_code` | integer | YES | — | Codigo no sistema SGS |
+| `name` | text | NO | — | Nome do tipo de evento |
+| `entry_type` | char(1) | NO | — | D (Debito) ou C (Credito) |
+| `description` | text | YES | — | Descricao |
+| `is_active` | boolean | NO | true | Ativo |
+| `created_at` | timestamptz | NO | now() | |
+
+---
+
+### 55. financial_transactions
+
+Transacoes financeiras em contas de clientes.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `financial_account_id` | uuid | NO | — | FK -> financial_accounts.id |
+| `event_type_id` | uuid | YES | — | FK -> financial_event_types.id |
+| `amount` | numeric(18,4) | NO | — | Valor |
+| `entry_type` | char(1) | NO | — | D (Debito) ou C (Credito) |
+| `description` | text | YES | — | Descricao |
+| `transaction_date` | date | NO | — | Data da transacao |
+| `reference_nf_code` | integer | YES | — | Referencia sistema NF |
+| `reference_sgs_code` | integer | YES | — | Referencia sistema SGS |
+| `created_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(financial_account_id, event_type_id)
+
+---
+
+### 56. financial_pendencies
+
+Pendencias financeiras (titulos a receber/pagar).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `financial_account_id` | uuid | NO | — | FK -> financial_accounts.id |
+| `event_type_id` | uuid | YES | — | FK -> financial_event_types.id |
+| `drawee_id` | uuid | YES | — | FK -> drawees.id (sacado da pendencia) |
+| `original_amount` | numeric(18,4) | NO | — | Valor original |
+| `corrected_amount` | numeric(18,4) | YES | — | Valor corrigido |
+| `settled_amount` | numeric(18,4) | YES | — | Valor liquidado |
+| `pending_date` | date | NO | — | Data da pendencia |
+| `settlement_date` | date | YES | — | Data de liquidacao |
+| `is_reversal` | boolean | NO | false | E uma reversao |
+| `notes` | text | YES | — | Observacoes |
+| `legacy_nf_code` | integer | YES | — | Codigo legado NF |
+| `legacy_sgs_code` | integer | YES | — | Codigo legado SGS |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(financial_account_id, event_type_id, drawee_id)
+
+---
+
+### 57. financial_settlements
+
+Liquidacoes de pendencias financeiras (N:N entre transacoes e pendencias).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `transaction_id` | uuid | NO | — | FK -> financial_transactions.id |
+| `pendency_id` | uuid | NO | — | FK -> financial_pendencies.id |
+| `settled_amount` | numeric(18,4) | NO | — | Valor liquidado |
+| `settlement_date` | date | NO | — | Data da liquidacao |
+| `notes` | text | YES | — | Observacoes |
+| `created_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(transaction_id, pendency_id)
+
+---
+
+## Modulo Portfolio
+
+### 58. portfolio_positions
+
+Posicoes de fundo (titulos em carteira). Importado de arquivos de gestoras.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `fund_name` | text | NO | — | Nome do fundo |
+| `fund_cnpj` | text | YES | — | CNPJ do fundo |
+| `position_date` | date | NO | — | Data da posicao |
+| `client_id` | uuid | YES | — | FK -> clients.id (cedente, se identificado) |
+| `drawee_id` | uuid | YES | — | FK -> drawees.id (sacado, se identificado) |
+| `cedent_doc` | text | YES | — | CNPJ/CPF do cedente |
+| `drawee_doc` | text | YES | — | CNPJ/CPF do sacado |
+| `cedent_name` | text | YES | — | Nome do cedente |
+| `drawee_name` | text | YES | — | Nome do sacado |
+| `asset_type` | text | YES | — | Tipo de ativo |
+| `asset_subtype` | text | YES | — | Subtipo do ativo |
+| `document_number` | text | YES | — | Numero do titulo/duplicata |
+| `title_id_external` | text | YES | — | ID externo do titulo |
+| `emission_date` | date | YES | — | Data de emissao |
+| `acquisition_date` | date | YES | — | Data de aquisicao |
+| `original_maturity` | date | YES | — | Vencimento original |
+| `adjusted_maturity` | date | YES | — | Vencimento ajustado |
+| `extension_date` | date | YES | — | Data de prorrogacao |
+| `nominal_value` | numeric(18,4) | NO | — | Valor nominal |
+| `acquisition_value` | numeric(18,4) | YES | — | Valor de aquisicao |
+| `current_nominal` | numeric(18,4) | YES | — | Nominal atual |
+| `present_value` | numeric(18,4) | YES | — | Valor presente |
+| `mtm_value` | numeric(18,4) | YES | — | Valor mark-to-market |
+| `pdd_note` | text | YES | — | Nota PDD |
+| `pdd_rating_value` | numeric(18,4) | YES | — | Valor PDD por rating |
+| `pdd_overdue_value` | numeric(18,4) | YES | — | Valor PDD por atraso |
+| `status` | text | YES | — | Status do titulo |
+| `has_coobligation` | boolean | NO | false | Possui co-obrigacao |
+| `originador_doc` | text | YES | — | CNPJ/CPF do originador |
+| `cnae` | text | YES | — | CNAE do sacado |
+| `source_file` | text | YES | — | Arquivo de origem da importacao |
+| `created_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(client_id, drawee_id)
+
+---
+
+### 59. market_rates
+
+Taxas de mercado diarias (CDI, SELIC, IPCA, IGPM, etc.).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `rate_type` | text | NO | — | Tipo (CDI, SELIC, IPCA, IGPM, TR, etc.) |
+| `rate_date` | date | NO | — | Data da taxa |
+| `value` | numeric(18,6) | NO | — | Valor da taxa |
+| `source` | text | NO | 'B3' | Fonte (B3, IBGE, BCB) |
+| `created_at` | timestamptz | NO | now() | |
+
+**Constraints:** UNIQUE(rate_type, rate_date)
+
+---
+
+## Modulo Debentures
+
+### 60. debenture_issuers
+
+Emissores de debentures (empresas que captam via este instrumento).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `cnpj` | text | NO | — | CNPJ (UNIQUE) |
+| `legal_name` | text | NO | — | Razao social |
+| `address_street` | text | YES | — | Logradouro |
+| `address_number` | text | YES | — | Numero |
+| `address_complement` | text | YES | — | Complemento |
+| `address_neighborhood` | text | YES | — | Bairro |
+| `address_city` | text | YES | — | Cidade |
+| `address_state` | text | YES | — | UF |
+| `address_zip` | text | YES | — | CEP |
+| `bank_code` | text | YES | — | Banco para pagamento |
+| `bank_branch` | text | YES | — | Agencia |
+| `bank_account` | text | YES | — | Conta |
+| `status` | text | NO | 'active' | Status |
+| `legacy_sgs_id` | integer | YES | — | ID legado SGS |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** UNIQUE(cnpj)
+
+---
+
+### 61. debenture_issuances
+
+Emissoes de debentures (uma emissora pode ter N emissoes).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `issuer_id` | uuid | NO | — | FK -> debenture_issuers.id |
+| `issuance_number` | integer | NO | — | Numero da emissao |
+| `name` | text | NO | — | Nome da emissao |
+| `yield_type` | text | NO | — | Tipo de rendimento (CDI+, IPCA+, pre-fixado) |
+| `issuance_type` | text | NO | 'private' | Tipo (public, private) |
+| `species` | text | NO | 'subordinated' | Especie |
+| `issuance_form` | text | YES | — | Forma de emissao |
+| `issuance_date` | date | NO | — | Data de emissao |
+| `maturity_date` | date | NO | — | Data de vencimento |
+| `integration_deadline` | date | YES | — | Prazo de integralizacao |
+| `series_count` | integer | YES | — | Quantidade de series |
+| `total_quantity` | integer | NO | — | Quantidade total de debentures |
+| `total_value` | numeric(15,2) | NO | — | Valor total da emissao |
+| `unit_price` | numeric(15,2) | NO | — | Preco unitario |
+| `penalty_rate` | numeric(5,2) | YES | — | Taxa de multa |
+| `mora_rate` | numeric(5,2) | YES | — | Taxa de mora |
+| `balance` | numeric(15,2) | YES | — | Saldo em aberto |
+| `status` | text | NO | 'open' | Status (open, closed, cancelled) |
+| `prospectus_file_path` | text | YES | — | Path do prospecto no Storage |
+| `age_document_path` | text | YES | — | Path do AGE no Storage |
+| `legacy_sgs_id` | integer | YES | — | ID legado SGS |
+| `legacy_nf_id` | integer | YES | — | ID legado NF |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(issuer_id)
+
+---
+
+### 62. debenture_series
+
+Series de uma emissao de debentures.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `issuance_id` | uuid | NO | — | FK -> debenture_issuances.id |
+| `series_number` | integer | NO | — | Numero da serie |
+| `index_type` | text | NO | — | Indexador (CDI, IPCA, pre) |
+| `index_percentage` | numeric(15,4) | YES | — | Percentual do indexador |
+| `issuance_rate` | numeric(15,4) | YES | — | Taxa de emissao |
+| `std_deviation` | numeric(15,4) | YES | — | Desvio padrao |
+| `quantity` | integer | NO | — | Quantidade inicial |
+| `balance_quantity` | integer | NO | — | Quantidade em saldo |
+| `maturity_date` | date | NO | — | Vencimento da serie |
+| `target_audience` | text | YES | — | Publico-alvo |
+| `allow_web_redemption` | boolean | NO | false | Permite resgate pelo portal |
+| `publish_on_portal` | boolean | NO | false | Publicado no portal do cliente |
+| `status` | text | NO | 'open' | Status |
+| `legacy_sgs_id` | integer | YES | — | ID legado SGS |
+| `legacy_nf_id` | integer | YES | — | ID legado NF |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(issuance_id)
+
+---
+
+### 63. debenture_subscriptions
+
+Subscricoes de clientes em series de debentures.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `series_id` | uuid | NO | — | FK -> debenture_series.id |
+| `debenturist_id` | uuid | NO | — | FK -> clients.id (debentista) |
+| `subscription_date` | date | NO | — | Data de subscricao |
+| `unit_price_at_sub` | numeric(16,7) | NO | — | PU na data de subscricao |
+| `quantity` | integer | NO | — | Quantidade subscrita |
+| `total_value` | numeric(15,2) | NO | — | Valor total subscrito |
+| `redeemed_quantity` | integer | NO | 0 | Quantidade ja resgatada |
+| `balance_quantity` | integer | NO | — | Saldo em debentures |
+| `status` | text | NO | 'active' | Status (active, redeemed, cancelled) |
+| `legacy_sgs_id` | integer | YES | — | ID legado SGS |
+| `legacy_nf_id` | integer | YES | — | ID legado NF |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(series_id, debenturist_id)
+
+---
+
+### 64. debenture_valuations
+
+Calculos diarios de rendimento de subscricoes.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `subscription_id` | uuid | NO | — | FK -> debenture_subscriptions.id |
+| `valuation_date` | date | NO | — | Data do calculo |
+| `subscription_date` | date | NO | — | Data de referencia da subscricao |
+| `index_type` | text | YES | — | Indexador |
+| `issuance_rate` | numeric(15,4) | YES | — | Taxa de emissao |
+| `capitalized_rate` | numeric(15,4) | YES | — | Taxa capitalizada |
+| `index_daily_factor` | numeric(18,16) | YES | — | Fator diario do indexador |
+| `prev_day_gross_value` | numeric(15,2) | YES | — | Bruto do dia anterior |
+| `daily_yield` | numeric(15,4) | YES | — | Rendimento diario |
+| `monthly_yield` | numeric(15,4) | YES | — | Rendimento mensal |
+| `cumulative_yield` | numeric(15,4) | YES | — | Rendimento acumulado |
+| `current_quantity` | integer | YES | — | Quantidade atual |
+| `current_unit_price` | numeric(15,2) | YES | — | PU atual |
+| `current_value` | numeric(15,2) | YES | — | Valor atual |
+| `gross_value` | numeric(15,2) | YES | — | Valor bruto |
+| `iof_rate` | numeric(5,2) | YES | — | Aliquota IOF |
+| `calculated_iof` | numeric(15,2) | YES | — | IOF calculado |
+| `ir_rate` | numeric(5,2) | YES | — | Aliquota IR |
+| `calculated_ir` | numeric(15,2) | YES | — | IR calculado |
+| `net_yield` | numeric(15,2) | YES | — | Rendimento liquido |
+| `net_value` | numeric(15,2) | YES | — | Valor liquido |
+| `created_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(subscription_id)
+
+---
+
+### 65. debenture_redemptions
+
+Resgates (parciais ou totais) de subscricoes.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `subscription_id` | uuid | NO | — | FK -> debenture_subscriptions.id |
+| `requested_at` | timestamptz | NO | — | Data/hora do pedido |
+| `processed_at` | timestamptz | YES | — | Data/hora de processamento |
+| `settled_at` | timestamptz | YES | — | Data/hora de liquidacao |
+| `quantity` | integer | NO | — | Quantidade resgatada |
+| `unit_price_at_sub` | numeric(15,2) | YES | — | PU na data de subscricao |
+| `unit_price_at_red` | numeric(15,2) | YES | — | PU na data de resgate |
+| `invested_value` | numeric(15,2) | YES | — | Valor investido |
+| `gross_redemption` | numeric(15,2) | YES | — | Resgate bruto |
+| `gross_yield` | numeric(15,2) | YES | — | Rendimento bruto |
+| `ir_withheld` | numeric(15,2) | YES | — | IR retido |
+| `iof_withheld` | numeric(15,2) | YES | — | IOF retido |
+| `net_redemption` | numeric(15,2) | YES | — | Resgate liquido |
+| `net_yield` | numeric(15,2) | YES | — | Rendimento liquido |
+| `ir_rate` | numeric(5,2) | YES | — | Aliquota IR |
+| `iof_rate` | numeric(5,2) | YES | — | Aliquota IOF |
+| `elapsed_days` | integer | YES | — | Dias decorridos |
+| `iof_days` | integer | YES | — | Dias para calculo IOF |
+| `yield_rate` | numeric(7,4) | YES | — | Taxa de rendimento |
+| `status` | integer | NO | 0 | Status (0=pendente, 1=processado, 2=liquidado) |
+| `legacy_sgs_id` | integer | YES | — | ID legado SGS |
+| `legacy_nf_id` | integer | YES | — | ID legado NF |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(subscription_id)
+
+---
+
+## Modulo Fornecedores
+
+### 66. suppliers
+
+Fornecedores de servicos da Sarfaty (PJ ou PF).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `person_type` | text | NO | 'company' | Tipo (company, individual) |
+| `cpf` | text | YES | — | CPF (PF) |
+| `cnpj` | text | YES | — | CNPJ (PJ, UNIQUE) |
+| `trade_name` | text | YES | — | Nome fantasia |
+| `company_name` | text | NO | — | Razao social / nome |
+| `service_category` | text | YES | — | Categoria de servico |
+| `rg_document_id` | uuid | YES | — | FK -> supplier_documents |
+| `cnh_document_id` | uuid | YES | — | FK -> supplier_documents |
+| `onboarded_at` | date | YES | — | Data de cadastro ativo |
+| `offboarded_at` | date | YES | — | Data de desligamento |
+| `offboarding_reason` | text | YES | — | Motivo do desligamento |
+| `status` | text | NO | 'active' | Status |
+| `legacy_sgs_id` | integer | YES | — | ID legado SGS |
+| `legacy_nf_id` | integer | YES | — | ID legado NF |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** UNIQUE(cnpj)
+
+---
+
+### 67. supplier_contacts
+
+Contatos do fornecedor.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `supplier_id` | uuid | NO | — | FK -> suppliers.id |
+| `contact_name` | text | YES | — | Nome do contato |
+| `use_type` | text | YES | — | Tipo de uso |
+| `email` | text | YES | — | Email |
+| `email_secondary` | text | YES | — | Email secundario |
+| `phone` | text | YES | — | Telefone |
+| `phone_mobile` | text | YES | — | Celular |
+| `phone_sms` | text | YES | — | SMS |
+| `whatsapp` | boolean | NO | false | Aceita WhatsApp |
+| `homepage` | text | YES | — | Site |
+| `notes` | text | YES | — | Observacoes |
+| `is_primary` | boolean | NO | false | Contato principal |
+| `is_active` | boolean | NO | true | Ativo |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(supplier_id)
+
+---
+
+### 68. supplier_addresses
+
+Enderecos do fornecedor.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `supplier_id` | uuid | NO | — | FK -> suppliers.id |
+| `use_type` | text | YES | — | Tipo (commercial, fiscal, correspondence, billing) |
+| `street` | text | YES | — | Logradouro |
+| `number` | text | YES | — | Numero |
+| `without_number` | boolean | NO | false | Sem numero |
+| `complement` | text | YES | — | Complemento |
+| `neighborhood` | text | YES | — | Bairro |
+| `zip_code` | text | YES | — | CEP |
+| `city` | text | YES | — | Cidade |
+| `state` | char(2) | YES | — | UF |
+| `is_primary` | boolean | NO | false | Endereco principal |
+| `is_active` | boolean | NO | true | Ativo |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(supplier_id)
+
+---
+
+### 69. supplier_bank_accounts
+
+Contas bancarias do fornecedor.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `supplier_id` | uuid | NO | — | FK -> suppliers.id |
+| `bank_code` | text | YES | — | Codigo do banco |
+| `bank_name` | text | YES | — | Nome do banco |
+| `branch` | text | YES | — | Agencia |
+| `account_number` | text | YES | — | Numero da conta |
+| `account_type` | text | YES | — | Tipo |
+| `pix_key` | text | YES | — | Chave PIX |
+| `nickname` | text | YES | — | Apelido |
+| `opened_at` | date | YES | — | Data de abertura |
+| `closed_at` | date | YES | — | Data de encerramento |
+| `status` | text | NO | 'active' | Status |
+| `is_primary` | boolean | NO | false | Conta principal |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(supplier_id)
+
+---
+
+### 70. supplier_documents
+
+Documentos do fornecedor.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `supplier_id` | uuid | NO | — | FK -> suppliers.id |
+| `document_type` | text | NO | — | Tipo do documento |
+| `document_category` | text | NO | 'base' | Categoria |
+| `document_label` | text | YES | — | Label amigavel |
+| `storage_path` | text | NO | — | Path no Storage |
+| `file_name` | text | NO | — | Nome original |
+| `file_size` | integer | YES | — | Tamanho em bytes |
+| `mime_type` | text | YES | — | Tipo MIME |
+| `validation_status` | text | YES | 'pending' | Status de validacao |
+| `validation_result` | jsonb | YES | — | Resultado |
+| `validated_at` | timestamptz | YES | — | Quando validado |
+| `extracted_data` | jsonb | YES | — | Dados extraidos |
+| `uploaded_by` | uuid | NO | — | FK -> profiles.id |
+| `created_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(supplier_id, uploaded_by)
+
+---
+
+## Modulo Integracoes
+
+### 71. vadu_company_results
+
+Resultados de consultas de CNPJ via Vadu (bureau de credito).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `cnpj` | text | YES | — | CNPJ consultado |
+| `company_name` | text | YES | — | Razao social retornada |
+| `trade_name` | text | YES | — | Nome fantasia retornado |
+| `revenue_status` | text | YES | — | Situacao de faturamento |
+| `revenue_status_date` | timestamptz | YES | — | Data da situacao |
+| `special_status` | text | YES | — | Status especial (se houver) |
+| `capital_social` | numeric(15,2) | YES | — | Capital social |
+| `legal_nature` | text | YES | — | Natureza juridica |
+| `is_simples_nacional` | boolean | YES | — | Optante Simples Nacional |
+| `company_size` | text | YES | — | Porte da empresa |
+| `environmental_score` | numeric(10,2) | YES | — | Score ambiental |
+| `environmental_level` | text | YES | — | Nivel ambiental |
+| `raw_data` | jsonb | YES | — | Resposta bruta da API |
+| `queried_at` | timestamptz | NO | now() | Data/hora da consulta |
+
+**Constraints:** FK(client_id)
+
+---
+
+### 72. vadu_person_results
+
+Resultados de consultas de CPF via Vadu.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `authorized_person_id` | uuid | YES | — | FK -> client_authorized_persons.id (se consulta de socio) |
+| `cpf` | text | YES | — | CPF consultado |
+| `name` | text | YES | — | Nome retornado |
+| `birth_date` | timestamptz | YES | — | Data de nascimento |
+| `mother_name` | text | YES | — | Nome da mae |
+| `raw_data` | jsonb | YES | — | Resposta bruta da API |
+| `queried_at` | timestamptz | NO | now() | Data/hora da consulta |
+
+**Constraints:** FK(client_id, authorized_person_id)
+
+---
+
 ## Diagrama de Relacionamentos
 
 ```
@@ -848,6 +1853,29 @@ profiles (auth.users)
   |     +-- client_documents (client_id)
   |     +-- client_guarantees (client_id)
   |     +-- client_status_history (client_id)
+  |     +-- client_contacts (client_id)
+  |     +-- client_addresses (client_id)
+  |     +-- client_bank_accounts (client_id)
+  |     +-- client_authorized_persons (client_id)
+  |           +-- vadu_person_results (authorized_person_id)
+  |     +-- vadu_company_results (client_id)
+  |     +-- financial_accounts (client_id)
+  |           +-- financial_transactions (financial_account_id)
+  |           +-- financial_pendencies (financial_account_id)
+  |                 +-- financial_settlements (pendency_id)
+  |     +-- debenture_subscriptions.debenturist_id
+  |     +-- portfolio_positions (client_id)
+  |     +-- economic_group_members (client_id)
+  |
+  +-- drawees (assigned_to)
+  |     +-- drawee_contacts (drawee_id)
+  |     +-- drawee_addresses (drawee_id)
+  |     +-- drawee_bank_accounts (drawee_id)
+  |     +-- drawee_documents (drawee_id)
+  |     +-- drawee_groups (drawee_id)
+  |     +-- drawee_enabled_products (drawee_id)
+  |     +-- financial_pendencies (drawee_id)
+  |     +-- portfolio_positions (drawee_id)
   |
   +-- collaborators (profile_id)
         +-- collaborator_clt_data (1:1)
@@ -865,6 +1893,13 @@ profiles (auth.users)
 
 regions
   +-- teams (region_id)
+  +-- sales_goals (region_id)
+
+teams
+  +-- sales_goals (team_id)
+
+profiles
+  +-- sales_goals (profile_id)
 
 segments
   +-- segment_document_templates (1:N)
@@ -872,9 +1907,29 @@ segments
 
 credit_products
   +-- product_document_templates (1:N)
+  +-- drawee_enabled_products (credit_product_id)
 
 guarantee_types
   +-- guarantee_document_templates (1:N)
+
+economic_groups
+  +-- economic_group_members (1:N)
+  +-- economic_group_persons (1:N)
+  +-- economic_group_bank_accounts (1:N)
+  +-- drawee_groups (economic_group_id)
+
+debenture_issuers
+  +-- debenture_issuances (issuer_id)
+        +-- debenture_series (issuance_id)
+              +-- debenture_subscriptions (series_id)
+                    +-- debenture_valuations (subscription_id)
+                    +-- debenture_redemptions (subscription_id)
+
+suppliers
+  +-- supplier_contacts (supplier_id)
+  +-- supplier_addresses (supplier_id)
+  +-- supplier_bank_accounts (supplier_id)
+  +-- supplier_documents (supplier_id)
 
 learning_courses
   +-- learning_modules (1:N)
@@ -885,6 +1940,8 @@ performance_review_cycles
 
 onboarding_templates
   +-- onboarding_tasks (1:N)
+
+market_rates (independente — lookup de taxas por data)
 ```
 
 ---
@@ -893,9 +1950,9 @@ onboarding_templates
 
 | Metrica | Valor |
 |---------|-------|
-| Total de tabelas | 36 |
-| Total de colunas | ~310 |
-| Tabelas com RLS | 36/36 (100%) |
-| Policies ativas | 70+ |
-| Foreign keys | 55+ |
-| Unique constraints | 15+ |
+| Total de tabelas | 72 |
+| Total de colunas | ~760 |
+| Tabelas com RLS | 72/72 (100%) |
+| Policies ativas | 70+ (People + Comercial); restantes pendentes |
+| Foreign keys | 120+ |
+| Unique constraints | 25+ |

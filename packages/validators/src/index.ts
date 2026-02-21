@@ -77,3 +77,62 @@ export {
   type UpdateLessonProgressDto,
   type SubmitQuizDto,
 } from './learning.schema';
+
+// Goal schemas
+export {
+  createGoalSchema,
+  updateGoalSchema,
+  listGoalsQuerySchema,
+  type CreateGoalDto,
+  type UpdateGoalDto,
+  type ListGoalsQueryDto,
+} from './goal.schema';
+
+// Pipeline schemas
+export {
+  pipelineQuerySchema,
+  type PipelineQueryDto,
+} from './pipeline.schema';
+
+// Client sub-resources schemas
+export {
+  createClientContactSchema,
+  updateClientContactSchema,
+  createClientAddressSchema,
+  updateClientAddressSchema,
+  createClientBankAccountSchema,
+  updateClientBankAccountSchema,
+  createClientAuthorizedPersonSchema,
+  updateClientAuthorizedPersonSchema,
+  subResourceParamSchema,
+  type CreateClientContactDto,
+  type UpdateClientContactDto,
+  type CreateClientAddressDto,
+  type UpdateClientAddressDto,
+  type CreateClientBankAccountDto,
+  type UpdateClientBankAccountDto,
+  type CreateClientAuthorizedPersonDto,
+  type UpdateClientAuthorizedPersonDto,
+} from './client-sub-resources.schema';
+
+// Drawee schemas
+export {
+  createDraweeSchema,
+  updateDraweeSchema,
+  listDraweesQuerySchema,
+  createDraweeContactSchema,
+  updateDraweeContactSchema,
+  createDraweeAddressSchema,
+  updateDraweeAddressSchema,
+  createDraweeBankAccountSchema,
+  updateDraweeBankAccountSchema,
+  type CreateDraweeDto,
+  type UpdateDraweeDto,
+  type ListDraweesQueryDto,
+  type CreateDraweeContactDto,
+  type UpdateDraweeContactDto,
+  type CreateDraweeAddressDto,
+  type UpdateDraweeAddressDto,
+  type CreateDraweeBankAccountDto,
+  type UpdateDraweeBankAccountDto,
+} from './drawee.schema';

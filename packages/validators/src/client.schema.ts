@@ -47,6 +47,24 @@ export const updateClientSchema = z.object({
     description: z.string().optional(),
     estimatedValue: z.coerce.number().positive().optional(),
   })).optional(),
+  // PJ enrichment fields
+  cnpjRoot: z.string().max(8).optional(),
+  stateRegistration: z.string().optional(),
+  cityRegistration: z.string().optional(),
+  foundedAt: z.string().date().optional(),
+  establishedAt: z.string().date().optional(),
+  registrationStatus: z.enum(['prospect', 'active', 'inactive', 'blocked', 'closed']).optional(),
+  closureReason: z.string().optional(),
+  // Compliance
+  isPep: z.boolean().optional(),
+  isPepRelated: z.boolean().optional(),
+  isOfacListed: z.boolean().optional(),
+  hasRiskProfession: z.boolean().optional(),
+  hasRiskActivity: z.boolean().optional(),
+  hasRiskCity: z.boolean().optional(),
+  riskRating: z.string().optional(),
+  revenueSituation: z.string().optional(),
+  economicGroupId: uuidSchema.optional(),
 });
 
 export type UpdateClientDto = z.infer<typeof updateClientSchema>;
@@ -70,9 +88,12 @@ export type UploadDocumentDto = z.infer<typeof uploadDocumentSchema>;
 // Client list query
 export const listClientsQuerySchema = paginationQuerySchema.extend({
   status: z.string().optional(),
+  registrationStatus: z.string().optional(),
   segmentId: uuidSchema.optional(),
+  economicGroupId: uuidSchema.optional(),
   search: z.string().optional(),
   assignedTo: uuidSchema.optional(),
+  isPep: z.coerce.boolean().optional(),
 });
 
 export type ListClientsQueryDto = z.infer<typeof listClientsQuerySchema>;
