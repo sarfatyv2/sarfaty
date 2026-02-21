@@ -20,6 +20,10 @@ import { PeopleModule } from './modules/people/people.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { LearningModule } from './modules/learning/learning.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { GoalsModule } from './modules/goals/goals.module';
+import { PipelineModule } from './modules/pipeline/pipeline.module';
+import { DraweesModule } from './modules/drawees/drawees.module';
+import { CreditModule } from './modules/credit/credit.module';
 
 @Module({
   imports: [
@@ -45,6 +49,10 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     ClientsModule,
     LearningModule,
     NotificationsModule,
+    GoalsModule,
+    PipelineModule,
+    DraweesModule,
+    CreditModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },

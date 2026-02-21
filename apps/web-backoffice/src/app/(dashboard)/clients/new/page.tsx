@@ -82,6 +82,11 @@ interface Step1Data {
   addressState: string;
   addressZip: string;
   requestedAmount: string;
+  // PJ enrichment
+  stateRegistration: string;
+  cityRegistration: string;
+  foundedAt: string;
+  isPep: boolean;
 }
 
 // --- Step 2 Form Data ---
@@ -112,6 +117,7 @@ export default function NewClientPage() {
     addressStreet: '', addressNumber: '', addressComplement: '',
     addressNeighborhood: '', addressCity: '', addressState: '', addressZip: '',
     requestedAmount: '',
+    stateRegistration: '', cityRegistration: '', foundedAt: '', isPep: false,
   });
 
   // Step 2
@@ -205,6 +211,10 @@ export default function NewClientPage() {
         segmentId: step2.segmentId,
         creditProductId: step2.creditProductId,
         requestedAmount: step1.requestedAmount ? Number(step1.requestedAmount) : undefined,
+        stateRegistration: step1.stateRegistration || undefined,
+        cityRegistration: step1.cityRegistration || undefined,
+        foundedAt: step1.foundedAt || undefined,
+        isPep: step1.isPep,
       };
 
       const response = await api.post<{ id: string }>('/clients', body);
@@ -431,6 +441,54 @@ export default function NewClientPage() {
                     placeholder="SP"
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4 space-y-4">
+              <h3 className="text-sm font-semibold text-muted-foreground">Dados Complementares PJ</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="stateRegistration">Inscrição Estadual</Label>
+                  <Input
+                    id="stateRegistration"
+                    value={step1.stateRegistration}
+                    onChange={(e) => setStep1((prev) => ({ ...prev, stateRegistration: e.target.value }))}
+                    placeholder="Opcional"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cityRegistration">Inscrição Municipal</Label>
+                  <Input
+                    id="cityRegistration"
+                    value={step1.cityRegistration}
+                    onChange={(e) => setStep1((prev) => ({ ...prev, cityRegistration: e.target.value }))}
+                    placeholder="Opcional"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="foundedAt">Data de Fundação</Label>
+                  <Input
+                    id="foundedAt"
+                    type="date"
+                    value={step1.foundedAt}
+                    onChange={(e) => setStep1((prev) => ({ ...prev, foundedAt: e.target.value }))}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4 space-y-4">
+              <h3 className="text-sm font-semibold text-muted-foreground">Compliance</h3>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="isPep">Pessoa Politicamente Exposta (PEP)?</Label>
+                  <p className="text-xs text-muted-foreground">Sócio ou representante é pessoa politicamente exposta</p>
+                </div>
+                <Switch
+                  id="isPep"
+                  checked={step1.isPep}
+                  onCheckedChange={(checked) => setStep1((prev) => ({ ...prev, isPep: checked }))}
+                />
               </div>
             </div>
 

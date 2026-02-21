@@ -1,0 +1,38 @@
+import { pgTable, uuid, text, numeric, date, integer, timestamp, index, unique } from 'drizzle-orm/pg-core';
+import { debentureSubscriptions } from './debenture-subscriptions';
+
+export const debentureValuations = pgTable('debenture_valuations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  subscriptionId: uuid('subscription_id').notNull().references(() => debentureSubscriptions.id, { onDelete: 'restrict' }),
+  valuationDate: date('valuation_date').notNull(),
+  subscriptionDate: date('subscription_date').notNull(),
+  indexType: text('index_type'),
+  issuanceRate: numeric('issuance_rate', { precision: 15, scale: 4 }),
+  capitalizedRate: numeric('capitalized_rate', { precision: 15, scale: 4 }),
+  indexDailyFactor: numeric('index_daily_factor', { precision: 18, scale: 16 }),
+  prevDayGrossValue: numeric('prev_day_gross_value', { precision: 15, scale: 2 }),
+  dailyYield: numeric('daily_yield', { precision: 15, scale: 4 }),
+  monthlyYield: numeric('monthly_yield', { precision: 15, scale: 4 }),
+  prevMonthYield: numeric('prev_month_yield', { precision: 15, scale: 4 }),
+  cumulativeYield: numeric('cumulative_yield', { precision: 15, scale: 4 }),
+  issuanceUnitPrice: numeric('issuance_unit_price', { precision: 15, scale: 2 }),
+  currentQuantity: integer('current_quantity'),
+  currentUnitPrice: numeric('current_unit_price', { precision: 15, scale: 2 }),
+  currentValue: numeric('current_value', { precision: 15, scale: 2 }),
+  grossValue: numeric('gross_value', { precision: 15, scale: 2 }),
+  dailyGrossYield: numeric('daily_gross_yield', { precision: 15, scale: 2 }),
+  cumulativeGrossYield: numeric('cumulative_gross_yield', { precision: 15, scale: 2 }),
+  elapsedDays: integer('elapsed_days'),
+  iofFreeDays: integer('iof_free_days'),
+  iofRate: numeric('iof_rate', { precision: 5, scale: 2 }),
+  calculatedIof: numeric('calculated_iof', { precision: 15, scale: 2 }),
+  irRate: numeric('ir_rate', { precision: 5, scale: 2 }),
+  calculatedIr: numeric('calculated_ir', { precision: 15, scale: 2 }),
+  netYield: numeric('net_yield', { precision: 15, scale: 2 }),
+  netValue: numeric('net_value', { precision: 15, scale: 2 }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  subscriptionDateUnique: unique('uq_debenture_valuations').on(table.subscriptionId, table.valuationDate),
+  subscriptionIdx: index('idx_debenture_valuations_subscription').on(table.subscriptionId),
+  dateIdx: index('idx_debenture_valuations_date').on(table.valuationDate),
+}));
