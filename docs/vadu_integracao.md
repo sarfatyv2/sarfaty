@@ -1,45 +1,41 @@
-# Integração VADU — Consulta de CNPJ e CPF
+# Integração VADU — Consulta de CNPJ, CPF e CreditBox
 
-**Versão:** 1.0  
+**Versão:** 1.1  
 **Data:** 21 de Fevereiro de 2026  
-**Status:** Adaptador e Persistência completos (Backend)  
+**Status:** Adaptadores, Persistência e UI completos (Módulos Síncronos e Assíncronos)  
 
 ---
 
 ## 1. Visão Geral
 
-Este documento descreve a implementação da integração com a API da VADU para consulta automatizada de dados de CNPJ (empresas) e CPF (sócios/pessoas autorizadas). A integração segue os princípios de Domain-Driven Design (DDD) leve estabelecidos na arquitetura do sistema, separando claramente a comunicação externa, as regras de domínio e a persistência no banco de dados.
+Este documento descreve a implementação da integração com a API da VADU para consulta automatizada de dados. A integração é dividida em dois módulos principais:
+1. **Módulo Básico (Síncrono):** Consulta imediata de dados cadastrais na Receita Federal (CNPJ) e dados de pessoas físicas (CPF).
+2. **Módulo CreditBox (Assíncrono):** Geração de relatório de crédito profundo (Score, Protestos, Dívidas PGFN, etc.) e obtenção do PDF oficial.
 
-O objetivo da integração é enriquecer a base de dados do cliente durante o processo de análise de crédito (CreditAnalysisWorkflow), extraindo informações valiosas da VADU e armazenando o histórico completo (JSON) e dados estruturados essenciais.
+A integração segue os princípios de Domain-Driven Design (DDD) leve estabelecidos na arquitetura do sistema, separando claramente a comunicação externa, as regras de domínio e a persistência no banco de dados.
+
+O objetivo da integração é enriquecer a base de dados do cliente durante o processo de análise de crédito (CreditAnalysisWorkflow), extraindo informações valiosas da VADU e armazenando o histórico completo (JSON e PDF) e dados estruturados essenciais.
 
 ---
 
 ## 2. Banco de Dados — Schemas Drizzle
 
-Foram criadas duas novas tabelas para armazenar os resultados das consultas da VADU, vinculando-os aos clientes e pessoas autorizadas do nosso sistema.
+Foram criadas tabelas para armazenar os resultados das consultas, vinculando-os aos clientes e pessoas autorizadas.
 
 **Diretório:** `apps/api/src/database/schema/`
 
-### 2.1 `vadu_company_results` (vadu-company-results.ts)
+### 2.1 `vadu_company_results` e `vadu_person_results`
+Armazenam os resultados imediatos (síncronos) da consulta básica de CNPJ e CPF.
+- Salvam os dados estruturados essenciais e o payload bruto em `rawData` (jsonb).
 
-Armazena o resultado da consulta de CNPJ de uma empresa.
-
-- **`clientId`**: Relacionamento obrigatório com a tabela `clients`.
-- **Campos estruturados**: `cnpj`, `companyName`, `tradeName`, `revenueStatus`, `revenueStatusDate`, `specialStatus`, `capitalSocial`, `legalNature`, `isSimplesNacional`, `companySize`, `environmentalScore`, `environmentalLevel`.
-- **`rawData`** (`jsonb`): Payload original completo retornado pela API da VADU.
-- **`queriedAt`**: Timestamp do momento em que a consulta foi realizada no nosso sistema.
-
-### 2.2 `vadu_person_results` (vadu-person-results.ts)
-
-Armazena o resultado da consulta de CPF de uma pessoa física (sócio, representante, etc).
-
-- **`clientId`**: Relacionamento obrigatório com a tabela `clients` (a qual cliente este CPF pertence).
-- **`authorizedPersonId`**: Relacionamento opcional com `client_authorized_persons` (se quisermos atrelar o resultado à entidade exata do sócio cadastrado).
-- **Campos estruturados**: `cpf`, `name`, `birthDate`, `motherName`.
-- **`rawData`** (`jsonb`): Payload original completo retornado pela API da VADU.
-- **`queriedAt`**: Timestamp da consulta.
-
-Ambas as tabelas foram incluídas no `index.ts` de schemas e a migration correspondente foi gerada (`pnpm drizzle-kit generate`).
+### 2.2 `creditbox_reports` (creditbox-reports.ts)
+Armazena o estado e o resultado da geração assíncrona do relatório CreditBox.
+- **`clientId`**: Relacionamento com a tabela `clients`.
+- **`processId`**: ID retornado pela VADU ao iniciar a geração do relatório.
+- **`status`**: Estado do processamento (`PENDING`, `PROCESSING`, `COMPLETED`, `ERROR`).
+- **`reportJson`** (`jsonb`): O JSON completo do relatório retornado.
+- **`pdfBase64`** (`text`): O arquivo PDF codificado em Base64 gerado pela VADU.
+- **`errorMessage`**: Mensagem de erro caso a geração falhe (ex: "Cadastro não encontrado").
 
 ---
 
@@ -47,70 +43,58 @@ Ambas as tabelas foram incluídas no `index.ts` de schemas e a migration corresp
 
 A integração foi implementada dentro do módulo `credit`, estruturada em camadas.
 
-**Diretório Base:** `apps/api/src/modules/credit/`
+### 3.1 Infraestrutura (Adapters de Comunicação Externa)
 
-### 3.1 Infraestrutura (Comunicação com API Externa)
+Responsáveis exclusivamente pela comunicação HTTP com as APIs da VADU.
 
-**Arquivo:** `bureaus/vadu/vadu.adapter.ts`
+- **`VaduAdapter` (`bureaus/vadu/vadu.adapter.ts`)**: Comunica com `vadu.com.br` para consultas síncronas de CNPJ e CPF.
+- **`CreditboxAdapter` (`bureaus/creditbox/creditbox.adapter.ts`)**: Comunica com `creditbox.com.br` para solicitar a geração do relatório e fazer o *polling* do status do processo.
+- **Nota técnica sobre Autenticação**: Ambos os adapters obtêm tokens temporários em cache (válidos por 17h) utilizando a variável de ambiente `VADU_API_KEY`. Foi implementado um regex `replace(/^"|"$/g, '')` para limpar aspas que possam vir do `.env.local`, evitando erros HTTP 403 (Forbidden) ocasionados por aspas indevidas no cabeçalho `Bearer`. Também foi adicionado o cabeçalho `Content-Length: 0` nas chamadas POST para resolver o erro HTTP 411 (Length Required).
 
-Responsável exclusivamente pela comunicação HTTP com a API da VADU.
-- Obtém o token temporário via endpoint `/Autenticacao/JSONPegarToken` utilizando a chave definida na variável de ambiente `VADU_API_KEY`.
-- Implementa um mecanismo de cache interno em memória para o token (expira em 17 horas, já que a VADU expira em 18h).
-- Implementa `queryCnpj(cnpj)` realizando POST em `/ServicoAnaliseOperacao/Consulta/{cnpj}`.
-- Implementa `queryCpf(cpf)` realizando POST em `/ServicoAnaliseOperacao/ConsultaPF/{cpf}`.
-- **Nota técnica**: Foi adicionado o cabeçalho `Content-Length: 0` nas chamadas POST para resolver o erro HTTP 411 (Length Required) retornado pelo servidor da VADU.
+### 3.2 Domínio (Entities e Repository Interfaces)
 
-### 3.2 Domínio (Entities e Repository Interface)
+- **VADU Básico**: `VaduCompanyResult`, `VaduPersonResult` e `VaduRepository`.
+- **CreditBox**: A entidade `CreditboxReport` gerencia as mudanças de estado (ex: `markAsCompleted`, `markAsError`) e o `CreditboxRepository` define o contrato para persistência.
 
-**Arquivos:** 
-- `domain/vadu-company-result.entity.ts`
-- `domain/vadu-person-result.entity.ts`
-- `domain/vadu.repository.ts`
+### 3.3 Mappers e Persistência (Drizzle)
 
-- As classes `VaduCompanyResult` e `VaduPersonResult` encapsulam os dados da consulta no formato do domínio, garantindo que o restante da aplicação não dependa diretamente do formato bruto da VADU ou das colunas do Drizzle.
-- O `VaduRepository` define a interface (contrato) para salvar e recuperar essas entidades (`saveCompanyResult`, `savePersonResult`, `getLatestCompanyResult`, `getLatestPersonResults`).
+Transformam objetos de Domínio em objetos prontos para o banco de dados e vice-versa.
+As implementações `DrizzleVaduRepository` e `DrizzleCreditboxRepository` injetam a conexão com o banco e realizam as operações SQL usando Drizzle ORM.
 
-### 3.3 Mappers (Tradução Domínio ↔ Drizzle)
+### 3.4 Casos de Uso (Use Cases)
 
-**Arquivos:** 
-- `infra/mappers/vadu-company-result.mapper.ts`
-- `infra/mappers/vadu-person-result.mapper.ts`
+A orquestração das regras de negócio foi dividida em Use Cases distintos:
 
-Transformam o objeto de Domínio (`VaduCompanyResult`) em objeto pronto para inserção no banco pelo Drizzle (`InsertVaduCompanyResult`) e fazem o caminho inverso após um `SELECT`. Tratam também conversões de tipos (como cast de `string` do Drizzle numeric para `number` do domínio).
+**VADU Básico:**
+- `SyncVaduClientUseCase`: Chama a API síncrona para CNPJ e CPFs em paralelo, salva os resultados e retorna. É disparado automaticamente via Eventos (`ClientCreatedEvent`, `ClientSubmittedEvent`) através do `VaduClientListener`.
+- `GetVaduResultsUseCase`: Busca os últimos resultados salvos no banco para exibição.
 
-### 3.4 Persistência (Drizzle Repository)
-
-**Arquivo:** `infra/drizzle/drizzle-vadu.repository.ts`
-
-A implementação concreta da interface `VaduRepository` usando o Drizzle ORM. Injeta o `DB_CONNECTION` e realiza as operações de inserção e busca nas tabelas recém-criadas.
-
-### 3.5 UseCase (Orquestração)
-
-**Arquivo:** `use-cases/sync-vadu-client.use-case.ts`
-
-A classe `SyncVaduClientUseCase` orquestra o fluxo. Ela recebe o `clientId`, o `cnpj` da empresa e um array com os `cpfs` dos sócios.
-1. Faz as requisições através do `VaduAdapter` de forma paralela usando `Promise.allSettled` (se um CPF falhar, não impede a gravação do CNPJ e dos outros CPFs).
-2. Pega os dados brutos da VADU (`rawData`).
-3. Mapeia e instancia os objetos de domínio (`VaduCompanyResult` e `VaduPersonResult`) com os campos normalizados.
-4. Chama o `VaduRepository` para salvar as entidades no banco.
+**CreditBox (Assíncrono):**
+- `RequestCreditboxReportUseCase`: Envia o comando para a VADU iniciar a geração e cria o registro com status `PENDING`. Lida imediatamente com erros da API como "Cadastro não encontrado".
+- `SyncCreditboxReportUseCase`: Realiza o *polling* na VADU. Se o relatório estiver pronto, atualiza o status para `COMPLETED` e salva o JSON e o PDF decodificado no banco.
+- `GetCreditboxReportUseCase`: Busca o último relatório do banco para exibição imediata na tela, sem novas consultas externas.
 
 ---
 
-## 4. Configurações e Variáveis de Ambiente
+## 4. Frontend e Interface (Web Backoffice)
 
-Foi adicionada e tornada obrigatória a variável de ambiente `VADU_API_KEY` para autenticação com a VADU.
+Foi criada a aba **Bureau** na página de Detalhes do Cliente (`ClientDetail`), que atua como um Dashboard consolidado:
+
+1. **Análise da Empresa e Sócios (VADU)**: Exibe os resultados das consultas síncronas de forma elegante, dividida em Cards temáticos (Informações Principais, Atividades, Contato, Risco Ambiental, Sócios). Utilizamos `StatusBadge` para colorir dinamicamente status como "ATIVA" ou "Sem risco".
+2. **Relatório Completo (CreditBox)**: 
+   - Exibe o botão "Gerar Relatório CreditBox".
+   - Ao ser clicado, a interface inicia um *polling* de 5 em 5 segundos (`/sync`) mostrando um spinner de carregamento.
+   - Trata e exibe erros amigáveis na tela caso a VADU recuse a geração.
+   - Em caso de sucesso, disponibiliza o download do PDF Oficial gerado pelo Bureau e exibe os dados do JSON em tela.
+   - Há botões interativos (`<Code2 />`) para visualizar o `raw_data` (JSON bruto) de cada consulta em painéis com scroll.
+
+---
+
+## 5. Configurações e Variáveis de Ambiente
 
 **Arquivo:** `apps/api/src/config/env.ts`
+
 ```typescript
 VADU_API_KEY: z.string().min(1),
 ```
-
----
-
-## 5. Fluxo de Execução Recomendado (Próximos Passos)
-
-1. No workflow do Temporal (`CreditAnalysisWorkflow`) ou em um listener de evento (`client.submitted`), o sistema injeta o `SyncVaduClientUseCase`.
-2. O sistema busca os CPFs atrelados ao cliente na base de dados (`client_authorized_persons`).
-3. O sistema chama `syncVaduClientUseCase.execute({ clientId, cnpj, authorizedPersons })`.
-4. Os dados são salvos nas tabelas `vadu_company_results` e `vadu_person_results`.
-5. Quando a mesa de aprovação for visualizar o cliente, uma rota GET no controller fará o `getLatestCompanyResult` para mostrar no frontend (Dashboard de Crédito) de forma limpa, sem precisar realizar uma nova requisição à VADU.
+Esta mesma chave é utilizada para autenticação tanto na API padrão da VADU quanto no CreditBox.
