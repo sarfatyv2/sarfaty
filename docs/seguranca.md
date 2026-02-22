@@ -124,15 +124,16 @@ Configuracao relevante:
 
 ## 4. DAST (Dynamic Application Security Testing)
 
-### 4.1 OWASP ZAP Baseline
+### 4.1 OWASP ZAP Full (Authenticated)
 
 **Arquivo:** `.github/workflows/dast.yml`
 
 OWASP ZAP (Zed Attack Proxy) e o scanner DAST mais utilizado no mundo. Configurado para:
 - **Schedule semanal:** segunda-feira, 3h AM UTC
 - **Dispatch manual:** via GitHub Actions com URL customizada
+- **Scan autenticado obrigatorio:** token JWT valido obtido via `scripts/zap-auth.js`
 
-O baseline scan faz spider + passive scan, detectando:
+O full scan autenticado faz spider + active/passive scan, detectando:
 - Missing security headers
 - Cookies inseguros (sem HttpOnly, Secure, SameSite)
 - Information disclosure
@@ -141,7 +142,10 @@ O baseline scan faz spider + passive scan, detectando:
 
 **Regras customizadas:** `.zap/rules.tsv` define severidade por finding.
 
-**Pre-requisito:** configurar a variable `STAGING_URL` no repositorio GitHub (Settings > Variables) apontando para o ambiente de staging.
+**Pre-requisitos obrigatorios:**
+- configurar a variable `STAGING_URL` no repositorio GitHub (Settings > Variables)
+- configurar `TEST_USER_EMAIL` e `TEST_USER_PASSWORD` em GitHub Secrets
+- workflow falha quando autenticacao nao e obtida (sem fallback para scan anonimo)
 
 ---
 
@@ -151,7 +155,7 @@ O baseline scan faz spider + passive scan, detectando:
 
 **Arquivo:** `.github/workflows/security.yml` (job `dependency-audit`)
 
-Roda `pnpm audit --audit-level=high` em cada push/PR. Identifica dependencias com CVEs conhecidos.
+Roda `pnpm audit --audit-level=high` em cada push/PR. Identifica dependencias com CVEs conhecidos e falha o job para severidade alta/critica.
 
 ### 5.2 Dependabot
 
@@ -223,6 +227,10 @@ Helmet adiciona automaticamente os seguintes headers:
 
 CSP e desabilitado em desenvolvimento para nao interferir com Swagger UI e hot-reload.
 
+### 7.1.1 Swagger em Producao
+
+`/api/docs` e publicado apenas fora de producao (`NODE_ENV !== production`) para reduzir exposicao operacional.
+
 ### 7.2 HTTP Security Headers (Frontend)
 
 **Arquivo:** `apps/web-backoffice/next.config.ts`
@@ -251,6 +259,10 @@ Configuracao global:
 - **Limit:** 100 requisicoes por IP por janela
 
 O `ThrottlerGuard` e registrado como `APP_GUARD`, protegendo todas as rotas automaticamente. Para rotas que precisam de limites diferentes, usar o decorator `@Throttle()`.
+
+Rotas de autenticacao possuem throttling dedicado:
+- `POST /api/auth/login` -> `5 req/min`
+- `POST /api/auth/refresh` -> `10 req/min`
 
 ### 7.4 Autenticacao e Autorizacao
 
@@ -292,6 +304,22 @@ Validacao via `ZodValidationPipe` aplicado por rota com schemas de `@nexus/valid
 ```
 
 Os schemas Zod sao compartilhados entre frontend e backend via `packages/validators`.
+
+### 7.5.1 Validacao de Upload por Assinatura de Arquivo
+
+Uploads criticos (People e Learning) validam:
+- tamanho maximo permitido
+- `mimetype` informado
+- **assinatura binaria real (magic bytes)** para PDF/JPEG/PNG/WebP
+
+Arquivos com assinatura invalida ou mismatch entre `mimetype` e conteudo sao rejeitados.
+
+### 7.5.2 Resiliencia em Integracoes Externas
+
+Integracoes externas (Vadu, CreditBox e BrasilAPI) usam:
+- timeout por request (AbortController)
+- retry com backoff para falhas transientes (5xx/429)
+- limite maximo de tentativas para evitar loops
 
 ### 7.6 CORS
 
@@ -471,6 +499,7 @@ Documentado separadamente em `docs/audit_trail.md`. Resume:
 |------|------|-----------|
 | Habilitar Leaked Password Protection | Supabase Dashboard > Authentication > Providers > Email | Alta |
 | Configurar `STAGING_URL` como variable do repositorio | GitHub > Settings > Variables | Media (necessario para DAST semanal) |
+| Configurar `TEST_USER_EMAIL` e `TEST_USER_PASSWORD` para DAST autenticado | GitHub > Settings > Secrets and variables > Actions | Alta |
 | Avaliar Content Security Policy (CSP) para o frontend | `apps/web-backoffice/next.config.ts` | Baixa (requer mapear todos os dominios externos) |
 
 ---
@@ -489,3 +518,28 @@ Documentado separadamente em `docs/audit_trail.md`. Resume:
 | Gitleaks | CI + local | GitHub Actions + Husky | CI + Local |
 | OWASP ZAP | CI action | GitHub Actions | CI |
 | Dependabot | GitHub native | GitHub | Automatico |
+
+---
+
+## 15. Checklist de Release Seguro
+
+Antes de merge para `main`/`develop`, validar:
+
+1. **SAST/SCA/Secrets**
+   - Security workflow verde (`Semgrep`, `Gitleaks`, `pnpm audit`)
+   - CodeQL sem findings abertas de severidade alta/critica
+2. **DAST**
+   - ZAP autenticado executado com sucesso no ambiente alvo
+   - Sem findings bloqueantes conforme threshold do workflow
+3. **Auth e autorizacao**
+   - Endpoints novos protegidos por `AuthGuard` (ou `@Public()` justificado)
+   - Permissoes por role revisadas (`@Roles` e/ou `@RequireActions`)
+4. **Entrada e arquivos**
+   - Input validado com Zod
+   - Uploads com limite de tamanho e validacao de assinatura binaria
+5. **Observabilidade segura**
+   - Sem tokens/senhas/chaves em logs e audit trail
+   - Correlation ID presente para rastreabilidade
+6. **Integracoes externas**
+   - Timeout/retry aplicados
+   - Erros sem vazamento de segredo em logs

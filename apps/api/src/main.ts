@@ -48,15 +48,17 @@ async function bootstrap() {
   app.enableCors({ origin: env.CORS_ORIGINS.split(','), credentials: true });
   app.enableShutdownHooks();
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Sarfaty Platform API')
-    .setDescription('API backend for the Sarfaty corporate platform')
-    .setVersion('0.1.0')
-    .addBearerAuth()
-    .build();
+  if (env.NODE_ENV !== 'production') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Sarfaty Platform API')
+      .setDescription('API backend for the Sarfaty corporate platform')
+      .setVersion('0.1.0')
+      .addBearerAuth()
+      .build();
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   await app.listen(env.PORT, '0.0.0.0');
 }

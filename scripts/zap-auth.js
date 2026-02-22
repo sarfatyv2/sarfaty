@@ -6,14 +6,10 @@ async function getAuthToken() {
 
   if (!email || !password) {
     console.error('TEST_USER_EMAIL and TEST_USER_PASSWORD must be set');
-    // For CI/CD purposes without secrets, return a dummy token to avoid failing the workflow completely
-    // ZAP will just scan unauthenticated
-    console.log('dummy-token-for-unauthenticated-scan');
-    process.exit(0);
+    process.exit(1);
   }
 
   try {
-    // Assuming Supabase auth is used based on context, or a standard API login
     const response = await fetch(`${apiUrl}/api/auth/login`, {
       method: 'POST',
       headers: {
@@ -23,27 +19,28 @@ async function getAuthToken() {
     });
 
     if (!response.ok) {
-      console.warn(`Authentication failed: ${response.statusText}, falling back to unauthenticated scan`);
-      console.log('dummy-token-for-unauthenticated-scan');
-      return;
+      const errorPayload = await response.text();
+      console.error(`Authentication failed: ${response.status} ${response.statusText} - ${errorPayload}`);
+      process.exit(1);
     }
 
     const data = await response.json();
-    
-    // Extract token (adjust based on actual response payload structure)
-    const token = data.accessToken || data.token || data.session?.access_token;
-    
+
+    const token =
+      data?.data?.accessToken ??
+      data?.accessToken ??
+      data?.token ??
+      data?.session?.access_token;
+
     if (!token) {
-      console.warn('Token not found in response, falling back to unauthenticated scan');
-      console.log('dummy-token-for-unauthenticated-scan');
-      return;
+      console.error('Token not found in login response');
+      process.exit(1);
     }
 
-    // Output only the token to stdout
     console.log(token);
   } catch (error) {
     console.error('Error fetching auth token:', error);
-    console.log('dummy-token-for-unauthenticated-scan');
+    process.exit(1);
   }
 }
 
