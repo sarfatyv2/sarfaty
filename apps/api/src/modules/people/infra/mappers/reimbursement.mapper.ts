@@ -1,7 +1,7 @@
 import type { Reimbursement } from '../../domain/reimbursement.entity';
 import { Reimbursement as ReimbursementEntity } from '../../domain/reimbursement.entity';
 import type { InferSelectModel } from 'drizzle-orm';
-import { reimbursements } from '../../../../database/schema/reimbursements';
+import { type reimbursements } from '../../../../database/schema/reimbursements';
 
 type ReimbursementRow = InferSelectModel<typeof reimbursements>;
 

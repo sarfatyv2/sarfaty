@@ -1,5 +1,5 @@
-import { VaduCompanyResult } from './vadu-company-result.entity';
-import { VaduPersonResult } from './vadu-person-result.entity';
+import { type VaduCompanyResult } from './vadu-company-result.entity';
+import { type VaduPersonResult } from './vadu-person-result.entity';
 
 export const VADU_REPOSITORY = 'VADU_REPOSITORY';
 

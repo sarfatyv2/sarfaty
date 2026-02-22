@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { User } from './user.entity';
+import type { CreateUserProps } from './user.entity';
 
-function createUserFactory(overrides: Partial<import('./user.entity').CreateUserProps> = {}) {
+function createUserFactory(overrides: Partial<CreateUserProps> = {}) {
   return User.create({
     id: `test-${Date.now()}`,
     email: `test-${Date.now()}@sarfaty.com`,
@@ -11,7 +12,7 @@ function createUserFactory(overrides: Partial<import('./user.entity').CreateUser
   });
 }
 
-function createUserWithCollaboratorFactory(overrides: Partial<import('./user.entity').CreateUserProps> = {}) {
+function createUserWithCollaboratorFactory(overrides: Partial<CreateUserProps> = {}) {
   return createUserFactory({
     employmentType: 'clt',
     cpf: '123.456.789-00',

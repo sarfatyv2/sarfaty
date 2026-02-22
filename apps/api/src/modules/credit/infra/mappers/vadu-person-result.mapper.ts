@@ -1,4 +1,4 @@
-import { vaduPersonResults } from '../../../../database/schema/vadu-person-results';
+import { type vaduPersonResults } from '../../../../database/schema/vadu-person-results';
 import { VaduPersonResult } from '../../domain/vadu-person-result.entity';
 
 type DrizzleVaduPersonResult = typeof vaduPersonResults.$inferSelect;

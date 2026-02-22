@@ -1,4 +1,4 @@
-import { CommercialReportEntity } from './commercial-report.entity';
+import { type CommercialReportEntity } from './commercial-report.entity';
 
 export const COMMERCIAL_REPORT_REPOSITORY = 'COMMERCIAL_REPORT_REPOSITORY';
 
