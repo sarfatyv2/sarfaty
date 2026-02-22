@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, date, boolean, timestamp, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, date, boolean, timestamp, index } from 'drizzle-orm/pg-core';
 import { drawees } from './drawees';
 import { economicGroups } from './economic-groups';
 

@@ -24,17 +24,13 @@ interface PjInvoice {
   [key: string]: unknown;
 }
 
-interface ListInvoicesResponse {
-  data: PjInvoice[];
-  total: number;
-}
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
 
 export default function MyInvoicesPage() {
   const [invoices, setInvoices] = useState<PjInvoice[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
+  const [, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [yearFilter, setYearFilter] = useState<number>(CURRENT_YEAR);

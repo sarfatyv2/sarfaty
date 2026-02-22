@@ -190,6 +190,7 @@ export function EditCollaboratorForm({ collaborator }: EditCollaboratorFormProps
     reset,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<UpdateCollaboratorAdminDto>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(updateCollaboratorAdminSchema) as any,
     mode: 'onBlur',
     defaultValues: defaultValuesFromCollaborator(collaborator),

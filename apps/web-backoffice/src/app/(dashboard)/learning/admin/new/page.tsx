@@ -146,6 +146,7 @@ export default function NewCoursePage() {
                 id="thumbnailUrl"
                 value={thumbnailUrl}
                 onChange={(e) => setThumbnailUrl(e.target.value)}
+                // eslint-disable-next-line no-secrets/no-secrets
                 placeholder="https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg"
                 type="url"
               />

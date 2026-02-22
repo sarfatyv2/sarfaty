@@ -1,12 +1,13 @@
-/** @type {import('eslint').Linter.Config} */
-module.exports = {
-  extends: [require.resolve('./base')],
-  env: {
-    node: true,
-    jest: true,
+// @ts-check
+const base = require('./base');
+
+/** @type {import('typescript-eslint').Config} */
+module.exports = [
+  ...base,
+  {
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-floating-promises': 'error',
+    },
   },
-  rules: {
-    '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/no-floating-promises': 'error',
-  },
-};
+];

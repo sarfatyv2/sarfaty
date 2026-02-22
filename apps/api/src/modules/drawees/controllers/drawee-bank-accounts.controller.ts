@@ -35,6 +35,7 @@ export class DraweeBankAccountsController {
     @Param('id') draweeId: string,
     @Body(new ZodValidationPipe(createDraweeBankAccountSchema)) dto: CreateDraweeBankAccountDto,
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data = await this.bankAccountRepository.save({ ...dto, draweeId } as any);
     return { data };
   }

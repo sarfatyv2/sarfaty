@@ -13,6 +13,7 @@ interface VaduPersonResult {
   name: string | null;
   birthDate: string | null;
   motherName: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rawData: any;
   queriedAt: string;
 }
@@ -31,6 +32,7 @@ interface VaduCompanyResult {
   companySize: string | null;
   environmentalScore: number | null;
   environmentalLevel: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rawData: any;
   queriedAt: string;
 }
@@ -121,6 +123,7 @@ interface CreditboxReport {
   clientId: string;
   processId: string | null;
   status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'ERROR';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reportJson: any | null;
   pdfBase64: string | null;
   errorMessage: string | null;
@@ -171,6 +174,7 @@ export function ClientCreditAnalysisTab({ clientId }: { clientId: string }) {
         }
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Error polling CreditBox', err);
     }
   }, [clientId]);
@@ -220,7 +224,7 @@ export function ClientCreditAnalysisTab({ clientId }: { clientId: string }) {
       downloadLink.href = linkSource;
       downloadLink.download = fileName;
       downloadLink.click();
-    } catch (error) {
+    } catch {
       toast.error('Erro ao fazer download do PDF.');
     }
   };
@@ -367,7 +371,7 @@ export function ClientCreditAnalysisTab({ clientId }: { clientId: string }) {
                 Atualizado em: {formatDate(data.company.queriedAt)}
               </p>
             </div>
-            <Button variant="outline" size="sm" onClick={() => toggleRaw(data.company!.id)} className="gap-2">
+            <Button variant="outline" size="sm" onClick={() => toggleRaw(data.company?.id ?? '')} className="gap-2">
               <Code2 className="h-4 w-4" />
               {viewRaw[data.company.id] ? 'Esconder JSON' : 'Ver JSON'}
             </Button>

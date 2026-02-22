@@ -4,7 +4,7 @@ import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
 import { salesGoals } from '../../../database/schema/sales-goals';
 import { profiles } from '../../../database/schema/profiles';
 import { teams } from '../../../database/schema/teams';
-import { regions } from '../../../database/schema/regions';
+
 import type { GoalRepository, GoalFilters, PaginatedGoals, RankingRow } from '../domain/goal.repository';
 import { Goal } from '../domain/goal.entity';
 import { GoalMapper } from './mappers/goal.mapper';
@@ -154,7 +154,7 @@ export class DrizzleGoalRepository implements GoalRepository {
     periodYear: number,
     periodMonth: number,
     teamId?: string,
-    regionId?: string,
+    _regionId?: string,
   ): Promise<RankingRow[]> {
     const conditions = [
       eq(salesGoals.periodYear, periodYear),

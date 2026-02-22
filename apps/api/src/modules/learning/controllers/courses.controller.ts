@@ -304,6 +304,7 @@ export class CoursesController {
       return { data: null, error: 'Material not found' };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const materialToDelete = existingMaterials[idx]!;
     await this.storageService.deleteMaterial(materialToDelete.storagePath);
 

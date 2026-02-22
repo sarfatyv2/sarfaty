@@ -35,7 +35,7 @@ export function ModuleAccordion({
   completedLessonIds = [],
 }: ModuleAccordionProps) {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(
-    new Set(modules.length > 0 ? [modules[0]!.id] : []),
+    new Set(modules.slice(0, 1).map((m) => m.id)),
   );
 
   const toggleModule = (moduleId: string) => {

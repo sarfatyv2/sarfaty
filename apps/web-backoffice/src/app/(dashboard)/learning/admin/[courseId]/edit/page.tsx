@@ -1,7 +1,7 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
+import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Button,
@@ -84,7 +84,6 @@ interface CourseData {
 
 export default function EditCoursePage() {
   const params = useParams<{ courseId: string }>();
-  const router = useRouter();
   const courseId = params.courseId;
 
   const [loading, setLoading] = useState(true);

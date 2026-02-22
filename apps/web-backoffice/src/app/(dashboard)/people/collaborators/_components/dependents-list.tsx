@@ -31,7 +31,7 @@ import {
   TableCell,
   Switch,
 } from '@nexus/ui';
-import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { MaskedInput, CPF_MASK } from '@/components/masked-input';
 

@@ -35,6 +35,7 @@ export class DraweeAddressesController {
     @Param('id') draweeId: string,
     @Body(new ZodValidationPipe(createDraweeAddressSchema)) dto: CreateDraweeAddressDto,
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data = await this.addressRepository.save({ ...dto, draweeId } as any);
     return { data };
   }
