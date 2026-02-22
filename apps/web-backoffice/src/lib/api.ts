@@ -54,7 +54,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<A
   const token = await getAuthToken();
 
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
     ...customHeaders,
   };
 
