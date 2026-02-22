@@ -127,32 +127,32 @@ export default function WikiOverviewPage() {
   return (
     <PageWrapper>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[hsl(150,50%,10%)] text-white">
-        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(150,50%,8%)] via-[hsl(150,50%,12%)] to-[hsl(150,40%,16%)]" />
+      <section className="relative overflow-hidden bg-[hsl(45,50%,91%)]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(44,52%,89%)] via-[hsl(45,50%,91%)] to-[hsl(46,45%,94%)]" />
         <div
-          className="absolute inset-0 opacity-[0.04]"
+          className="absolute inset-0 opacity-[0.07]"
           style={{
-            backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(48,100%,42%) 1px, transparent 0)',
+            backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(40,60%,50%) 1px, transparent 0)',
             backgroundSize: '32px 32px',
           }}
         />
         <div className="relative px-10 py-16 max-w-5xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[hsl(48,100%,42%)]/15 border border-[hsl(48,100%,42%)]/30 mb-6">
-            <div className="w-1.5 h-1.5 rounded-full bg-[hsl(48,100%,42%)] animate-pulse" />
-            <span className="text-xs font-semibold text-[hsl(48,100%,70%)] tracking-wide">Documentação Técnica</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[hsl(40,60%,45%)]/15 border border-[hsl(40,60%,45%)]/30 mb-6">
+            <div className="w-1.5 h-1.5 rounded-full bg-[hsl(40,70%,40%)] animate-pulse" />
+            <span className="text-xs font-semibold text-[hsl(38,65%,30%)] tracking-wide">Documentação Técnica</span>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight mb-4 leading-tight">
+          <h1 className="text-4xl font-bold tracking-tight mb-4 leading-tight text-[hsl(35,35%,15%)]">
             Plataforma Corporativa<br />
-            <span className="text-[hsl(48,100%,55%)]">Sarfaty</span>
+            <span className="text-[hsl(38,70%,32%)]">Sarfaty</span>
           </h1>
-          <p className="text-lg text-white/65 max-w-xl leading-relaxed">
+          <p className="text-lg text-[hsl(35,20%,40%)] max-w-xl leading-relaxed">
             Interface única adaptativa que integra todas as áreas da empresa — comercial, crédito, compliance, jurídico, backoffice, risco e pessoas.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-10">
             {stats.map((stat) => (
-              <div key={stat.label} className="bg-white/5 rounded-xl p-4 border border-white/10 backdrop-blur-sm">
-                <div className="text-3xl font-bold text-[hsl(48,100%,55%)]">{stat.value}</div>
-                <div className="text-xs text-white/50 mt-1 leading-tight">{stat.label}</div>
+              <div key={stat.label} className="bg-[hsl(42,45%,84%)] rounded-xl p-4 border border-[hsl(40,40%,80%)]">
+                <div className="text-3xl font-bold text-[hsl(38,70%,32%)]">{stat.value}</div>
+                <div className="text-xs text-[hsl(35,20%,45%)] mt-1 leading-tight">{stat.label}</div>
               </div>
             ))}
           </div>

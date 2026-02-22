@@ -13,7 +13,7 @@ export default function CommercialModulePage() {
         domain="Módulo"
         description="Gestão completa do ciclo de vida de clientes PJ e PF, com 21 status distintos, checklist dinâmico de documentos baseado em segmento, produto e garantias, e rastreabilidade total de transições de status."
         color="green"
-        gradient="bg-gradient-to-br from-[hsl(150,50%,10%)] to-[hsl(150,40%,18%)]"
+        gradient="bg-gradient-to-br from-[hsl(38,65%,15%)] to-[hsl(42,55%,24%)]"
         roles={['sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director', 'credit_analyst', 'compliance_officer', 'approver', 'backoffice', 'admin']}
         flowSteps={[
           { label: 'Prospecção', desc: 'Cliente criado com status draft. CNPJ/CPF registrado. Segmento e produto de crédito selecionados.' },

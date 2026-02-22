@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   Building2,
   Menu,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@nexus/ui';
 
@@ -31,6 +32,7 @@ const navGroups = [
       { href: '/wiki', label: 'Visão Geral', icon: Home },
       { href: '/wiki/architecture', label: 'Arquitetura', icon: Layers },
       { href: '/wiki/database', label: 'Banco de Dados', icon: Database },
+      { href: '/wiki/migration', label: 'Migração Legado → Novo', icon: ArrowRightLeft },
     ],
   },
   {
@@ -58,7 +60,7 @@ function NavItem({ href, label, icon: Icon }: { href: string; label: string; ico
       {isActive && (
         <motion.div
           layoutId="sidebar-active-indicator"
-          className="absolute left-0 top-0 bottom-0 w-0.5 bg-[hsl(48,100%,42%)] rounded-r-full"
+          className="absolute left-0 top-0 bottom-0 w-0.5 bg-[hsl(45,50%,88%)] rounded-r-full"
           transition={{ type: 'spring', stiffness: 500, damping: 40 }}
         />
       )}
@@ -71,8 +73,8 @@ function NavItem({ href, label, icon: Icon }: { href: string; label: string; ico
         whileHover={{ x: 2 }}
         transition={{ duration: 0.15 }}
       >
-        <Icon size={15} className={isActive ? 'text-[hsl(48,100%,42%)]' : ''} />
-        <span className="font-medium">{label}</span>
+        <Icon size={15} className={isActive ? 'text-[hsl(45,50%,88%)]' : ''} />
+        <span className="font-light">{label}</span>
       </motion.div>
     </Link>
   );
@@ -84,18 +86,18 @@ function SidebarContent() {
   return (
     <div className="flex flex-col h-full bg-[hsl(150,50%,10%)] text-white overflow-y-auto">
       <div className="px-5 py-6 border-b border-white/10">
-        <Link href="/wiki" className="flex items-center gap-3">
+        <Link href="/wiki" className="flex justify-center">
           <Image src="/logo.svg" alt="Sarfaty" width={120} height={34} className="brightness-0 invert" />
         </Link>
-        <div className="mt-2.5 flex items-center gap-1.5">
-          <span className="text-xs font-medium text-white/40 uppercase tracking-wider">Documentação</span>
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-[hsl(48,100%,42%)]/20 text-[hsl(48,100%,60%)]">v1.0</span>
+        <div className="mt-2.5 flex items-center justify-center gap-1.5">
+          <span className="text-[10px] font-medium text-white/40 uppercase tracking-wider">Documentação</span>
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-[hsl(45,50%,88%)]/20 text-[hsl(45,50%,88%)]">v1.0</span>
         </div>
       </div>
 
       <nav className="flex-1 py-4 space-y-1">
-        {navGroups.map((group, groupIndex) => (
-          <div key={groupIndex} className="mb-4">
+        {navGroups.map((group) => (
+          <div key={group.label ?? 'main'} className="mb-4">
             {group.label && (
               <button
                 onClick={() => setModulesOpen(!modulesOpen)}
@@ -134,7 +136,7 @@ function SidebarContent() {
       <div className="px-4 py-5 border-t border-white/10">
         <Link
           href="/login"
-          className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors"
+          className="flex items-center gap-2 text-sm font-light text-white/40 hover:text-white/70 transition-colors"
         >
           <ChevronLeft size={14} />
           <span>Voltar ao Login</span>
@@ -150,7 +152,7 @@ export function WikiSidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-[260px] shrink-0 h-full">
+      <aside className="hidden lg:flex w-[260px] shrink-0 h-full bg-[hsl(150,50%,10%)]">
         <SidebarContent />
       </aside>
 

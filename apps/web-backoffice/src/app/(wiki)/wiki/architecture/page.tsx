@@ -47,24 +47,24 @@ const authSteps = [
 export default function ArchitecturePage() {
   return (
     <PageWrapper>
-      <section className="relative overflow-hidden bg-[hsl(150,50%,10%)] text-white px-10 py-14">
-        <div className="absolute inset-0 bg-gradient-to-r from-[hsl(150,50%,8%)] to-[hsl(150,40%,15%)]" />
+      <section className="relative overflow-hidden bg-[hsl(45,50%,91%)] px-10 py-14">
+        <div className="absolute inset-0 bg-gradient-to-r from-[hsl(44,52%,89%)] to-[hsl(46,45%,94%)]" />
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.06]"
           style={{
-            backgroundImage: 'linear-gradient(hsl(48,100%,42%) 1px, transparent 1px), linear-gradient(90deg, hsl(48,100%,42%) 1px, transparent 1px)',
+            backgroundImage: 'linear-gradient(hsl(40,60%,50%) 1px, transparent 1px), linear-gradient(90deg, hsl(40,60%,50%) 1px, transparent 1px)',
             backgroundSize: '40px 40px',
           }}
         />
         <div className="relative max-w-3xl">
           <div className="flex items-center gap-3 mb-4">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10">
-              <Layers size={20} className="text-[hsl(48,100%,55%)]" />
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[hsl(40,50%,80%)]">
+              <Layers size={20} className="text-[hsl(38,70%,32%)]" />
             </div>
-            <span className="text-sm font-semibold text-white/50 uppercase tracking-widest">Arquitetura</span>
+            <span className="text-sm font-semibold text-[hsl(35,25%,45%)] uppercase tracking-widest">Arquitetura</span>
           </div>
-          <h1 className="text-3xl font-bold mb-3 leading-tight">Arquitetura do Sistema</h1>
-          <p className="text-white/60 text-base leading-relaxed max-w-xl">
+          <h1 className="text-3xl font-bold mb-3 leading-tight text-[hsl(35,35%,15%)]">Arquitetura do Sistema</h1>
+          <p className="text-[hsl(35,20%,40%)] text-base leading-relaxed max-w-xl">
             DDD leve com 4 camadas, monorepo Turborepo e RBAC granular com 18 roles.
           </p>
         </div>
