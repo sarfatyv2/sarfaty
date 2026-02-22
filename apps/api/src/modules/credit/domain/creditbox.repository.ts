@@ -1,4 +1,4 @@
-import { CreditboxReport } from './creditbox-report.entity';
+import { type CreditboxReport } from './creditbox-report.entity';
 
 export const CREDITBOX_REPOSITORY = 'CREDITBOX_REPOSITORY';
 

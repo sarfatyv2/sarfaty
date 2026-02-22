@@ -1,7 +1,7 @@
 import type { PjInvoice } from '../../domain/pj-invoice.entity';
 import { PjInvoice as PjInvoiceEntity } from '../../domain/pj-invoice.entity';
 import type { InferSelectModel } from 'drizzle-orm';
-import { pjInvoices } from '../../../../database/schema/pj-invoices';
+import { type pjInvoices } from '../../../../database/schema/pj-invoices';
 
 type PjInvoiceRow = InferSelectModel<typeof pjInvoices>;
 
