@@ -43,12 +43,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Gitleaks CLI
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/gitleaks/gitleaks/master/install.sh | sh -s -- -b /usr/local/bin
-
       - name: Run Gitleaks
-        run: gitleaks git --redact --exit-code 1 --verbose
+        run: |
+          docker run --rm \
+            -v "$PWD:/path" \
+            ghcr.io/gitleaks/gitleaks:latest \
+            git --source="/path" --redact --exit-code 1 --verbose
 
   dependency-audit:
     name: Dependency Audit
@@ -61,7 +61,7 @@ jobs:
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'pnpm'
