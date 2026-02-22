@@ -23,9 +23,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Semgrep
-        run: semgrep scan --config auto --config p/typescript --config p/javascript --config p/nodejs --config p/owasp-top-ten --sarif --output semgrep-results.sarif .
+        run: semgrep ci --sarif --output semgrep-results.sarif
         env:
-          SEMGREP_RULES: p/typescript p/javascript p/nodejs p/owasp-top-ten
+          SEMGREP_RULES: p/typescript p/javascript p/nodejs p/react p/owasp-top-ten p/jwt
 
       - name: Upload SARIF
         if: always()

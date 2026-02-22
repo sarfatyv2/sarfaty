@@ -11,8 +11,8 @@ on:
     - cron: '0 3 * * 1'
 
 jobs:
-  zap-baseline:
-    name: OWASP ZAP Baseline Scan
+  zap-full:
+    name: OWASP ZAP Full Scan
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -20,11 +20,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.14.0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Get Auth Token
+        id: auth
+        run: |
+          TOKEN=$(node scripts/zap-auth.js)
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+        env:
+          API_URL: ${{ inputs.target_url || vars.STAGING_URL }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+
+      - name: ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.12.0
         with:
           target: ${{ inputs.target_url || vars.STAGING_URL }}
           rules_file_name: .zap/rules.tsv
-          cmd_options: '-a -j'
+          cmd_options: "-a -j -z '-config replacer.full_list(0).description=auth1 -config replacer.full_list(0).enabled=true -config replacer.full_list(0).matchtype=req_header -config replacer.full_list(0).matchstr=Authorization -config replacer.full_list(0).regex=false -config replacer.full_list(0).replacement=\"Bearer ${{ steps.auth.outputs.token }}\"'"
           allow_issue_writing: true
           fail_action: false

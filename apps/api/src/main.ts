@@ -1,6 +1,20 @@
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
+import * as Sentry from '@sentry/nestjs';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  integrations: [
+    nodeProfilingIntegration(),
+  ],
+  // Tracing
+  tracesSampleRate: 1.0, //  Capture 100% of the transactions
+  // Set sampling rate for profiling - this is relative to tracesSampleRate
+  profilesSampleRate: 1.0,
+});
+
 import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 import { NestFactory } from '@nestjs/core';
@@ -9,6 +23,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { env } from './config/env';
+import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -18,6 +33,8 @@ async function bootstrap() {
     new FastifyAdapter({ logger: false }) as any,
     { bufferLogs: true },
   );
+
+  app.useGlobalInterceptors(new SentryInterceptor());
 
   await app.register(helmet, {
     contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false,

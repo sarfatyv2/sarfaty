@@ -28,6 +28,8 @@
     "@nexus/types": "workspace:*",
     "@nexus/utils": "workspace:*",
     "@nexus/validators": "workspace:*",
+    "@sentry/nestjs": "^10.39.0",
+    "@sentry/profiling-node": "^10.39.0",
     "@supabase/supabase-js": "^2.47.12",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.38.3",
