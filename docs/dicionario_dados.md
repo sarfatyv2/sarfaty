@@ -3,7 +3,7 @@
 **Versao:** 2.0  
 **Data:** 20 de Fevereiro de 2026  
 **Banco:** Supabase PostgreSQL 15+ (schema `public`)  
-**Total de tabelas:** 72  
+**Total de tabelas:** 73  
 
 ---
 
@@ -994,7 +994,48 @@ Pessoas autorizadas a representar o cliente (socios, procuradores, representante
 
 ---
 
-### 41. sales_goals
+### 41. client_commercial_reports
+
+Relatorios comerciais e de visita estruturados. Parseados do arquivo Excel `.xlsx` enviado pelo comercial.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `created_by` | uuid | NO | — | FK -> profiles.id |
+| `visit_date` | date | YES | — | Data da visita |
+| `report_date` | date | YES | — | Data do relatorio |
+| `proposal_type` | text | YES | — | Tipo de proposta |
+| `installed_capacity` | text | YES | — | Capacidade instalada |
+| `utilized_capacity` | text | YES | — | Capacidade utilizada |
+| `productive_capacity` | text | YES | — | Capacidade produtiva |
+| `inventory` | text | YES | — | Estoques |
+| `main_clients` | text | YES | — | Principais clientes |
+| `main_suppliers` | text | YES | — | Principais fornecedores |
+| `gross_payroll` | numeric | YES | — | FOPAG Bruta |
+| `accounts_receivable` | numeric | YES | — | Contas a receber |
+| `available_cash` | numeric | YES | — | Disponivel / Caixa |
+| `advances_to_suppliers` | numeric | YES | — | Adiantamentos a fornecedores |
+| `advances_from_clients` | numeric | YES | — | Adiantamentos de clientes |
+| `sales_percentage_cash` | numeric | YES | — | % Vendas a vista |
+| `sales_percentage_term` | numeric | YES | — | % Vendas a prazo |
+| `internal_market_percentage` | numeric | YES | — | % Mercado interno |
+| `external_market_percentage` | numeric | YES | — | % Mercado externo |
+| `average_delivery_time` | integer | YES | — | Prazo medio entrega (dias) |
+| `transport_type` | text | YES | — | Tipo de transporte |
+| `tac_value` | numeric | YES | — | TAC |
+| `ted_value` | numeric | YES | — | TED |
+| `boleto_tariff` | numeric | YES | — | Tarifa de boleto |
+| `notary_term` | integer | YES | — | Prazo de cartorio |
+| `commercial_defense` | text | YES | — | Parecer / Historico |
+| `created_at` | timestamptz | NO | now() | |
+| `updated_at` | timestamptz | NO | now() | |
+
+**Constraints:** FK(client_id, created_by)
+
+---
+
+### 42. sales_goals
 
 Metas comerciais por periodo. Exatamente um de `profile_id`, `team_id` ou `region_id` deve estar preenchido.
 

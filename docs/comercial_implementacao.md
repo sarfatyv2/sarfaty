@@ -14,11 +14,12 @@ Este documento descreve a implementação do módulo comercial: cadastro de clie
 ### 1.1 Escopo Implementado
 
 - **Backend completo** — módulo NestJS `clients` com DDD (entity, repositories, use-cases, controllers)
-- **Banco de dados** — 14 novas tabelas, RLS, funções SQL, bucket Storage
+- **Banco de dados** — 15 novas tabelas, RLS, funções SQL, bucket Storage
 - **Seed data** — segmentos, produtos de crédito, tipos de garantia, templates de documentos
 - **Tipos e validações compartilhados** — `@nexus/types` e `@nexus/validators`
 - **Frontend completo** — lista de clientes (cards), formulário multi-step, detalhe com checklist de documentos
 - **Utilitários compartilhados** — pipeline de status com fases, ícones, cores e helpers (`@nexus/utils`)
+- **Automação de Relatórios (Excel)** — endpoint para parse de arquivos `.xlsx` de Relatório de Visita (`visit_report`), extração estruturada de dados e modal de revisão no frontend antes do salvamento da entidade `client_commercial_reports`.
 
 ### 1.2 Escopo Pendente
 
@@ -51,6 +52,7 @@ Duas migrations aplicadas:
 | 12 | `client_documents` | Documentos do cliente (FK client, metadados, validation_status) |
 | 13 | `client_status_history` | Histórico de transições de status (append-only) |
 | 14 | `notifications` | Notificações para os usuários |
+| 15 | `client_commercial_reports` | Dados estruturados extraídos de Relatórios de Visita (.xlsx) via parser |
 
 Alteração existente:
 - **`profiles`** — adicionadas colunas `team_id` (FK teams) e `region_id` (FK regions) para hierarquia comercial
@@ -658,6 +660,9 @@ clients/
 | POST | `/api/clients/:id/authorized-persons` | sales_*, admin | Criar pessoa autorizada |
 | PATCH | `/api/clients/:id/authorized-persons/:subId` | sales_*, admin | Atualizar |
 | DELETE | `/api/clients/:id/authorized-persons/:subId` | sales_*, admin | Remover |
+| POST | `/api/clients/:id/commercial-reports` | sales_*, admin | Salvar relatório comercial estruturado |
+| GET | `/api/clients/:id/commercial-reports` | sales_*, credit_analyst, admin | Buscar relatórios (com flag ?latest=true) |
+| POST | `/api/clients/:id/commercial-reports/parse` | sales_*, admin | Upload multipart do `.xlsx` para parse de dados estruturados (Retorna JSON) |
 
 ### 16.3 Frontend
 

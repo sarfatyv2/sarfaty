@@ -1,6 +1,6 @@
 # Status do Projeto — Plataforma Sarfaty
 
-**Última atualização:** 20 de Fevereiro de 2026  
+**Última atualização:** 22 de Fevereiro de 2026  
 **Referência rápida para contexto do projeto**
 
 ---
@@ -93,7 +93,7 @@ sarfaty/
 | `goals` | `POST/GET/PATCH/DELETE /api/goals`, `GET /api/goals/ranking` | CRUD metas comerciais (individual/equipe/região) + ranking |
 | `pipeline` | `GET /api/pipeline`, `GET /api/pipeline/metrics` | Listagem do funil + métricas por fase |
 
-**Database — 72 schemas Drizzle:**
+**Database — 73 schemas Drizzle:**
 
 | # | Schema | Tabela | Módulo |
 |---|--------|--------|--------|
@@ -132,7 +132,8 @@ sarfaty/
 | 33 | `client-authorized-persons.ts` | `client_authorized_persons` | Comercial |
 | 34 | `sales-goals.ts` | `sales_goals` (individual/equipe/região) | Comercial |
 | 35 | `notifications.ts` | `notifications` | Comercial |
-| 36 | `drawees.ts` | `drawees` (PJ e PF) | Sacados |
+| 36 | `client-commercial-reports.ts` | `client_commercial_reports` (Relatórios parseados) | Comercial |
+| 37 | `drawees.ts` | `drawees` (PJ e PF) | Sacados |
 | 37 | `drawee-contacts.ts` | `drawee_contacts` | Sacados |
 | 38 | `drawee-addresses.ts` | `drawee_addresses` (com campos billing legados) | Sacados |
 | 39 | `drawee-bank-accounts.ts` | `drawee_bank_accounts` | Sacados |
@@ -255,7 +256,7 @@ src/app/
 
 ### 4.4 Banco de Dados e Storage (Supabase)
 
-- 72 tabelas (16 People + 35 Comercial/Sacados + 4 Grupos Econômicos + 5 Financeiro + 2 Portfólio + 6 Debêntures + 5 Fornecedores + 2 Integrações + 1 Core + 5 Learning) + 1 view (`collaborators_with_computed`) + trigger `on_auth_user_created`
+- 73 tabelas (16 People + 36 Comercial/Sacados + 4 Grupos Econômicos + 5 Financeiro + 2 Portfólio + 6 Debêntures + 5 Fornecedores + 2 Integrações + 1 Core + 5 Learning) + 1 view (`collaborators_with_computed`) + trigger `on_auth_user_created`
 - **Não existe signup público** — todo acesso criado por admin/RH
 - Cadeia: `auth.users` -> trigger -> `profiles` -> `collaborators`
 - **RLS policies (tabelas):** NENHUMA criada ainda
