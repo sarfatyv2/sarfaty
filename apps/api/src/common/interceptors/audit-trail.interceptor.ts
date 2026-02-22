@@ -10,6 +10,21 @@ import { correlationStorage } from '../middleware/correlation-id.middleware';
 import { AuditService } from '../services/audit.service';
 import { AUDITABLE_KEY, type AuditableOptions } from '../decorators/auditable.decorator';
 
+const SENSITIVE_KEYS = new Set([
+  'password',
+  'token',
+  'access_token',
+  'refresh_token',
+  'authorization',
+  'api_key',
+  'apikey',
+  'secret',
+  'secret_key',
+]);
+
+const MAX_STRING_LENGTH = 512;
+const MAX_ARRAY_ITEMS = 20;
+
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
   constructor(
@@ -58,10 +73,10 @@ export class AuditInterceptor implements NestInterceptor {
           actorRole,
           action: auditOptions.action,
           entityType: auditOptions.entity,
-          entityId: resolvedEntityId as string | null,
+          entityId: resolvedEntityId,
           httpMethod,
           path,
-          payload: request.body as unknown,
+          payload: this.sanitizeAuditPayload(request.body as unknown),
           metadata: {
             ip: request.ip as string | undefined,
             userAgent: request.headers?.['user-agent'] as string | undefined,
@@ -69,5 +84,43 @@ export class AuditInterceptor implements NestInterceptor {
         });
       }),
     );
+  }
+
+  private sanitizeAuditPayload(value: unknown): unknown {
+    if (value === null || value === undefined) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      return value.length > MAX_STRING_LENGTH
+        ? `${value.slice(0, MAX_STRING_LENGTH)}...[truncated]`
+        : value;
+    }
+
+    if (typeof value !== 'object') {
+      return value;
+    }
+
+    if (Array.isArray(value)) {
+      return value
+        .slice(0, MAX_ARRAY_ITEMS)
+        .map((item) => this.sanitizeAuditPayload(item));
+    }
+
+    const plainObject = value as Record<string, unknown>;
+    const sanitizedObject: Record<string, unknown> = {};
+
+    for (const [rawKey, rawValue] of Object.entries(plainObject)) {
+      const normalizedKey = rawKey.toLowerCase();
+
+      if (SENSITIVE_KEYS.has(normalizedKey)) {
+        sanitizedObject[rawKey] = '[REDACTED]';
+        continue;
+      }
+
+      sanitizedObject[rawKey] = this.sanitizeAuditPayload(rawValue);
+    }
+
+    return sanitizedObject;
   }
 }

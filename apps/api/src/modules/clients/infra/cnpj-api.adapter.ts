@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
 import { cnaeSegmentMapping, segments } from '../../../database/schema';
@@ -33,10 +33,14 @@ export interface CnpjValidationResult {
 
 @Injectable()
 export class CnpjApiAdapter {
+  private readonly logger = new Logger(CnpjApiAdapter.name);
+  private readonly requestTimeoutMs = 8_000;
+  private readonly maxAttempts = 3;
+
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
   async validate(cnpj: string): Promise<CnpjValidationResult> {
-    const cleanCnpj = cnpj.replace(/\D/g, '');
+    const cleanCnpj = cnpj.replaceAll(/\D/g, '');
 
     if (cleanCnpj.length !== 14) {
       return {
@@ -57,8 +61,9 @@ export class CnpjApiAdapter {
 
     let response: Response;
     try {
-      response = await fetch(
+      response = await this.fetchWithRetry(
         `https://brasilapi.com.br/api/cnpj/v1/${cleanCnpj}`,
+        'cnpj.validate',
       );
     } catch {
       return {
@@ -182,5 +187,43 @@ export class CnpjApiAdapter {
       name: segment.name,
       confidence: mapping.confidence ?? 'medium',
     };
+  }
+
+  private async fetchWithRetry(url: string, operation: string): Promise<Response> {
+    let lastError: unknown;
+
+    for (let attemptNumber = 1; attemptNumber <= this.maxAttempts; attemptNumber += 1) {
+      const abortController = new AbortController();
+      const timeoutId = setTimeout(() => abortController.abort(), this.requestTimeoutMs);
+
+      try {
+        const response = await fetch(url, { signal: abortController.signal });
+        clearTimeout(timeoutId);
+
+        const shouldRetry = response.status >= 500 || response.status === 429;
+        if (!response.ok && shouldRetry && attemptNumber < this.maxAttempts) {
+          this.logger.warn(`${operation} attempt ${attemptNumber} failed with ${response.status}, retrying`);
+          await this.delay(attemptNumber * 300);
+          continue;
+        }
+
+        return response;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        lastError = error;
+
+        if (attemptNumber < this.maxAttempts) {
+          this.logger.warn(`${operation} attempt ${attemptNumber} failed, retrying`);
+          await this.delay(attemptNumber * 300);
+          continue;
+        }
+      }
+    }
+
+    throw new Error(`${operation} failed after ${this.maxAttempts} attempts: ${String(lastError)}`);
+  }
+
+  private async delay(milliseconds: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, milliseconds));
   }
 }
