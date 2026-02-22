@@ -35,6 +35,7 @@ export { clientContacts } from './client-contacts';
 export { clientAddresses } from './client-addresses';
 export { clientBankAccounts } from './client-bank-accounts';
 export { clientAuthorizedPersons } from './client-authorized-persons';
+export { clientCommercialReports } from './client-commercial-reports';
 export { notifications } from './notifications';
 
 // Entity Registry

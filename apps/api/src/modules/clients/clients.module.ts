@@ -8,6 +8,7 @@ import { ClientContactsController } from './controllers/client-contacts.controll
 import { ClientAddressesController } from './controllers/client-addresses.controller';
 import { ClientBankAccountsController } from './controllers/client-bank-accounts.controller';
 import { ClientAuthorizedPersonsController } from './controllers/client-authorized-persons.controller';
+import { ClientCommercialReportsController } from './controllers/client-commercial-reports.controller';
 import { CreateClientUseCase } from './use-cases/create-client.use-case';
 import { GetClientUseCase } from './use-cases/get-client.use-case';
 import { ListClientsUseCase } from './use-cases/list-clients.use-case';
@@ -41,7 +42,13 @@ import { DrizzleClientAddressRepository } from './infra/drizzle-client-address.r
 import { DrizzleClientBankAccountRepository } from './infra/drizzle-client-bank-account.repository';
 import { DrizzleClientAuthorizedPersonRepository } from './infra/drizzle-client-authorized-person.repository';
 import { ClientStorageService } from './infra/client-storage.service';
+import { DrizzleCommercialReportRepository } from './infra/repositories/drizzle-commercial-report.repository';
+import { COMMERCIAL_REPORT_REPOSITORY } from './domain/commercial-report.repository';
+import { CreateCommercialReportUseCase } from './use-cases/create-commercial-report.use-case';
+import { GetCommercialReportsUseCase } from './use-cases/get-commercial-reports.use-case';
+import { ParseCommercialReportUseCase } from './use-cases/parse-commercial-report.use-case';
 import { CnpjApiAdapter } from './infra/cnpj-api.adapter';
+import { ExcelExtractionService } from './infra/excel-extraction.service';
 import { CLIENT_REPOSITORY } from './domain/client.repository';
 import { CLIENT_DOCUMENT_REPOSITORY } from './domain/client-document.repository';
 import { CLIENT_CONTACT_REPOSITORY } from './domain/client-contact.repository';
@@ -64,13 +71,17 @@ import { CLIENT_AUTHORIZED_PERSON_REPOSITORY } from './domain/client-authorized-
     ClientAddressesController,
     ClientBankAccountsController,
     ClientAuthorizedPersonsController,
+    ClientCommercialReportsController,
   ],
   providers: [
     // Use cases — core
     CreateClientUseCase,
+    CreateCommercialReportUseCase,
+    GetCommercialReportsUseCase,
     GetClientUseCase,
     ListClientsUseCase,
     UpdateClientUseCase,
+    ParseCommercialReportUseCase,
     SubmitForAnalysisUseCase,
     GetDocumentChecklistUseCase,
     CanSubmitUseCase,
@@ -104,8 +115,10 @@ import { CLIENT_AUTHORIZED_PERSON_REPOSITORY } from './domain/client-authorized-
     { provide: CLIENT_ADDRESS_REPOSITORY, useClass: DrizzleClientAddressRepository },
     { provide: CLIENT_BANK_ACCOUNT_REPOSITORY, useClass: DrizzleClientBankAccountRepository },
     { provide: CLIENT_AUTHORIZED_PERSON_REPOSITORY, useClass: DrizzleClientAuthorizedPersonRepository },
+    { provide: COMMERCIAL_REPORT_REPOSITORY, useClass: DrizzleCommercialReportRepository },
     // Services
     ClientStorageService,
+    ExcelExtractionService,
     CnpjApiAdapter,
   ],
 })
