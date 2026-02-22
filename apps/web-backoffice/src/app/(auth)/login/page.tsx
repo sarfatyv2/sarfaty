@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
 import { Button, Input, Label, Card, CardHeader, CardDescription, CardContent } from '@nexus/ui';
 import { ROLE_PERMISSIONS, type Role } from '@nexus/types';
+import { BookOpen } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -74,6 +76,15 @@ export default function LoginPage() {
             {loading ? 'Entrando...' : 'Entrar'}
           </Button>
         </form>
+        <div className="mt-5 pt-4 border-t border-border">
+          <Link
+            href="/wiki"
+            className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
+          >
+            <BookOpen size={14} />
+            <span>Documentação da Plataforma</span>
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );
