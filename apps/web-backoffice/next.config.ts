@@ -1,3 +1,4 @@
+import { withSentryConfig } from '@sentry/nextjs';
 import type { NextConfig } from 'next';
 
 const securityHeaders = [
@@ -44,4 +45,12 @@ const config: NextConfig = {
   poweredByHeader: false,
 };
 
-export default config;
+export default withSentryConfig(config, {
+  silent: true,
+  org: 'sarfaty',
+  project: 'web-backoffice',
+  widenClientFileUpload: true,
+  sourcemaps: {
+    disable: true,
+  },
+});
