@@ -8,9 +8,9 @@ export const metadata: Metadata = {
 
 export default function WikiLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-full overflow-hidden bg-[#f8f7f5]">
+    <div className="flex h-full overflow-hidden">
       <WikiSidebar />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto bg-[#f8f7f5]">
         {children}
       </main>
     </div>

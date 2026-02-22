@@ -28,32 +28,32 @@ const domains = [
 export default function DatabasePage() {
   return (
     <PageWrapper>
-      <section className="relative overflow-hidden bg-[hsl(150,50%,10%)] text-white px-10 py-14">
-        <div className="absolute inset-0 bg-gradient-to-r from-[hsl(150,50%,8%)] to-[hsl(150,40%,15%)]" />
+      <section className="relative overflow-hidden bg-[hsl(45,50%,91%)] px-10 py-14">
+        <div className="absolute inset-0 bg-gradient-to-r from-[hsl(44,52%,89%)] to-[hsl(46,45%,94%)]" />
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.07]"
           style={{
-            backgroundImage: 'radial-gradient(circle at 2px 2px, hsl(48,100%,42%) 2px, transparent 0)',
+            backgroundImage: 'radial-gradient(circle at 2px 2px, hsl(40,60%,50%) 2px, transparent 0)',
             backgroundSize: '28px 28px',
           }}
         />
         <div className="relative max-w-3xl">
           <div className="flex items-center gap-3 mb-4">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10">
-              <Database size={20} className="text-[hsl(48,100%,55%)]" />
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[hsl(40,50%,80%)]">
+              <Database size={20} className="text-[hsl(38,70%,32%)]" />
             </div>
-            <span className="text-sm font-semibold text-white/50 uppercase tracking-widest">Banco de Dados</span>
+            <span className="text-sm font-semibold text-[hsl(35,25%,45%)] uppercase tracking-widest">Banco de Dados</span>
           </div>
-          <h1 className="text-3xl font-bold mb-3 leading-tight">Estrutura do Banco de Dados</h1>
-          <p className="text-white/60 text-base leading-relaxed max-w-xl">
+          <h1 className="text-3xl font-bold mb-3 leading-tight text-[hsl(35,35%,15%)]">Estrutura do Banco de Dados</h1>
+          <p className="text-[hsl(35,20%,40%)] text-base leading-relaxed max-w-xl">
             PostgreSQL 15 via Supabase com 73 tabelas, RLS habilitado em todas, organizadas em 12 domínios.
           </p>
           <div className="flex flex-wrap gap-2 mt-6">
-            <span className="px-3 py-1 rounded-full bg-white/10 text-xs text-white/70 border border-white/10">73 tabelas</span>
-            <span className="px-3 py-1 rounded-full bg-white/10 text-xs text-white/70 border border-white/10">RLS habilitado</span>
-            <span className="px-3 py-1 rounded-full bg-white/10 text-xs text-white/70 border border-white/10">Drizzle ORM</span>
-            <span className="px-3 py-1 rounded-full bg-white/10 text-xs text-white/70 border border-white/10">UUID v4</span>
-            <span className="px-3 py-1 rounded-full bg-white/10 text-xs text-white/70 border border-white/10">created_at / updated_at</span>
+            <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">73 tabelas</span>
+            <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">RLS habilitado</span>
+            <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">Drizzle ORM</span>
+            <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">UUID v4</span>
+            <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">created_at / updated_at</span>
           </div>
         </div>
       </section>
