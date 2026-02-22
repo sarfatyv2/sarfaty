@@ -800,7 +800,7 @@ export default function MigrationPage() {
             De-Para: Banco Legado → Nova Plataforma
           </h1>
           <p className="text-[hsl(35,20%,40%)] text-base leading-relaxed max-w-2xl">
-            Mapeamento completo do schema DLSGS (SQL Server — SGS + NetFactor) para o novo schema PostgreSQL 15 da Plataforma Sarfaty. Clique em qualquer tabela para ver o mapeamento de campos.
+            Mapeamento completo do schema DLSGS (SQL Server — tabelas NetFactor tratadas pelo SGS) para o novo schema PostgreSQL 15 da Plataforma Sarfaty. Clique em qualquer tabela para ver o mapeamento de campos.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
             {[
@@ -823,29 +823,29 @@ export default function MigrationPage() {
         <div>
           <SectionHeading
             title="Sistemas de Origem"
-            subtitle="O DLSGS é um Data Lake consolidado que agrega dados de dois sistemas legados que coexistiram."
+            subtitle="O DLSGS é um banco SQL Server consolidado que expõe as tabelas principais do NetFactor já tratadas pelo SGS."
             badge="Contexto"
           />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             {[
               {
-                name: 'SGS',
-                desc: 'Sistema anterior ao NetFactor. Legado histórico com dados mais antigos. Identificador: id_sgs.',
-                badge: 'Legado histórico',
-                badgeColor: 'bg-slate-100 text-slate-700',
-                icon: '📦',
-              },
-              {
                 name: 'NetFactor',
-                desc: 'ERP de factoring/FIDC — sistema operacional principal. Fonte de verdade para dados transacionais. Identificador: id_net_factor.',
+                desc: 'ERP de factoring/FIDC — sistema operacional principal. Fonte de verdade para todos os dados transacionais. Identificador: id_net_factor.',
                 badge: 'Fonte de verdade',
                 badgeColor: 'bg-blue-100 text-blue-700',
                 icon: '⚙️',
               },
               {
+                name: 'SGS',
+                desc: 'Camada de tratamento sobre o NetFactor. Seleciona e normaliza as tabelas principais para consumo operacional. Não é um sistema independente — é o NetFactor "tratado".',
+                badge: 'NetFactor tratado',
+                badgeColor: 'bg-slate-100 text-slate-700',
+                icon: '🔧',
+              },
+              {
                 name: 'DLSGS',
-                desc: 'Data Lake de consolidação. Agrega SGS + NetFactor para relatórios e migração. Toda tabela carrega id_sgs e id_net_factor.',
-                badge: 'Data Lake (origem)',
+                desc: 'Banco SQL Server de consolidação. Expõe as tabelas principais já processadas pelo SGS. É a origem direta da migração para a nova plataforma.',
+                badge: 'Origem da migração',
                 badgeColor: 'bg-amber-100 text-amber-700',
                 icon: '🔄',
               },
@@ -950,7 +950,7 @@ export default function MigrationPage() {
                 field: 'legacy_sgs_id',
                 type: 'integer NULLABLE',
                 origin: 'id_sgs no DLSGS',
-                desc: 'ID do registro no sistema SGS (legado histórico). Nulo para registros criados diretamente na nova plataforma.',
+                desc: 'ID do registro no SGS (NetFactor tratado). Nulo para registros criados diretamente na nova plataforma.',
               },
               {
                 field: 'legacy_nf_id',
