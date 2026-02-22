@@ -130,6 +130,7 @@ export default function MyProfilePage() {
     reset,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<UpdateCollaboratorSelfDto>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(updateCollaboratorSelfSchema) as any,
     mode: 'onBlur',
   });
@@ -155,11 +156,13 @@ export default function MyProfilePage() {
           addressComplement: p.addressComplement ?? undefined,
           addressNeighborhood: p.addressNeighborhood ?? undefined,
           addressCity: p.addressCity ?? undefined,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           addressState: (p.addressState as any) ?? undefined,
           addressZip: p.addressZip ?? undefined,
           bankName: p.bankName ?? undefined,
           bankBranch: p.bankBranch ?? undefined,
           bankAccount: p.bankAccount ?? undefined,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           bankAccountType: (p.bankAccountType as any) ?? undefined,
         });
       } catch {
@@ -388,6 +391,7 @@ export default function MyProfilePage() {
                   <FormField label="Estado" error={errors.addressState?.message}>
                     <Select
                       value={watch('addressState') ?? ''}
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       onValueChange={(value) => setValue('addressState', value as any, { shouldDirty: true })}
                     >
                       <SelectTrigger>
@@ -417,6 +421,7 @@ export default function MyProfilePage() {
                   <FormField label="Tipo de Conta" error={errors.bankAccountType?.message}>
                     <Select
                       value={watch('bankAccountType') ?? ''}
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       onValueChange={(value) => setValue('bankAccountType', value as any, { shouldDirty: true })}
                     >
                       <SelectTrigger>

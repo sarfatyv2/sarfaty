@@ -29,7 +29,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     // Known NestJS 10 strict-TS issue: FastifyAdapter vs AbstractHttpAdapter
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     new FastifyAdapter({ logger: false }) as any,
     { bufferLogs: true },
   );

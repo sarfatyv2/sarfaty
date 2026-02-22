@@ -35,6 +35,7 @@ export class DraweeContactsController {
     @Param('id') draweeId: string,
     @Body(new ZodValidationPipe(createDraweeContactSchema)) dto: CreateDraweeContactDto,
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data = await this.contactRepository.save({ ...dto, draweeId } as any);
     return { data };
   }

@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, boolean, numeric, date, timestamp, index, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, numeric, date, timestamp, index, jsonb } from 'drizzle-orm/pg-core';
 import { clients } from './clients';
 import { segmentDocumentTemplates } from './segment-document-templates';
 import { productDocumentTemplates } from './product-document-templates';

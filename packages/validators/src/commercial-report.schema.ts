@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { uuidSchema } from './common';
+
 
 export const createCommercialReportSchema = z.object({
   // Metadados

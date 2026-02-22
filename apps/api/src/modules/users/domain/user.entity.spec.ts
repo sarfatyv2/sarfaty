@@ -95,6 +95,7 @@ describe('User Entity', () => {
           id: 'test-id',
           email: 'test@test.com',
           fullName: 'Test',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           role: 'invalid_role' as any,
         }),
       ).toThrow('Invalid role');

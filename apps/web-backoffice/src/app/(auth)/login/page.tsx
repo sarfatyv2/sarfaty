@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
-import { Button, Input, Label, Card, CardHeader, CardTitle, CardDescription, CardContent } from '@nexus/ui';
+import { Button, Input, Label, Card, CardHeader, CardDescription, CardContent } from '@nexus/ui';
 import { ROLE_PERMISSIONS, type Role } from '@nexus/types';
 
 export default function LoginPage() {

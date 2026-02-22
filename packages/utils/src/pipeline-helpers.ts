@@ -1,6 +1,6 @@
 import type { ClientStatus, FunnelStage } from '@nexus/types';
 
-export const FUNNEL_STAGE_STATUSES: Record<FunnelStage, ClientStatus[]> = {
+export const FUNNEL_STAGE_STATUSES: Record<FunnelStage, [ClientStatus, ...ClientStatus[]]> = {
   prospecting: ['draft'],
   documentation: ['pending_documents', 'document_issues'],
   analysis: ['document_validation', 'credit_analysis'],
@@ -66,5 +66,5 @@ export function getFunnelStageLabel(stage: FunnelStage): string {
  * Used by the Kanban to determine which status transition to attempt.
  */
 export function getDropTargetStatus(stage: FunnelStage): ClientStatus {
-  return FUNNEL_STAGE_STATUSES[stage][0]!;
+  return FUNNEL_STAGE_STATUSES[stage][0];
 }

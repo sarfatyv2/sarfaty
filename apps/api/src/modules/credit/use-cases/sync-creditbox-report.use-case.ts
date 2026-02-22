@@ -1,4 +1,4 @@
-import { Injectable, Inject, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CreditboxAdapter } from '../bureaus/creditbox/creditbox.adapter';
 import { CreditboxReport } from '../domain/creditbox-report.entity';
 import { CreditboxRepository, CREDITBOX_REPOSITORY } from '../domain/creditbox.repository';

@@ -164,7 +164,7 @@ export default function NewClientPage() {
       addressZip: result.address?.zip || prev.addressZip,
     }));
     if (result.suggestedSegmentId) {
-      setStep2((prev) => ({ ...prev, segmentId: result.suggestedSegmentId! }));
+      setStep2((prev) => ({ ...prev, segmentId: result.suggestedSegmentId ?? prev.segmentId }));
     }
   }, []);
 
