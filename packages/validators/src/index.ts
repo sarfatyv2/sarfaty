@@ -96,6 +96,13 @@ export {
 
 // Client sub-resources schemas
 export {
+  createCommercialReportSchema,
+  updateCommercialReportSchema,
+  type CreateCommercialReportDto,
+  type UpdateCommercialReportDto,
+} from './commercial-report.schema';
+
+export {
   createClientContactSchema,
   updateClientContactSchema,
   createClientAddressSchema,

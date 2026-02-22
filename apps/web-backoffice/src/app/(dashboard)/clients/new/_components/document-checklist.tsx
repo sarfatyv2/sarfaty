@@ -4,8 +4,11 @@ import { useState, useCallback } from 'react';
 import { Button, Badge } from '@nexus/ui';
 import { Upload, FileText, CheckCircle2, XCircle, Loader2, Trash2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
+import { toast } from 'sonner';
 import { DOCUMENT_CATEGORY_LABELS } from '@nexus/utils';
 import type { DocumentChecklistItem, CanSubmitResult } from '@nexus/types';
+import type { CreateCommercialReportDto } from '@nexus/validators';
+import { CommercialReportDialog } from './commercial-report-dialog';
 
 function getStatusBadgeVariant(status: string): 'default' | 'destructive' | 'secondary' {
   if (status === 'valid') return 'default';
@@ -52,18 +55,30 @@ function DocumentUploadItem({
   item,
   clientId,
   onRefresh,
+  onInterceptReport,
+  isParsing,
 }: {
   item: DocumentChecklistItem;
   clientId: string;
   onRefresh: () => void;
+  onInterceptReport?: (file: File, item: DocumentChecklistItem) => void;
+  isParsing?: boolean;
 }) {
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
 
+  const isWorking = uploading || isParsing;
+
   const handleUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    if (item.documentType === 'visit_report' && onInterceptReport) {
+      onInterceptReport(file, item);
+      event.target.value = '';
+      return;
+    }
 
     setUploading(true);
     setError('');
@@ -137,13 +152,13 @@ function DocumentUploadItem({
             <input
               type="file"
               className="hidden"
-              accept=".pdf,.jpg,.jpeg,.png,.webp"
+              accept=".pdf,.jpg,.jpeg,.png,.webp,.xls,.xlsx"
               onChange={handleUpload}
-              disabled={uploading}
+              disabled={isWorking}
             />
-            <Button type="button" variant="outline" size="sm" asChild disabled={uploading}>
+            <Button type="button" variant="outline" size="sm" asChild disabled={isWorking}>
               <span>
-                {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                {isWorking ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                 Enviar
               </span>
             </Button>
@@ -156,13 +171,13 @@ function DocumentUploadItem({
               <input
                 type="file"
                 className="hidden"
-                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                accept=".pdf,.jpg,.jpeg,.png,.webp,.xls,.xlsx"
                 onChange={handleUpload}
-                disabled={uploading}
+                disabled={isWorking}
               />
-              <Button type="button" variant="outline" size="sm" asChild disabled={uploading}>
+              <Button type="button" variant="outline" size="sm" asChild disabled={isWorking}>
                 <span>
-                  {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                  {isWorking ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                   Reenviar
                 </span>
               </Button>
@@ -191,6 +206,61 @@ export function DocumentChecklist({
   onSubmit,
   submitting,
 }: DocumentChecklistProps) {
+  const [parsingReport, setParsingReport] = useState(false);
+  const [parsedReportData, setParsedReportData] = useState<Partial<CreateCommercialReportDto> | null>(null);
+  const [reportFile, setReportFile] = useState<File | null>(null);
+  const [reportItem, setReportItem] = useState<DocumentChecklistItem | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleInterceptReport = async (file: File, item: DocumentChecklistItem) => {
+    setParsingReport(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await api.postFormData<Partial<CreateCommercialReportDto>>(
+        `/clients/${clientId}/commercial-reports/parse`,
+        formData
+      );
+      setParsedReportData(res.data);
+      setReportFile(file);
+      setReportItem(item);
+      setDialogOpen(true);
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Erro ao ler a planilha. Verifique o formato.';
+      toast.error(message);
+    } finally {
+      setParsingReport(false);
+    }
+  };
+
+  const handleConfirmReport = async (data: CreateCommercialReportDto) => {
+    if (!reportFile || !reportItem) return;
+    
+    try {
+      // 1. Salva os dados estruturados do relatório comercial
+      await api.post(`/clients/${clientId}/commercial-reports`, data);
+      
+      // 2. Faz o upload físico do documento
+      const formData = new FormData();
+      formData.append('file', reportFile);
+      formData.append('documentType', reportItem.documentType);
+      formData.append('documentCategory', reportItem.category);
+      formData.append('documentLabel', reportItem.documentLabel);
+      if (reportItem.guaranteeId) {
+        formData.append('clientGuaranteeId', reportItem.guaranteeId);
+      }
+      
+      await api.postFormData(`/clients/${clientId}/documents`, formData);
+      
+      setDialogOpen(false);
+      onRefresh();
+      toast.success('Relatório comercial salvo com sucesso!');
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Erro ao salvar relatório comercial';
+      toast.error(message);
+    }
+  };
+
   const grouped = checklist.reduce<Record<string, DocumentChecklistItem[]>>((acc, item) => {
     const key = item.category;
     if (!acc[key]) acc[key] = [];
@@ -232,6 +302,8 @@ export function DocumentChecklist({
                 item={item}
                 clientId={clientId}
                 onRefresh={onRefresh}
+                onInterceptReport={handleInterceptReport}
+                isParsing={item.documentType === 'visit_report' ? parsingReport : false}
               />
             ))}
           </div>
@@ -259,6 +331,14 @@ export function DocumentChecklist({
           )}
         </Button>
       </div>
+
+      <CommercialReportDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onConfirm={handleConfirmReport}
+        parsedData={parsedReportData}
+        fileName={reportFile?.name ?? ''}
+      />
     </div>
   );
 }
