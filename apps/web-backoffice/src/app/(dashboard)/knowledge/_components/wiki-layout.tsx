@@ -510,12 +510,12 @@ export function WikiLayout({ canEdit }: { canEdit: boolean }) {
       );
     }
     if (selectedArticle) {
-      return renderArticleReader();
+      return renderArticleReader(selectedArticle);
     }
     return renderArticleList();
   }
 
-  function renderArticleReader() {
+  function renderArticleReader(article: WikiArticle) {
     return (
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between px-5 py-3 border-b border-border/60 bg-white flex-shrink-0">
@@ -528,7 +528,7 @@ export function WikiLayout({ canEdit }: { canEdit: boolean }) {
             Voltar
           </button>
           {canEdit && (
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" onClick={() => setEditingArticle(selectedArticle)}>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" onClick={() => setEditingArticle(article)}>
               <Pencil className="w-3.5 h-3.5" />
               Editar
             </Button>
@@ -550,29 +550,29 @@ export function WikiLayout({ canEdit }: { canEdit: boolean }) {
               <>
                 <div className="mb-8">
                   <div className="flex items-center gap-2 mb-3">
-                    {selectedArticle.status === 'draft' && (
+                    {article.status === 'draft' && (
                       <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 border border-amber-200">
                         Rascunho
                       </span>
                     )}
-                    {selectedArticle.category && (
+                    {article.category && (
                       <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-[hsl(150,30%,95%)] text-[hsl(150,40%,30%)] border border-[hsl(150,25%,87%)] flex items-center gap-1">
                         <Tag className="w-2.5 h-2.5" />
-                        {selectedArticle.category.name}
+                        {article.category.name}
                       </span>
                     )}
                   </div>
                   <h1 className="text-2xl font-bold text-foreground tracking-tight leading-tight mb-3">
-                    {selectedArticle.title}
+                    {article.title}
                   </h1>
                   <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5" />
-                    Atualizado em {new Date(selectedArticle.updatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    Atualizado em {new Date(article.updatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
                   </p>
                   <div className="mt-5 border-b border-border/60" />
                 </div>
                 <div className="prose-article">
-                  <RichTextEditor value={selectedArticle.content} readOnly toolbar={false} minHeight="200px" />
+                  <RichTextEditor value={article.content} readOnly toolbar={false} minHeight="200px" />
                 </div>
               </>
             )}

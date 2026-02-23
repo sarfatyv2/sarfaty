@@ -1,6 +1,18 @@
 import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 
+function clearSessionAndRedirect(request: NextRequest): NextResponse {
+  const url = request.nextUrl.clone();
+  url.pathname = '/login';
+  const response = NextResponse.redirect(url);
+  request.cookies.getAll().forEach(({ name }) => {
+    if (name.startsWith('sb-')) {
+      response.cookies.delete(name);
+    }
+  });
+  return response;
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -27,19 +39,15 @@ export async function updateSession(request: NextRequest) {
 
   let user = null;
   try {
-    const { data } = await supabase.auth.getUser();
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error) {
+      return clearSessionAndRedirect(request);
+    }
+
     user = data.user;
   } catch {
-    // Invalid or expired refresh token — clear session and redirect to login
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    const response = NextResponse.redirect(url);
-    request.cookies.getAll().forEach(({ name }) => {
-      if (name.startsWith('sb-')) {
-        response.cookies.delete(name);
-      }
-    });
-    return response;
+    return clearSessionAndRedirect(request);
   }
 
   if (
