@@ -33,8 +33,9 @@ export class CreditController {
 
   @Post('creditbox')
   @Roles(
+    'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
     'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
-    'risk_manager', 'admin',
+    'legal', 'risk_manager', 'recovery', 'litigation', 'admin',
   )
   async requestCreditboxReport(@Param('clientId') clientId: string) {
     const report = await this.requestCreditboxReportUseCase.execute(clientId);
@@ -43,8 +44,9 @@ export class CreditController {
 
   @Post('creditbox/sync')
   @Roles(
+    'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
     'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
-    'risk_manager', 'admin',
+    'legal', 'risk_manager', 'recovery', 'litigation', 'admin',
   )
   async syncCreditboxReport(@Param('clientId') clientId: string) {
     const report = await this.syncCreditboxReportUseCase.execute(clientId);

@@ -82,3 +82,4 @@ export {
   CommandSeparator,
 } from './command';
 export { cn } from './lib/utils';
+export { RichTextEditor } from './rich-text-editor';

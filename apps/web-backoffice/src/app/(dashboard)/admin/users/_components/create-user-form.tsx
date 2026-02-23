@@ -48,6 +48,7 @@ const ROLE_LABELS: Record<string, string> = {
   hr: 'RH',
   dp: 'Departamento Pessoal',
   hr_admin: 'Admin RH',
+  governance: 'Governança',
   admin: 'Administrador',
 };
 

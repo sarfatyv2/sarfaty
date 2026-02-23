@@ -47,6 +47,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
+        ],
+      },
+      {
         section: 'Treinamentos',
         items: [
           { label: 'Meus Cursos', icon: 'GraduationCap', route: '/learning' },
@@ -107,6 +113,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Minha Equipe', icon: 'UsersRound', route: '/team' },
           { label: 'Ranking', icon: 'Trophy', route: '/team/ranking' },
           { label: 'Metas', icon: 'Target', route: '/goals' },
+        ],
+      },
+      {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
         ],
       },
       {
@@ -173,6 +185,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
+        ],
+      },
+      {
         section: 'Treinamentos',
         items: [
           { label: 'Meus Cursos', icon: 'GraduationCap', route: '/learning' },
@@ -234,6 +252,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
+        ],
+      },
+      {
         section: 'Treinamentos',
         items: [
           { label: 'Meus Cursos', icon: 'GraduationCap', route: '/learning' },
@@ -284,6 +308,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Status Bureaus', icon: 'Activity', route: '/credit/bureaus' },
           { label: 'Métricas', icon: 'BarChart3', route: '/credit/metrics' },
+        ],
+      },
+      {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
         ],
       },
       {
@@ -354,6 +384,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
+        ],
+      },
+      {
         section: 'Treinamentos',
         items: [
           { label: 'Meus Cursos', icon: 'GraduationCap', route: '/learning' },
@@ -412,6 +448,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Fila de Aprovação', icon: 'CheckCircle', route: '/approval/queue' },
           { label: 'Histórico', icon: 'History', route: '/approval/history' },
           { label: 'Métricas', icon: 'BarChart3', route: '/approval/metrics' },
+        ],
+      },
+      {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
         ],
       },
       {
@@ -478,6 +520,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Docs Sócios', icon: 'FileCheck', route: '/backoffice/partner-docs' },
           { label: 'Contratos', icon: 'FileSignature', route: '/backoffice/contracts' },
           { label: 'Fundos', icon: 'Building2', route: '/backoffice/funds' },
+        ],
+      },
+      {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
         ],
       },
       {
@@ -553,6 +601,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
+        ],
+      },
+      {
         section: 'Treinamentos',
         items: [
           { label: 'Meus Cursos', icon: 'GraduationCap', route: '/learning' },
@@ -625,6 +679,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
+        ],
+      },
+      {
         section: 'Treinamentos',
         items: [
           { label: 'Meus Cursos', icon: 'GraduationCap', route: '/learning' },
@@ -688,6 +748,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
+        ],
+      },
+      {
         section: 'Treinamentos',
         items: [
           { label: 'Meus Cursos', icon: 'GraduationCap', route: '/learning' },
@@ -721,6 +787,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
+        ],
+      },
+      {
         section: 'Treinamentos',
         items: [
           { label: 'Meus Cursos', icon: 'GraduationCap', route: '/learning' },
@@ -744,6 +816,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Meu Perfil', icon: 'User', route: '/people/me' },
           { label: 'Minhas NFs', icon: 'FileText', route: '/people/me/invoices' },
           { label: 'Meus Reembolsos', icon: 'Receipt', route: '/people/me/reimbursements' },
+        ],
+      },
+      {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
         ],
       },
       {
@@ -777,6 +855,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Colaboradores', icon: 'Users', route: '/people/team' },
           { label: 'Reembolsos do Time', icon: 'Receipt', route: '/people/team/reimbursements' },
+        ],
+      },
+      {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
         ],
       },
       {
@@ -816,6 +900,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
+        ],
+      },
+      {
         section: 'Treinamentos',
         items: [
           { label: 'Meus Cursos', icon: 'GraduationCap', route: '/learning' },
@@ -848,6 +938,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Colaboradores', icon: 'Users', route: '/people/collaborators' },
           { label: 'Notas Fiscais PJ', icon: 'FileText', route: '/people/dp/invoices' },
           { label: 'Reembolsos', icon: 'Receipt', route: '/people/dp/reimbursements' },
+        ],
+      },
+      {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
         ],
       },
       {
@@ -890,6 +986,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
+        ],
+      },
+      {
         section: 'Treinamentos',
         items: [
           { label: 'Meus Cursos', icon: 'GraduationCap', route: '/learning' },
@@ -907,6 +1009,46 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
       'turnover_alert',
       'pj_invoice_overdue',
     ],
+  },
+
+  governance: {
+    label: 'Governança',
+    homeRoute: '/governance',
+    sidebar: [
+      {
+        section: 'Meu Espaço',
+        items: [
+          { label: 'Meu Perfil', icon: 'User', route: '/people/me' },
+          { label: 'Minhas NFs', icon: 'FileText', route: '/people/me/invoices' },
+          { label: 'Meus Reembolsos', icon: 'Receipt', route: '/people/me/reimbursements' },
+        ],
+      },
+      {
+        section: 'Governança',
+        items: [
+          { label: 'Visão Geral', icon: 'Landmark', route: '/governance' },
+          { label: 'Comitês', icon: 'Users', route: '/governance/committees' },
+          { label: 'Ações', icon: 'CheckSquare', route: '/governance/actions' },
+        ],
+      },
+      {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
+        ],
+      },
+      {
+        section: 'Treinamentos',
+        items: [
+          { label: 'Meus Cursos', icon: 'GraduationCap', route: '/learning' },
+        ],
+      },
+    ],
+    dashboardModules: [],
+    clientTabs: [],
+    clientActions: [],
+    globalActions: [],
+    notifications: [],
   },
 
   admin: {
@@ -940,6 +1082,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Audit Trail', icon: 'ScrollText', route: '/admin/audit' },
           { label: 'Logs', icon: 'Terminal', route: '/admin/logs' },
           { label: 'Integrações', icon: 'Plug', route: '/admin/integrations' },
+        ],
+      },
+      {
+        section: 'Conhecimento',
+        items: [
+          { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
         ],
       },
       {
