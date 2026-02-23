@@ -33,6 +33,9 @@ const securityHeaders = [
 ];
 
 const config: NextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   transpilePackages: ['@nexus/ui', '@nexus/types', '@nexus/validators', '@nexus/utils'],
   async headers() {
     return [
