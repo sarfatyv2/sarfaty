@@ -3,10 +3,11 @@ import { MeetingDetail } from './_components/meeting-detail';
 
 export const metadata: Metadata = { title: 'Reunião | Sarfaty' };
 
-export default function MeetingDetailPage({
+export default async function MeetingDetailPage({
   params,
 }: {
-  params: { id: string; meetingId: string };
+  params: Promise<{ id: string; meetingId: string }>;
 }) {
-  return <MeetingDetail committeeId={params.id} meetingId={params.meetingId} />;
+  const { id, meetingId } = await params;
+  return <MeetingDetail committeeId={id} meetingId={meetingId} />;
 }
