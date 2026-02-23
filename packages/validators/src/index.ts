@@ -174,6 +174,12 @@ export {
   type CreateActionUpdateDto,
 } from './governance.schema';
 
+// Audit schemas
+export {
+  listAuditLogsQuerySchema,
+  type ListAuditLogsQueryDto,
+} from './audit.schema';
+
 // Communication schemas
 export {
   createAnnouncementSchema,

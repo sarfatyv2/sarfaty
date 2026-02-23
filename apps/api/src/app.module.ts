@@ -26,6 +26,7 @@ import { DraweesModule } from './modules/drawees/drawees.module';
 import { CreditModule } from './modules/credit/credit.module';
 import { GovernanceModule } from './modules/governance/governance.module';
 import { CommunicationModule } from './modules/communication/communication.module';
+import { AuditTrailModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { CommunicationModule } from './modules/communication/communication.modul
     CreditModule,
     GovernanceModule,
     CommunicationModule,
+    AuditTrailModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
