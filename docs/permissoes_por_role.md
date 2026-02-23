@@ -27,6 +27,7 @@
 | `hr` | RH |
 | `dp` | Departamento Pessoal |
 | `hr_admin` | Admin RH |
+| `governance` | Governança |
 | `admin` | Administrador |
 
 Um usuário pode ter múltiplos roles (ex: `sales_rep` + `employee`).
@@ -171,18 +172,104 @@ O usuário só acessa seus próprios dados. O backend valida pelo `profile_id`.
 
 ---
 
-## 8. Regra de Herança
+## 8. Módulo Governance — Comitês, Reuniões e Ações
 
-- **admin** tem acesso a tudo (herda implicitamente).
-- **hr_admin** tem as permissões de RH + DP.
-- Todos os roles possuem a seção **Meu Espaço** (perfil, NFs e reembolsos).
+### Permissões por Endpoint
+
+| Endpoint | governance | admin | legal | compliance_officer | backoffice | sales_director | hr_admin | people_manager |
+|----------|:----------:|:-----:|:-----:|:-----------------:|:---------:|:--------------:|:--------:|:--------------:|
+| POST /governance/committees | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| GET /governance/committees | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PATCH /governance/committees/:id | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| GET /governance/committees/:id | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| GET /governance/committees/:id/members | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| POST /governance/committees/:id/members | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| PATCH .../members/:memberId/role | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| DELETE .../members/:memberId | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| POST .../meetings | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| GET .../meetings | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| GET .../meetings/:meetingId | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PATCH .../meetings/:meetingId | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| GET .../meetings/:meetingId/minute | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| POST .../meetings/:meetingId/minute | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| POST .../meetings/:meetingId/minute/publish | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| POST /governance/committees/:committeeId/actions | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| GET /governance/actions | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| GET /governance/actions/:id | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PATCH /governance/actions/:id | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| DELETE /governance/actions/:id | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| GET /governance/actions/:id/updates | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| POST /governance/actions/:id/updates | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+**MANAGE_ROLES** (criar/editar/excluir): `governance`, `admin`, `legal`, `compliance_officer`, `backoffice`  
+**READ_ROLES** (leitura): MANAGE_ROLES + `sales_director`, `hr_admin`, `people_manager`
 
 ---
 
-## 9. Onde Está Implementado
+## 9. Módulo Communication — Wiki e Intranet
+
+### Wiki (Base de Conhecimento)
+
+| Endpoint | Leitura (todos autenticados) | Edição (EDITOR_ROLES) |
+|----------|:---------------------------:|:--------------------:|
+| GET /wiki/categories | ✅ todos | — |
+| POST /wiki/categories | — | ✅ |
+| PATCH /wiki/categories/:id | — | ✅ |
+| DELETE /wiki/categories/:id | — | ✅ |
+| GET /wiki/articles | ✅ todos | — |
+| GET /wiki/articles/:slug | ✅ todos | — |
+| POST /wiki/articles | — | ✅ |
+| PATCH /wiki/articles/:id | — | ✅ |
+| DELETE /wiki/articles/:id | — | ✅ |
+
+**EDITOR_ROLES**: `admin`, `governance`, `hr_admin`, `people_manager`, `legal`, `compliance_officer`  
+**Leitura**: todos os 19 roles autenticados
+
+### Intranet (Comunicados)
+
+| Endpoint | Todos autenticados | AUTHOR_ROLES |
+|----------|--------------------|:------------:|
+| GET /intranet/announcements | ✅ (filtrado por targetRoles) | — |
+| GET /intranet/announcements/admin | ❌ | ✅ |
+| GET /intranet/announcements/:id | ❌ | ✅ |
+| POST /intranet/announcements | ❌ | ✅ |
+| PATCH /intranet/announcements/:id | ❌ | ✅ |
+| DELETE /intranet/announcements/:id | ❌ | ✅ |
+
+**AUTHOR_ROLES**: `admin`, `governance`, `hr_admin`, `people_manager`, `legal`, `compliance_officer`
+
+---
+
+## 10. Módulo Notifications
+
+Todos os 19 roles autenticados têm acesso a todos os endpoints:
+
+| Endpoint | Todos autenticados |
+|----------|--------------------|
+| GET /notifications | ✅ |
+| GET /notifications/unread-count | ✅ |
+| PATCH /notifications/read-all | ✅ |
+| PATCH /notifications/:id/read | ✅ |
+
+---
+
+## 11. Regra de Herança
+
+- **admin** tem acesso a tudo (herda implicitamente).
+- **hr_admin** tem as permissões de RH + DP.
+- **governance** tem acesso completo aos módulos Governance, Communication/Wiki e Intranet.
+- Todos os roles possuem a seção **Meu Espaço** (perfil, NFs e reembolsos).
+- Todos os roles possuem a seção **Conhecimento** (Wiki — leitura).
+
+---
+
+## 12. Onde Está Implementado
 
 | Item | Local |
 |------|-------|
 | Roles e sidebar | `packages/types/src/permissions.ts` |
 | Validação no backend | `@Roles()` nos controllers |
 | Lógica de filtro (quem vê o quê) | Use cases (ex: `list-reimbursements.use-case.ts`) |
+| Governance controllers | `apps/api/src/modules/governance/controllers/` |
+| Communication controllers | `apps/api/src/modules/communication/controllers/` |
+| Notifications controller | `apps/api/src/modules/notifications/controllers/` |

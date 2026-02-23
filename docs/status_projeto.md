@@ -1,6 +1,6 @@
 # Status do Projeto — Plataforma Sarfaty
 
-**Última atualização:** 22 de Fevereiro de 2026  
+**Última atualização:** 23 de Fevereiro de 2026  
 **Referência rápida para contexto do projeto**
 
 ---
@@ -40,7 +40,7 @@ sarfaty/
 │   └── web-backoffice/               # Frontend Next.js 15 (porta 3000)
 ├── packages/
 │   ├── config/                       # TSconfigs, ESLint, Tailwind preset
-│   ├── types/                        # Tipos, DomainException, ROLE_PERMISSIONS, 18 roles
+│   ├── types/                        # Tipos, DomainException, ROLE_PERMISSIONS, 19 roles
 │   ├── validators/                   # Schemas Zod compartilhados (auth, user, collaborator, pagination, common)
 │   ├── utils/                        # Formatters, assertions, constants, permissions helpers
 │   └── ui/                           # Design system (15+ componentes shadcn/ui)
@@ -92,8 +92,11 @@ sarfaty/
 | `drawees` | `POST/GET/PATCH /api/drawees`, `GET/POST/PATCH/DELETE :id/contacts`, `GET/POST/PATCH/DELETE :id/addresses`, `GET/POST/PATCH/DELETE :id/bank-accounts` | CRUD sacados (PJ e PF) + sub-resources |
 | `goals` | `POST/GET/PATCH/DELETE /api/goals`, `GET /api/goals/ranking` | CRUD metas comerciais (individual/equipe/região) + ranking |
 | `pipeline` | `GET /api/pipeline`, `GET /api/pipeline/metrics` | Listagem do funil + métricas por fase |
+| `notifications` | `GET /api/notifications`, `GET /unread-count`, `PATCH :id/read`, `PATCH /read-all` | Notificações com contagem e marcação de leitura (todos os roles) |
+| `governance` | `POST/GET/PATCH /api/governance/committees`, `GET/POST/PATCH/DELETE :id/members`, `POST/GET/PATCH .../meetings`, `GET/POST/PATCH .../minute`, `POST .../minute/publish`, `GET/POST/PATCH/DELETE /api/governance/actions`, `GET/POST .../updates` | Comitês, reuniões, atas (rich text), ações e atualizações — DDD completo (12 use-cases) |
+| `communication` | `POST/GET/PATCH/DELETE /api/wiki/categories`, `POST/GET/PATCH/DELETE /api/wiki/articles`, `POST/GET/PATCH/DELETE /api/intranet/announcements` | Wiki (base de conhecimento com rich text) + Intranet (comunicados com targetRoles) |
 
-**Database — 73 schemas Drizzle:**
+**Database — 82 schemas Drizzle:**
 
 | # | Schema | Tabela | Módulo |
 |---|--------|--------|--------|
@@ -170,6 +173,15 @@ sarfaty/
 | 70 | `learning-lessons.ts` | `learning_lessons` | Learning |
 | 71 | `learning-enrollments.ts` | `learning_enrollments` | Learning |
 | 72 | `learning-lesson-completions.ts` | `learning_lesson_completions` | Learning |
+|| 73 | `gov-committees.ts` | `gov_committees` | Governance |
+|| 74 | `gov-committee-members.ts` | `gov_committee_members` | Governance |
+|| 75 | `gov-meetings.ts` | `gov_meetings` | Governance |
+|| 76 | `gov-meeting-minutes.ts` | `gov_meeting_minutes` | Governance |
+|| 77 | `gov-action-items.ts` | `gov_action_items` | Governance |
+|| 78 | `gov-action-updates.ts` | `gov_action_updates` | Governance |
+|| 79 | `comm-wiki-categories.ts` | `comm_wiki_categories` | Communication |
+|| 80 | `comm-wiki-articles.ts` | `comm_wiki_articles` | Communication |
+|| 81 | `comm-announcements.ts` | `comm_announcements` | Communication |
 
 **Env vars do backend:** `NODE_ENV`, `PORT` (4000), `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CORS_ORIGINS`.
 
@@ -220,8 +232,21 @@ src/app/
     │   └── page.tsx                   # Board kanban + métricas por fase
     ├── goals/
     │   └── page.tsx                   # Dashboard de metas (progress cards, ranking, tabela)
+    ├── governance/
+    │   ├── page.tsx                   # Dashboard Governança (KPIs + comitês + ações)
+    │   ├── committees/
+    │   │   ├── page.tsx               # Lista de comitês
+    │   │   └── [id]/page.tsx          # Detalhe + membros + reuniões + ações
+    │   └── actions/
+    │       └── page.tsx               # Lista de itens de ação
+    ├── knowledge/
+    │   └── page.tsx                   # Wiki (sidebar de categorias + grid de artigos + leitor)
+    ├── intranet/
+    │   └── page.tsx                   # Comunicados internos
     └── [...slug]/page.tsx              # Catch-all "em construção"
 ```
+
+**Novos componentes UI:** `RichTextEditor` (Tiptap) usado no editor de atas e artigos wiki. Exportado em `@nexus/ui`.
 
 **Auth flow:** Middleware Next.js -> Supabase SSR -> refresh token -> redirect `/login` se não autenticado.
 
@@ -231,16 +256,18 @@ src/app/
 
 ### 4.3 Packages compartilhados
 
-**`@nexus/types`** — 18 roles definidos:
-`sales_rep`, `sales_supervisor`, `sales_manager`, `sales_director`, `credit_analyst`, `compliance_officer`, `approver`, `backoffice`, `legal`, `risk_manager`, `recovery`, `litigation`, `employee`, `people_manager`, `hr`, `dp`, `hr_admin`, `admin`
+**`@nexus/types`** — 19 roles definidos:
+`sales_rep`, `sales_supervisor`, `sales_manager`, `sales_director`, `credit_analyst`, `compliance_officer`, `approver`, `backoffice`, `legal`, `risk_manager`, `recovery`, `litigation`, `employee`, `people_manager`, `hr`, `dp`, `hr_admin`, `governance`, `admin`
 
-**`@nexus/types` — ROLE_PERMISSIONS:** Mapa completo com sidebar (inclui "Sacados" para roles comerciais/crédito), dashboardModules, clientTabs, clientActions, globalActions e notifications para cada role.
+**`@nexus/types` — ROLE_PERMISSIONS:** Mapa completo com sidebar (inclui "Sacados" para roles comerciais/crédito, "Conhecimento/Wiki" para todos os roles, "Governança" para role governance), dashboardModules, clientTabs, clientActions, globalActions e notifications para cada role.
 
 **`@nexus/types` — Novos types adicionados:**
 - `client-extended.ts`: `ClientContact`, `ClientAddress`, `ClientBankAccount`, `ClientAuthorizedPerson`
 - `drawee.ts`: `PersonType`, `Drawee`, `DraweeContact`, `DraweeAddress`, `DraweeBankAccount`, `DraweeDocument`
 - `goal.ts`: `Goal`, `GoalScope`
 - `pipeline.ts`: `PipelineMetrics`, `PipelineClient`
+- `governance.ts`: `Committee`, `CommitteeMember`, `Meeting`, `MeetingMinute`, `ActionItem`, `ActionUpdate` + enums `CommitteeFrequency`, `CommitteeStatus`, `CommitteeMemberRole`, `MeetingStatus`, `MinuteStatus`, `ActionItemStatus`
+- `communication.ts`: `WikiCategory`, `WikiArticle`, `Announcement` + enums `WikiArticleStatus`, `AnnouncementStatus`
 
 **`@nexus/validators`** — Schemas: `loginSchema`, `createUserSchema`, `createCollaboratorSchema`, `updateCollaboratorSchema`, `updateCollaboratorAdminSchema`, `listCollaboratorsQuerySchema`, `paginationQuerySchema`, `emailSchema`, `cpfSchema`, `cnpjSchema`, `phoneSchema`, `uuidSchema`, `dateStringSchema`, `createClientSchema`, `updateClientSchema` (estendido com campos PJ/compliance), `uploadDocumentSchema`, `listClientsQuerySchema`.
 
@@ -256,7 +283,7 @@ src/app/
 
 ### 4.4 Banco de Dados e Storage (Supabase)
 
-- 73 tabelas (16 People + 36 Comercial/Sacados + 4 Grupos Econômicos + 5 Financeiro + 2 Portfólio + 6 Debêntures + 5 Fornecedores + 2 Integrações + 1 Core + 5 Learning) + 1 view (`collaborators_with_computed`) + trigger `on_auth_user_created`
+- 82 tabelas (16 People + 36 Comercial/Sacados + 4 Grupos Econômicos + 5 Financeiro + 2 Portfólio + 6 Debêntures + 5 Fornecedores + 2 Integrações + 1 Core + 5 Learning + 6 Governance + 3 Communication) + 1 view (`collaborators_with_computed`) + trigger `on_auth_user_created`
 - **Não existe signup público** — todo acesso criado por admin/RH
 - Cadeia: `auth.users` -> trigger -> `profiles` -> `collaborators`
 - **RLS policies (tabelas):** NENHUMA criada ainda
@@ -338,6 +365,10 @@ src/app/
 - [ ] Módulo `communication` — email + WhatsApp
 - [x] Módulo `audit` — append-only log (tabela `audit_logs` + `@Auditable()` decorator + interceptor global — ver `docs/audit_trail.md`)
 - [x] Job CRON NF mensal dia 20 (PjInvoiceCronService)
+- [x] Módulo `notifications` — listagem, contagem não lidas, marcação lida/todas lidas (todos os 19 roles)
+- [x] Módulo `governance` — comitês, membros, reuniões, atas (rich text), itens de ação, atualizações (DDD completo, 12 use-cases, 3 controllers, 6 tabelas DB)
+- [x] Módulo `communication` — wiki (categorias + artigos rich text) + intranet (comunicados com targetRoles) (3 tabelas DB)
+- [x] Role `governance` — novo role com acesso completo a governance/wiki/intranet, sidebar configurado, check constraint DB atualizado
 - [ ] Jobs CRON (cobrança dias 5/10/15, alertas onboarding, aniversário empresa)
 - [ ] `web-client` (portal do cliente — Next.js)
 - [ ] OpenTelemetry + Prometheus + Grafana
@@ -429,6 +460,7 @@ O frontend consome esse mapa e renderiza por composição — zero condicionais 
 | `seguranca.md` | Segurança: SAST, DAST, SCA, secret scanning, hardening, RLS, CI/CD security pipeline | ~390 |
 | `dicionario_dados.md` | Dicionário de dados: todas as 72 tabelas, colunas, tipos, constraints, FKs, RLS, diagrama ER | ~750 |
 | `audit_trail.md` | Sistema de auditoria centralizado: interceptor, tabela, correlação | ~300 |
+| `governance_communication_implementacao.md` | Módulos Governance (comitês, reuniões, atas, ações) e Communication (wiki, intranet): domínio, banco, endpoints, CRON, frontend, RBAC | ~400 |
 
 ---
 

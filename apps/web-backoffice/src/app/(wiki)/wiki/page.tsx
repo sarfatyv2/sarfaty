@@ -23,6 +23,8 @@ import {
   Shield,
   GitBranch,
   Server,
+  Landmark,
+  MessageSquare,
 } from 'lucide-react';
 
 const OverviewFlowDiagram = dynamic(
@@ -103,6 +105,22 @@ const modules = [
     tableCount: 1,
     color: 'orange',
   },
+  {
+    href: '/wiki/modules/governance',
+    icon: Landmark,
+    name: 'Governança',
+    description: 'Comitês, reuniões com atas em rich text, itens de ação e lembretes automáticos via CRON.',
+    tableCount: 6,
+    color: 'indigo',
+  },
+  {
+    href: '/wiki/modules/communication',
+    icon: MessageSquare,
+    name: 'Comunicação',
+    description: 'Wiki corporativa com categorias e artigos em rich text + intranet de comunicados.',
+    tableCount: 3,
+    color: 'sky',
+  },
 ];
 
 const techStack = [
@@ -113,13 +131,13 @@ const techStack = [
   { label: 'Temporal.io', icon: GitBranch, description: 'Workflows distribuídos' },
   { label: 'Upstash Redis', icon: Zap, description: 'Cache e rate limiting' },
   { label: 'Turborepo', icon: Layers, description: 'Monorepo com pnpm' },
-  { label: 'RBAC', icon: Shield, description: '18 roles, permissões granulares' },
+  { label: 'RBAC', icon: Shield, description: '19 roles, permissões granulares' },
 ];
 
 const stats = [
-  { value: '73', label: 'Tabelas no banco' },
-  { value: '18', label: 'Roles de acesso' },
-  { value: '9', label: 'Módulos funcionais' },
+  { value: '82', label: 'Tabelas no banco' },
+  { value: '19', label: 'Roles de acesso' },
+  { value: '11', label: 'Módulos funcionais' },
   { value: '3', label: 'Apps no monorepo' },
 ];
 
