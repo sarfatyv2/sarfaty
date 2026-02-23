@@ -978,6 +978,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Administração',
+        items: [
+          { label: 'Usuários', icon: 'Users', route: '/admin/users' },
+        ],
+      },
+      {
         section: 'Departamento Pessoal',
         items: [
           { label: 'Colaboradores', icon: 'Users', route: '/people/collaborators' },
