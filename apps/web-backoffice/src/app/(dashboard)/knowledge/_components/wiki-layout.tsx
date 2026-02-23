@@ -156,10 +156,12 @@ function ArticleCard({
   const isDraft = article.status === 'draft';
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onClick(article.slug)}
-      className="group relative flex flex-col rounded-xl border border-border/60 bg-card p-4 hover:border-[hsl(150,30%,70%)] hover:shadow-sm transition-all duration-200 text-left w-full"
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(article.slug); }}
+      className="group relative flex flex-col rounded-xl border border-border/60 bg-card p-4 hover:border-[hsl(150,30%,70%)] hover:shadow-sm transition-all duration-200 text-left w-full cursor-pointer"
     >
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="w-8 h-8 rounded-lg bg-[hsl(150,50%,10%)]/8 flex items-center justify-center flex-shrink-0">
@@ -198,7 +200,7 @@ function ArticleCard({
         <Calendar className="w-3 h-3" />
         {new Date(article.updatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
       </p>
-    </button>
+    </div>
   );
 }
 
