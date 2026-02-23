@@ -22,6 +22,8 @@ import {
   Building2,
   Menu,
   ArrowRightLeft,
+  Landmark,
+  MessageSquare,
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@nexus/ui';
 
@@ -47,6 +49,8 @@ const navGroups = [
       { href: '/wiki/modules/people', label: 'Pessoas', icon: Users },
       { href: '/wiki/modules/learning', label: 'Aprendizagem', icon: BookOpen },
       { href: '/wiki/modules/notifications', label: 'Notificações', icon: Bell },
+      { href: '/wiki/modules/governance', label: 'Governança', icon: Landmark },
+      { href: '/wiki/modules/communication', label: 'Communication', icon: MessageSquare },
     ],
   },
 ];
