@@ -25,9 +25,22 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // Invalid or expired refresh token — clear session and redirect to login
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    const response = NextResponse.redirect(url);
+    request.cookies.getAll().forEach(({ name }) => {
+      if (name.startsWith('sb-')) {
+        response.cookies.delete(name);
+      }
+    });
+    return response;
+  }
 
   if (
     !user &&
