@@ -131,10 +131,12 @@ export class WikiController {
   @Roles(...ALL_AUTHENTICATED)
   async listArticles(
     @Query(new ZodValidationPipe(listWikiArticlesQuerySchema)) query: ListWikiArticlesQueryDto,
+    @CurrentUser() user: { id: string; role: Role },
   ) {
+    const isEditor = EDITOR_ROLES.includes(user.role);
     const result = await this.articleRepository.findByFilters({
       categoryId: query.categoryId,
-      status: query.status ?? 'published',
+      status: query.status ?? (isEditor ? undefined : 'published'),
       search: query.search,
       page: query.page,
       pageSize: query.pageSize,
