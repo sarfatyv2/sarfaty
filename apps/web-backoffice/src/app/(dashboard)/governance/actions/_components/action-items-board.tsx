@@ -23,12 +23,6 @@ const COLUMNS: { status: ActionItemStatus; label: string }[] = [
   { status: 'done', label: 'Concluído' },
 ];
 
-const STATUS_BADGE_VARIANTS: Record<ActionItemStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  todo: 'secondary',
-  in_progress: 'default',
-  blocked: 'destructive',
-  done: 'outline',
-};
 
 function ActionCard({
   item,

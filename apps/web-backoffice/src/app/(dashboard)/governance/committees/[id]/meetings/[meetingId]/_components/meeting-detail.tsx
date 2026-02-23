@@ -132,7 +132,7 @@ export function MeetingDetail({
             {minute && (
               <p className="text-xs text-muted-foreground">
                 {isMinutePublished
-                  ? `Publicada em ${new Date(minute.publishedAt!).toLocaleDateString('pt-BR')}`
+                  ? `Publicada em ${new Date(minute.publishedAt ?? '').toLocaleDateString('pt-BR')}`
                   : 'Rascunho'}
               </p>
             )}
