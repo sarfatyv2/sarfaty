@@ -1,20 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 
-async function getUserSilently(supabase: ReturnType<typeof createServerClient>) {
-  const originalConsoleError = console.error;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  console.error = (...args: any[]) => {
-    if (args.some((arg) => arg?.__isAuthError === true)) return;
-    originalConsoleError(...args);
-  };
-  try {
-    return await supabase.auth.getUser();
-  } finally {
-    console.error = originalConsoleError;
-  }
-}
-
 function clearSessionAndRedirect(request: NextRequest): NextResponse {
   const url = request.nextUrl.clone();
   url.pathname = '/login';
@@ -51,25 +37,27 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
+  const isPublicRoute =
+    request.nextUrl.pathname.startsWith('/login') ||
+    request.nextUrl.pathname.startsWith('/auth') ||
+    request.nextUrl.pathname.startsWith('/wiki');
+
   let user = null;
   try {
-    const { data, error } = await getUserSilently(supabase);
+    const { data, error } = await supabase.auth.getUser();
 
     if (error) {
+      if (isPublicRoute) return supabaseResponse;
       return clearSessionAndRedirect(request);
     }
 
     user = data.user;
   } catch {
+    if (isPublicRoute) return supabaseResponse;
     return clearSessionAndRedirect(request);
   }
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/wiki')
-  ) {
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
