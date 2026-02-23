@@ -224,7 +224,8 @@ export function RichTextEditor({
       <EditorContent
         editor={editor}
         className={cn(
-          'px-3 py-2 [&_.ProseMirror]:outline-none',
+          readOnly ? 'p-0' : 'px-3 py-2',
+          '[&_.ProseMirror]:outline-none',
           '[&_.ProseMirror]:min-h-[var(--editor-min-height)]',
           '[&_.ProseMirror_p.is-editor-empty:first-child::before]:text-muted-foreground',
           '[&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]',

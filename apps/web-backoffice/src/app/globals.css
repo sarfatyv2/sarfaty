@@ -37,3 +37,65 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Wiki article prose styles */
+.prose-article .ProseMirror {
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: hsl(var(--foreground));
+}
+.prose-article .ProseMirror p {
+  margin-bottom: 1em;
+}
+.prose-article .ProseMirror h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  margin-top: 1.75rem;
+  line-height: 1.3;
+}
+.prose-article .ProseMirror h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+  margin-top: 1.5rem;
+  line-height: 1.35;
+}
+.prose-article .ProseMirror h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  margin-top: 1.25rem;
+}
+.prose-article .ProseMirror ul,
+.prose-article .ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1em;
+}
+.prose-article .ProseMirror li {
+  margin-bottom: 0.35em;
+}
+.prose-article .ProseMirror blockquote {
+  border-left: 3px solid hsl(150, 40%, 75%);
+  padding-left: 1rem;
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+  margin: 1.25rem 0;
+}
+.prose-article .ProseMirror strong {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.prose-article .ProseMirror code {
+  font-size: 0.85em;
+  background: hsl(150, 20%, 96%);
+  border: 1px solid hsl(150, 15%, 88%);
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+  font-family: ui-monospace, monospace;
+}
+.prose-article .ProseMirror hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 2rem 0;
+}
