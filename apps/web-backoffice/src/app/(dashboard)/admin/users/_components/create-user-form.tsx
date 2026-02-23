@@ -52,6 +52,22 @@ const ROLE_LABELS: Record<string, string> = {
   admin: 'Administrador',
 };
 
+const DEPARTMENT_OPTIONS = [
+  'Comercial',
+  'Crédito',
+  'Compliance',
+  'Jurídico',
+  'Backoffice',
+  'Gestão de Risco',
+  'RH',
+  'Departamento Pessoal',
+  'Governança',
+  'Tecnologia',
+  'Diretoria',
+  'Operações',
+  'Financeiro',
+];
+
 const UF_OPTIONS = [
   'AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO',
   'MA', 'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR',
@@ -161,7 +177,7 @@ export function CreateUserForm() {
         <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="access" className="relative">
             Acesso
-            {tabHasErrors(['email', 'password', 'role', 'fullName']) && (
+            {tabHasErrors(['email', 'password', 'role', 'fullName', 'department']) && (
               <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
             )}
           </TabsTrigger>
@@ -175,7 +191,7 @@ export function CreateUserForm() {
           <TabsTrigger value="contact">Contato</TabsTrigger>
           <TabsTrigger value="professional" className="relative">
             Profissional
-            {tabHasErrors(['employmentType', 'department', 'jobTitle']) && (
+            {tabHasErrors(['employmentType', 'jobTitle']) && (
               <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
             )}
           </TabsTrigger>
@@ -209,6 +225,20 @@ export function CreateUserForm() {
                       {ROLES.map((role) => (
                         <SelectItem key={role} value={role}>
                           {ROLE_LABELS[role] ?? role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+                <FormField label="Departamento" error={errors.department?.message}>
+                  <Select onValueChange={(value) => setValue('department', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o departamento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DEPARTMENT_OPTIONS.map((dept) => (
+                        <SelectItem key={dept} value={dept}>
+                          {dept}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -403,9 +433,6 @@ export function CreateUserForm() {
                 </FormField>
                 <FormField label="Diretoria" error={errors.directorate?.message}>
                   <Input {...register('directorate')} placeholder="Diretoria" />
-                </FormField>
-                <FormField label="Departamento" error={errors.department?.message}>
-                  <Input {...register('department')} placeholder="Departamento" />
                 </FormField>
                 <FormField label="Filial" error={errors.branch?.message}>
                   <Input {...register('branch')} placeholder="Filial" />
