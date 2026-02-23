@@ -35,9 +35,11 @@ function buildCategoryTree(categories: WikiCategory[]): WikiCategory[] {
   }
 
   for (const category of categories) {
-    const node = map.get(category.id)!;
+    const node = map.get(category.id);
+    if (!node) continue;
     if (category.parentId && map.has(category.parentId)) {
-      const parent = map.get(category.parentId)!;
+      const parent = map.get(category.parentId);
+      if (!parent) continue;
       parent.children = parent.children ?? [];
       parent.children.push(node);
     } else {

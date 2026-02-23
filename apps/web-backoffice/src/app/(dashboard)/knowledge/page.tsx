@@ -10,14 +10,17 @@ const EDITOR_ROLES = new Set<Role>(['admin', 'governance', 'hr_admin', 'people_m
 export default async function WikiPage() {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user!.id)
-    .single();
 
-  const role = (profile?.role as Role) ?? 'employee';
-  const canEdit = EDITOR_ROLES.has(role);
+  let canEdit = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    const role = (profile?.role as Role) ?? 'employee';
+    canEdit = EDITOR_ROLES.has(role);
+  }
 
   return <WikiLayout canEdit={canEdit} />;
 }
