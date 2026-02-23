@@ -27,6 +27,7 @@ const ROLES = [
   'hr',
   'dp',
   'hr_admin',
+  'governance',
   'admin',
 ] as const;
 

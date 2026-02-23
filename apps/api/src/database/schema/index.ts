@@ -99,3 +99,16 @@ export { learningLessonCompletions } from './learning-lesson-completions';
 export { vaduCompanyResults } from './vadu-company-results';
 export { vaduPersonResults } from './vadu-person-results';
 export { creditboxReports } from './creditbox-reports';
+
+// Governance
+export { govCommittees } from './gov-committees';
+export { govCommitteeMembers } from './gov-committee-members';
+export { govMeetings } from './gov-meetings';
+export { govMeetingMinutes } from './gov-meeting-minutes';
+export { govActionItems } from './gov-action-items';
+export { govActionUpdates } from './gov-action-updates';
+
+// Communication
+export { commAnnouncements } from './comm-announcements';
+export { commWikiCategories } from './comm-wiki-categories';
+export { commWikiArticles } from './comm-wiki-articles';

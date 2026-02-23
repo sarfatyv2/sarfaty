@@ -143,3 +143,53 @@ export {
   type CreateDraweeBankAccountDto,
   type UpdateDraweeBankAccountDto,
 } from './drawee.schema';
+
+// Governance schemas
+export {
+  createCommitteeSchema,
+  updateCommitteeSchema,
+  listCommitteesQuerySchema,
+  inviteMemberSchema,
+  updateMemberRoleSchema,
+  createMeetingSchema,
+  updateMeetingSchema,
+  listMeetingsQuerySchema,
+  upsertMinuteSchema,
+  createActionItemSchema,
+  updateActionItemSchema,
+  listActionItemsQuerySchema,
+  createActionUpdateSchema,
+  type CreateCommitteeDto,
+  type UpdateCommitteeDto,
+  type ListCommitteesQueryDto,
+  type InviteMemberDto,
+  type UpdateMemberRoleDto,
+  type CreateMeetingDto,
+  type UpdateMeetingDto,
+  type ListMeetingsQueryDto,
+  type UpsertMinuteDto,
+  type CreateActionItemDto,
+  type UpdateActionItemDto,
+  type ListActionItemsQueryDto,
+  type CreateActionUpdateDto,
+} from './governance.schema';
+
+// Communication schemas
+export {
+  createAnnouncementSchema,
+  updateAnnouncementSchema,
+  listAnnouncementsQuerySchema,
+  createWikiCategorySchema,
+  updateWikiCategorySchema,
+  createWikiArticleSchema,
+  updateWikiArticleSchema,
+  listWikiArticlesQuerySchema,
+  type CreateAnnouncementDto,
+  type UpdateAnnouncementDto,
+  type ListAnnouncementsQueryDto,
+  type CreateWikiCategoryDto,
+  type UpdateWikiCategoryDto,
+  type CreateWikiArticleDto,
+  type UpdateWikiArticleDto,
+  type ListWikiArticlesQueryDto,
+} from './communication.schema';

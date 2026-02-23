@@ -74,3 +74,32 @@ export {
   type FunnelStageData,
   type PipelineMetrics,
 } from './pipeline';
+export {
+  COMMITTEE_FREQUENCIES,
+  type CommitteeFrequency,
+  COMMITTEE_STATUSES,
+  type CommitteeStatus,
+  COMMITTEE_MEMBER_ROLES,
+  type CommitteeMemberRole,
+  MEETING_STATUSES,
+  type MeetingStatus,
+  MINUTE_STATUSES,
+  type MinuteStatus,
+  ACTION_ITEM_STATUSES,
+  type ActionItemStatus,
+  type Committee,
+  type CommitteeMember,
+  type Meeting,
+  type MeetingMinute,
+  type ActionItem,
+  type ActionUpdate,
+} from './governance';
+export {
+  ANNOUNCEMENT_STATUSES,
+  type AnnouncementStatus,
+  WIKI_ARTICLE_STATUSES,
+  type WikiArticleStatus,
+  type Announcement,
+  type WikiCategory,
+  type WikiArticle,
+} from './communication';

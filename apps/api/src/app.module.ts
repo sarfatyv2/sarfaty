@@ -24,6 +24,8 @@ import { GoalsModule } from './modules/goals/goals.module';
 import { PipelineModule } from './modules/pipeline/pipeline.module';
 import { DraweesModule } from './modules/drawees/drawees.module';
 import { CreditModule } from './modules/credit/credit.module';
+import { GovernanceModule } from './modules/governance/governance.module';
+import { CommunicationModule } from './modules/communication/communication.module';
 
 @Module({
   imports: [
@@ -53,6 +55,8 @@ import { CreditModule } from './modules/credit/credit.module';
     PipelineModule,
     DraweesModule,
     CreditModule,
+    GovernanceModule,
+    CommunicationModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
