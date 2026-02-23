@@ -1,6 +1,20 @@
 import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 
+async function getUserSilently(supabase: ReturnType<typeof createServerClient>) {
+  const originalConsoleError = console.error;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  console.error = (...args: any[]) => {
+    if (args.some((arg) => arg?.__isAuthError === true)) return;
+    originalConsoleError(...args);
+  };
+  try {
+    return await supabase.auth.getUser();
+  } finally {
+    console.error = originalConsoleError;
+  }
+}
+
 function clearSessionAndRedirect(request: NextRequest): NextResponse {
   const url = request.nextUrl.clone();
   url.pathname = '/login';
@@ -39,7 +53,7 @@ export async function updateSession(request: NextRequest) {
 
   let user = null;
   try {
-    const { data, error } = await supabase.auth.getUser();
+    const { data, error } = await getUserSilently(supabase);
 
     if (error) {
       return clearSessionAndRedirect(request);
