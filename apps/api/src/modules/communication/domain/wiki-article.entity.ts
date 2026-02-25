@@ -6,6 +6,7 @@ export interface WikiArticleProps {
   title: string;
   slug: string;
   content: unknown;
+  youtubeVideoId?: string | null;
   status: WikiArticleStatus;
   authorId: string;
   lastUpdatedBy: string | null;
@@ -20,6 +21,7 @@ export class WikiArticle {
   readonly title: string;
   readonly slug: string;
   readonly content: unknown;
+  readonly youtubeVideoId: string | null;
   readonly status: WikiArticleStatus;
   readonly authorId: string;
   readonly lastUpdatedBy: string | null;
@@ -33,6 +35,7 @@ export class WikiArticle {
     this.title = props.title;
     this.slug = props.slug;
     this.content = props.content;
+    this.youtubeVideoId = props.youtubeVideoId ?? null;
     this.status = props.status;
     this.authorId = props.authorId;
     this.lastUpdatedBy = props.lastUpdatedBy;
@@ -73,6 +76,7 @@ export class WikiArticle {
       title: this.title,
       slug: this.slug,
       content: this.content,
+      youtubeVideoId: this.youtubeVideoId,
       status: this.status,
       authorId: this.authorId,
       lastUpdatedBy: this.lastUpdatedBy,

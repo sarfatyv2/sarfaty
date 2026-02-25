@@ -45,11 +45,25 @@ export type UpdateWikiCategoryDto = z.infer<typeof updateWikiCategorySchema>;
 
 // --- Wiki Articles ---
 
+function parseYoutubeVideoId(val: unknown): string | null {
+  if (val === undefined || val === null) return null;
+  const s = String(val).trim();
+  if (!s) return null;
+  const match = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/.exec(s) ?? /^([a-zA-Z0-9_-]{11})$/.exec(s);
+  return match ? match[1]! : null;
+}
+
+const youtubeVideoIdSchema = z
+  .union([z.string(), z.literal(''), z.null()])
+  .optional()
+  .transform(parseYoutubeVideoId);
+
 export const createWikiArticleSchema = z.object({
   categoryId: uuidSchema,
   title: z.string().min(2),
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be kebab-case'),
   content: z.unknown().optional(),
+  youtubeVideoId: youtubeVideoIdSchema,
   status: z.enum(['draft', 'published']).default('draft'),
 });
 

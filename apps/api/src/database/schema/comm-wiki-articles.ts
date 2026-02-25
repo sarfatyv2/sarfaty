@@ -8,6 +8,7 @@ export const commWikiArticles = pgTable('comm_wiki_articles', {
   title: text('title').notNull(),
   slug: text('slug').notNull().unique(),
   content: jsonb('content'),
+  youtubeVideoId: text('youtube_video_id'),
   status: text('status').notNull().default('draft'),
   authorId: uuid('author_id').notNull().references(() => profiles.id),
   lastUpdatedBy: uuid('last_updated_by').references(() => profiles.id),

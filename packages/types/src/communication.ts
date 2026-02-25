@@ -40,6 +40,7 @@ export interface WikiArticle {
   title: string;
   slug: string;
   content: unknown;
+  youtubeVideoId: string | null;
   status: WikiArticleStatus;
   authorId: string;
   lastUpdatedBy: string | null;
