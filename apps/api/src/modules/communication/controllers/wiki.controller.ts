@@ -121,6 +121,7 @@ export class WikiController {
       title: dto.title,
       slug: dto.slug,
       content: dto.content ?? null,
+      youtubeVideoId: dto.youtubeVideoId ?? null,
       authorId: user.id,
       status: dto.status,
     });
@@ -173,7 +174,10 @@ export class WikiController {
       throw new WikiArticleNotFoundException(id);
     }
 
-    const updateData: Record<string, unknown> = { ...dto, lastUpdatedBy: user.id };
+    const updateData: Record<string, unknown> = { lastUpdatedBy: user.id };
+    for (const [k, v] of Object.entries(dto)) {
+      if (v !== undefined) updateData[k] = v;
+    }
     if (dto.status === 'published' && !existing.publishedAt) {
       updateData.publishedAt = new Date();
     }

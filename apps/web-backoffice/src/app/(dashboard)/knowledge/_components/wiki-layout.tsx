@@ -47,6 +47,15 @@ import type { WikiCategory, WikiArticle } from '@nexus/types';
 
 const WIKI_ARTICLE_SKELETONS = ['sk-1', 'sk-2', 'sk-3', 'sk-4', 'sk-5', 'sk-6'];
 
+function extractYoutubeVideoId(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const urlMatch = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/.exec(trimmed);
+  if (urlMatch) return urlMatch[1]!;
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+  return null;
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -383,6 +392,7 @@ function ArticleEditor({
   const [slug, setSlug] = useState(article?.slug ?? '');
   const [categoryId, setCategoryId] = useState(article?.categoryId ?? defaultCategoryId ?? '');
   const [content, setContent] = useState<unknown>(article?.content ?? null);
+  const [youtubeVideoId, setYoutubeVideoId] = useState(article?.youtubeVideoId ?? '');
   const [slugManual, setSlugManual] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -400,7 +410,14 @@ function ArticleEditor({
     if (publish) setPublishing(true);
     else setSaving(true);
     try {
-      const payload = { title: title.trim(), slug: slug.trim(), categoryId, content, ...(publish ? { status: 'published' } : {}) };
+      const payload = {
+        title: title.trim(),
+        slug: slug.trim(),
+        categoryId,
+        content,
+        youtubeVideoId: extractYoutubeVideoId(youtubeVideoId),
+        ...(publish ? { status: 'published' as const } : {}),
+      };
       if (isEditing) {
         await api.patch(`/wiki/articles/${article.id}`, payload);
         toast.success(publish ? 'Artigo publicado' : 'Artigo salvo');
@@ -465,6 +482,19 @@ function ArticleEditor({
                   {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <Label htmlFor="art-youtube">YouTube Video ID</Label>
+              <Input
+                id="art-youtube"
+                placeholder="Ex: dQw4w9WgXcQ"
+                value={youtubeVideoId}
+                onChange={(e) => setYoutubeVideoId(e.target.value)}
+                className="text-sm h-9"
+              />
+              <p className="text-xs text-muted-foreground">
+                Opcional. O vídeo será exibido no topo do artigo.
+              </p>
             </div>
           </div>
           <div className="space-y-1.5">
@@ -644,6 +674,22 @@ export function WikiLayout({ canEdit }: { canEdit: boolean }) {
                   </p>
                   <div className="mt-5 border-b border-border/60" />
                 </div>
+                {(() => {
+                  const videoId = article.youtubeVideoId ?? (article as { youtube_video_id?: string }).youtube_video_id;
+                  return videoId ? (
+                  <div className="mb-8">
+                    <div className="aspect-video w-full max-w-2xl rounded-lg overflow-hidden bg-black">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${videoId}`}
+                        title="Vídeo do artigo"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full"
+                      />
+                    </div>
+                  </div>
+                  ) : null;
+                })()}
                 <div className="prose-article">
                   <RichTextEditor value={article.content} readOnly toolbar={false} minHeight="200px" />
                 </div>

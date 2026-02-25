@@ -162,10 +162,21 @@ export class DrizzleWikiArticleRepository implements WikiArticleRepository {
     };
   }
 
+  private static readonly ARTICLE_UPDATE_COLUMNS = new Set([
+    'categoryId', 'title', 'slug', 'content', 'youtubeVideoId', 'status',
+    'authorId', 'lastUpdatedBy', 'publishedAt',
+  ]);
+
   async update(id: string, data: Partial<Record<string, unknown>>): Promise<WikiArticle | null> {
+    const filtered: Record<string, unknown> = { updatedAt: new Date() };
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined && DrizzleWikiArticleRepository.ARTICLE_UPDATE_COLUMNS.has(key)) {
+        filtered[key] = value;
+      }
+    }
     const [row] = await this.db
       .update(commWikiArticles)
-      .set({ ...data, updatedAt: new Date() } as Partial<typeof commWikiArticles.$inferInsert>)
+      .set(filtered as Partial<typeof commWikiArticles.$inferInsert>)
       .where(eq(commWikiArticles.id, id))
       .returning();
     return row ? WikiArticleMapper.toDomain(row) : null;
