@@ -171,9 +171,36 @@ export function PartnerSection({ clientId }: PartnerSectionProps) {
   }
 
   function getPartnerIrpf(partner: ClientAuthorizedPerson): IrpfExtraction[] {
-    if (!partner.cpf) return [];
-    const cpfDigits = partner.cpf.replaceAll(/\D/g, '');
-    return irpfExtractions.filter((e) => e.cpf.replaceAll(/\D/g, '') === cpfDigits);
+    // Primary match: by CPF when partner has CPF
+    if (partner.cpf) {
+      const cpfDigits = partner.cpf.replaceAll(/\D/g, '');
+      const byCpf = irpfExtractions.filter(
+        (e) => e.cpf && e.cpf.replaceAll(/\D/g, '') === cpfDigits,
+      );
+      if (byCpf.length > 0) return byCpf;
+    }
+    // Fallback: match by name (e.g. partner added without CPF, or CPF differs from doc)
+    // Uses same logic as backend — at least 2 significant words or 1 if name has few words
+    if (!partner.fullName?.trim()) return [];
+    const normalizedPartner = partner.fullName
+      .normalize('NFD')
+      .replaceAll(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replaceAll(/\s+/g, ' ')
+      .trim();
+    const expectedWords = normalizedPartner.split(' ').filter((w) => w.length > 2);
+    if (expectedWords.length === 0) return [];
+    return irpfExtractions.filter((e) => {
+      if (!e.fullName) return false;
+      const normalizedExtracted = e.fullName
+        .normalize('NFD')
+        .replaceAll(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replaceAll(/\s+/g, ' ')
+        .trim();
+      const matchCount = expectedWords.filter((w) => normalizedExtracted.includes(w)).length;
+      return matchCount >= Math.min(2, expectedWords.length);
+    });
   }
 
   function renderPartnerContent() {
