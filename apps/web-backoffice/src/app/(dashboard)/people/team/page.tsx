@@ -49,7 +49,7 @@ export default function TeamPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Meu Time</h1>
+        <h1 className="text-3xl font-normal">Meu Time</h1>
         <p className="text-sm text-muted-foreground">
           Colaboradores sob sua gestão
         </p>

@@ -86,7 +86,7 @@ export default async function AuditTrailPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Audit Trail</h1>
+        <h1 className="text-3xl font-normal">Audit Trail</h1>
         <p className="text-sm text-muted-foreground">
           Registro completo de ações sensíveis realizadas na plataforma
         </p>

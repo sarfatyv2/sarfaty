@@ -36,6 +36,10 @@ export { clientAddresses } from './client-addresses';
 export { clientBankAccounts } from './client-bank-accounts';
 export { clientAuthorizedPersons } from './client-authorized-persons';
 export { clientCommercialReports } from './client-commercial-reports';
+export { irpfExtractions } from './irpf-extractions';
+export { irpfExtractionSources } from './irpf-extraction-sources';
+export { faturamentoExtractions } from './faturamento-extractions';
+export { faturamentoExtractionSources } from './faturamento-extraction-sources';
 export { notifications } from './notifications';
 
 // Entity Registry

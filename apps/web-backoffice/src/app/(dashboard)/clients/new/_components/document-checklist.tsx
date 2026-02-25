@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { Button, Badge } from '@nexus/ui';
-import { Upload, FileText, CheckCircle2, XCircle, Loader2, Trash2 } from 'lucide-react';
+import { Upload, CheckCircle2, XCircle, Loader2, Trash2 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { toast } from 'sonner';
 import { DOCUMENT_CATEGORY_LABELS } from '@nexus/utils';
@@ -21,6 +21,7 @@ interface DocumentChecklistProps {
   checklist: DocumentChecklistItem[];
   canSubmitResult: CanSubmitResult;
   onRefresh: () => void;
+  onSilentRefresh: () => void;
   onSubmit: () => void;
   submitting: boolean;
 }
@@ -28,7 +29,7 @@ interface DocumentChecklistProps {
 function getDocumentStatusIcon(status: string) {
   switch (status) {
     case 'uploaded':
-      return <FileText size={16} className="text-blue-500" />;
+      return <Loader2 size={16} className="animate-spin text-blue-500" />;
     case 'validating':
       return <Loader2 size={16} className="animate-spin text-yellow-500" />;
     case 'valid':
@@ -43,7 +44,7 @@ function getDocumentStatusIcon(status: string) {
 function getDocumentStatusLabel(status: string): string {
   switch (status) {
     case 'missing': return 'Pendente';
-    case 'uploaded': return 'Enviado';
+    case 'uploaded': return 'Processando';
     case 'validating': return 'Validando';
     case 'valid': return 'Válido';
     case 'invalid': return 'Inválido';
@@ -51,22 +52,35 @@ function getDocumentStatusLabel(status: string): string {
   }
 }
 
+function getStatusBadgeClass(status: string): string {
+  if (status === 'uploaded' || status === 'validating') {
+    return 'animate-pulse';
+  }
+  return '';
+}
+
+// Document types that support multiple uploads (one per company/year/etc.)
+const MULTI_UPLOAD_TYPES = new Set(['revenue']);
+
 function DocumentUploadItem({
   item,
   clientId,
   onRefresh,
+  onSilentRefresh,
   onInterceptReport,
   isParsing,
 }: {
   item: DocumentChecklistItem;
   clientId: string;
   onRefresh: () => void;
+  onSilentRefresh: () => void;
   onInterceptReport?: (file: File, item: DocumentChecklistItem) => void;
   isParsing?: boolean;
 }) {
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
+  const isMultiUpload = MULTI_UPLOAD_TYPES.has(item.documentType);
 
   const isWorking = uploading || isParsing;
 
@@ -92,16 +106,23 @@ function DocumentUploadItem({
       if (item.guaranteeId) {
         formData.append('clientGuaranteeId', item.guaranteeId);
       }
+      if (item.partnerName) {
+        formData.append('partnerName', item.partnerName);
+      }
+      if (item.referenceYear != null) {
+        formData.append('referenceYear', String(item.referenceYear));
+      }
 
       await api.postFormData(`/clients/${clientId}/documents`, formData);
-      onRefresh();
+      // Silent refresh to avoid skeleton flash; polling will auto-update from here
+      onSilentRefresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Erro ao enviar documento');
     } finally {
       setUploading(false);
       event.target.value = '';
     }
-  }, [clientId, item, onRefresh]);
+  }, [clientId, item, onSilentRefresh, onInterceptReport]);
 
   const handleDelete = useCallback(async () => {
     if (!item.documentId) return;
@@ -133,8 +154,21 @@ function DocumentUploadItem({
         {item.description && (
           <p className="text-xs text-muted-foreground truncate">{item.description}</p>
         )}
-        {item.fileName && (
-          <p className="text-xs text-muted-foreground mt-0.5">{item.fileName}</p>
+        {isMultiUpload && item.uploadedDocuments.length > 0 ? (
+          <div className="mt-1 space-y-0.5">
+            {item.uploadedDocuments.map((doc) => (
+              <p key={doc.id} className="text-xs text-muted-foreground truncate">
+                • {doc.fileName}
+              </p>
+            ))}
+          </div>
+        ) : (
+          item.fileName && (
+            <p className="text-xs text-muted-foreground mt-0.5">{item.fileName}</p>
+          )
+        )}
+        {item.status === 'invalid' && item.rejectionReason && (
+          <p className="text-xs text-destructive mt-1">{item.rejectionReason}</p>
         )}
         {error && <p className="text-xs text-destructive mt-0.5">{error}</p>}
       </div>
@@ -142,7 +176,7 @@ function DocumentUploadItem({
       <div className="flex items-center gap-2 shrink-0">
         <Badge
           variant={getStatusBadgeVariant(item.status)}
-          className="text-[10px]"
+          className={`text-[10px] ${getStatusBadgeClass(item.status)}`}
         >
           {getDocumentStatusLabel(item.status)}
         </Badge>
@@ -165,32 +199,52 @@ function DocumentUploadItem({
           </label>
         )}
 
-        {(item.status === 'uploaded' || item.status === 'invalid') && item.documentId && (
+        {item.status !== 'missing' && item.documentId && (
           <div className="flex items-center gap-1">
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                className="hidden"
-                accept=".pdf,.jpg,.jpeg,.png,.webp,.xls,.xlsx"
-                onChange={handleUpload}
-                disabled={isWorking}
-              />
-              <Button type="button" variant="outline" size="sm" asChild disabled={isWorking}>
-                <span>
-                  {isWorking ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                  Reenviar
-                </span>
-              </Button>
-            </label>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-            </Button>
+            {isMultiUpload ? (
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,.jpg,.jpeg,.png,.webp,.xls,.xlsx"
+                  onChange={handleUpload}
+                  disabled={isWorking}
+                />
+                <Button type="button" variant="outline" size="sm" asChild disabled={isWorking}>
+                  <span>
+                    {isWorking ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                    Adicionar arquivo
+                  </span>
+                </Button>
+              </label>
+            ) : (
+              <>
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp,.xls,.xlsx"
+                    onChange={handleUpload}
+                    disabled={isWorking}
+                  />
+                  <Button type="button" variant="outline" size="sm" asChild disabled={isWorking}>
+                    <span>
+                      {isWorking ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                      Reenviar
+                    </span>
+                  </Button>
+                </label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                </Button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -203,6 +257,7 @@ export function DocumentChecklist({
   checklist,
   canSubmitResult,
   onRefresh,
+  onSilentRefresh,
   onSubmit,
   submitting,
 }: DocumentChecklistProps) {
@@ -298,10 +353,11 @@ export function DocumentChecklist({
           <div className="space-y-2">
             {items.map((item) => (
               <DocumentUploadItem
-                key={`${item.documentType}-${item.guaranteeId ?? ''}`}
+                key={`${item.documentType}-${item.guaranteeId ?? ''}-${item.partnerCpf ?? ''}-${item.referenceYear ?? ''}`}
                 item={item}
                 clientId={clientId}
                 onRefresh={onRefresh}
+                onSilentRefresh={onSilentRefresh}
                 onInterceptReport={handleInterceptReport}
                 isParsing={item.documentType === 'visit_report' ? parsingReport : false}
               />

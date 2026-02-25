@@ -142,7 +142,7 @@ export default async function LearningPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Treinamentos</h1>
+        <h1 className="text-3xl font-normal">Treinamentos</h1>
         <p className="text-sm text-muted-foreground">
           Cursos e capacitações para o seu desenvolvimento profissional
         </p>

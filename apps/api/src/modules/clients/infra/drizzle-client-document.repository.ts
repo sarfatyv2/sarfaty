@@ -2,7 +2,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
 import { clientDocuments } from '../../../database/schema';
-import type { ClientDocumentRepository, ClientDocumentData, ClientDocumentRow } from '../domain/client-document.repository';
+import type {
+  ClientDocumentRepository,
+  ClientDocumentData,
+  ClientDocumentRow,
+  ClientDocumentExtractionUpdate,
+} from '../domain/client-document.repository';
 import { ClientDocumentMapper } from './mappers/client-document.mapper';
 
 @Injectable()
@@ -37,6 +42,17 @@ export class DrizzleClientDocumentRepository implements ClientDocumentRepository
   async delete(id: string): Promise<void> {
     await this.db
       .delete(clientDocuments)
+      .where(eq(clientDocuments.id, id));
+  }
+
+  async updateExtraction(id: string, data: ClientDocumentExtractionUpdate): Promise<void> {
+    await this.db
+      .update(clientDocuments)
+      .set({
+        extractedData: data.extractedData,
+        validationStatus: data.validationStatus,
+        validatedAt: data.validatedAt,
+      })
       .where(eq(clientDocuments.id, id));
   }
 }

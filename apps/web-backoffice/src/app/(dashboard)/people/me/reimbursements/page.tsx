@@ -82,7 +82,7 @@ export default function MyReimbursementsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Meus Reembolsos</h1>
+        <h1 className="text-3xl font-normal">Meus Reembolsos</h1>
         <p className="text-sm text-muted-foreground">
           Solicite e acompanhe seus reembolsos de despesas
         </p>

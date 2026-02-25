@@ -23,6 +23,7 @@ const domains = [
   { name: 'Pessoas (RH/DP)', tables: 13, color: 'bg-rose-500', desc: 'collaborators, clt_data, pj_data, dependents, reimbursements' },
   { name: 'Aprendizagem', tables: 5, color: 'bg-violet-500', desc: 'courses, modules, lessons, enrollments, completions' },
   { name: 'Integrações', tables: 3, color: 'bg-slate-500', desc: 'vadu_company, vadu_person, creditbox_reports' },
+  { name: 'IRPF / Agente IA', tables: 2, color: 'bg-amber-500', desc: 'irpf_extractions, irpf_extraction_sources' },
 ];
 
 export default function DatabasePage() {
@@ -46,10 +47,10 @@ export default function DatabasePage() {
           </div>
           <h1 className="text-3xl font-bold mb-3 leading-tight text-[hsl(35,35%,15%)]">Estrutura do Banco de Dados</h1>
           <p className="text-[hsl(35,20%,40%)] text-base leading-relaxed max-w-xl">
-            PostgreSQL 15 via Supabase com 73 tabelas, RLS habilitado em todas, organizadas em 12 domínios.
+            PostgreSQL 15 via Supabase com 84 tabelas, RLS habilitado em todas, organizadas em 13 domínios.
           </p>
           <div className="flex flex-wrap gap-2 mt-6">
-            <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">73 tabelas</span>
+            <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">84 tabelas</span>
             <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">RLS habilitado</span>
             <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">Drizzle ORM</span>
             <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">UUID v4</span>
@@ -63,7 +64,7 @@ export default function DatabasePage() {
         <div>
           <SectionHeading
             title="Domínios do Banco"
-            subtitle="73 tabelas organizadas em 12 domínios. Cada domínio segue as fronteiras do módulo de negócio correspondente."
+            subtitle="84 tabelas organizadas em 13 domínios. Cada domínio segue as fronteiras do módulo de negócio correspondente."
             badge="Schema"
           />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">

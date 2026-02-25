@@ -25,6 +25,7 @@ import {
   Server,
   Landmark,
   MessageSquare,
+  FileSearch,
 } from 'lucide-react';
 
 const OverviewFlowDiagram = dynamic(
@@ -121,6 +122,14 @@ const modules = [
     tableCount: 3,
     color: 'sky',
   },
+  {
+    href: '/wiki/modules/irpf',
+    icon: FileSearch,
+    name: 'IRPF (Agente IA)',
+    description: 'Pipeline de extração automatizada de IRPF dos sócios via Google Gemini, com merge canônico e audit trail.',
+    tableCount: 2,
+    color: 'amber',
+  },
 ];
 
 const techStack = [
@@ -135,9 +144,9 @@ const techStack = [
 ];
 
 const stats = [
-  { value: '82', label: 'Tabelas no banco' },
+  { value: '84', label: 'Tabelas no banco' },
   { value: '19', label: 'Roles de acesso' },
-  { value: '11', label: 'Módulos funcionais' },
+  { value: '12', label: 'Módulos funcionais' },
   { value: '3', label: 'Apps no monorepo' },
 ];
 

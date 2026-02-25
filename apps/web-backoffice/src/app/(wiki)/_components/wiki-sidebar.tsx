@@ -24,6 +24,7 @@ import {
   ArrowRightLeft,
   Landmark,
   MessageSquare,
+  FileSearch,
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@nexus/ui';
 
@@ -51,6 +52,7 @@ const navGroups = [
       { href: '/wiki/modules/notifications', label: 'Notificações', icon: Bell },
       { href: '/wiki/modules/governance', label: 'Governança', icon: Landmark },
       { href: '/wiki/modules/communication', label: 'Communication', icon: MessageSquare },
+      { href: '/wiki/modules/irpf', label: 'IRPF (Agente IA)', icon: FileSearch },
     ],
   },
 ];

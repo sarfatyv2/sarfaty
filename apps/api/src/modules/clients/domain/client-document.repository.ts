@@ -44,9 +44,16 @@ export interface ClientDocumentRow {
   createdAt: Date | null;
 }
 
+export interface ClientDocumentExtractionUpdate {
+  extractedData: unknown;
+  validationStatus: string;
+  validatedAt: Date;
+}
+
 export interface ClientDocumentRepository {
   create(data: ClientDocumentData): Promise<ClientDocumentRow>;
   findById(id: string): Promise<ClientDocumentRow | null>;
   findByClientId(clientId: string): Promise<ClientDocumentRow[]>;
   delete(id: string): Promise<void>;
+  updateExtraction(id: string, data: ClientDocumentExtractionUpdate): Promise<void>;
 }

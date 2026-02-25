@@ -2,10 +2,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Users, CheckSquare, AlertTriangle, ArrowRight, CalendarClock, Landmark, Clock, CircleDot } from 'lucide-react';
+import { Users, CheckSquare, AlertTriangle, ArrowRight, CalendarClock, Landmark, Clock, CircleDot, ChevronRight } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Badge, Card, CardContent, CardHeader, CardTitle, Skeleton } from '@nexus/ui';
-import { cn } from '@nexus/ui';
+import { Badge, Card, CardContent, Skeleton, cn } from '@nexus/ui';
 import type { Committee, ActionItem } from '@nexus/types';
 
 const COMMITTEE_FREQUENCY_LABELS: Record<string, string> = {
@@ -26,10 +25,10 @@ type StatusConfig = {
 };
 
 const STATUS_CONFIG: Record<string, StatusConfig> = {
-  todo: { label: 'A fazer', variant: 'secondary', dot: 'bg-slate-400' },
-  in_progress: { label: 'Em andamento', variant: 'default', dot: 'bg-blue-500' },
-  blocked: { label: 'Bloqueado', variant: 'destructive', dot: 'bg-red-500' },
-  done: { label: 'Concluído', variant: 'outline', dot: 'bg-emerald-500' },
+  todo: { label: 'A fazer', variant: 'secondary', dot: 'bg-[hsl(38,25%,65%)]' },
+  in_progress: { label: 'Em andamento', variant: 'default', dot: 'bg-[hsl(38,40%,50%)]' },
+  blocked: { label: 'Bloqueado', variant: 'destructive', dot: 'bg-[hsl(0,40%,55%)]' },
+  done: { label: 'Concluído', variant: 'outline', dot: 'bg-[hsl(150,35%,45%)]' },
 };
 
 const DEFAULT_STATUS: StatusConfig = { label: 'A fazer', variant: 'secondary', dot: 'bg-slate-400' };
@@ -42,26 +41,24 @@ function isOverdue(dueDate: string | null): boolean {
 function CommitteeCard({ committee }: { committee: Committee }) {
   return (
     <Link href={`/governance/committees/${committee.id}`}>
-      <Card className="group hover:shadow-md hover:border-primary/30 transition-all duration-200 cursor-pointer h-full">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-2">
+      <Card className="group hover:shadow-md hover:border-[hsl(150,30%,70%)] transition-all duration-200 cursor-pointer h-full border border-border/60">
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between gap-2 mb-3">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Users className="w-4 h-4 text-primary" />
+              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[hsl(150,30%,92%)] flex items-center justify-center">
+                <Users className="w-4 h-4 text-[hsl(150,40%,30%)]" />
               </div>
-              <CardTitle className="text-sm font-semibold leading-tight line-clamp-2">
+              <p className="text-sm font-semibold leading-tight line-clamp-2">
                 {committee.name}
-              </CardTitle>
+              </p>
             </div>
             <Badge
               variant={committee.status === 'active' ? 'default' : 'secondary'}
-              className="flex-shrink-0 text-xs"
+              className="flex-shrink-0 text-[10px]"
             >
               {committee.status === 'active' ? 'Ativo' : 'Inativo'}
             </Badge>
           </div>
-        </CardHeader>
-        <CardContent className="pt-0">
           {committee.description && (
             <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{committee.description}</p>
           )}
@@ -70,8 +67,8 @@ function CommitteeCard({ committee }: { committee: Committee }) {
               <CalendarClock className="w-3.5 h-3.5" />
               <span>{COMMITTEE_FREQUENCY_LABELS[committee.frequency] ?? 'Sob demanda'}</span>
             </div>
-            <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-              Ver <ArrowRight className="w-3 h-3" />
+            <span className="text-xs text-[hsl(150,40%,30%)] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+              Ver <ChevronRight className="w-3 h-3" />
             </span>
           </div>
         </CardContent>
@@ -121,19 +118,17 @@ function StatCard({
 }) {
   return (
     <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center gap-3">
-          <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', colorClass)}>
-            <Icon className="w-5 h-5" />
-          </div>
-          <div className="min-w-0">
-            {loading ? (
-              <Skeleton className="h-6 w-10 mb-1" />
-            ) : (
-              <p className="text-2xl font-bold leading-none">{value}</p>
-            )}
-            <p className="text-xs text-muted-foreground mt-1">{label}</p>
-          </div>
+      <CardContent className="flex items-center gap-3 p-4">
+        <div className={cn('rounded-lg p-2.5 flex-shrink-0', colorClass)}>
+          <Icon className="w-5 h-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-xs text-muted-foreground">{label}</p>
+          {loading ? (
+            <Skeleton className="h-6 w-10 mt-0.5" />
+          ) : (
+            <p className="text-lg font-bold">{value}</p>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -176,28 +171,28 @@ export function GovernanceDashboard() {
           label="Comitês ativos"
           value={committees.length}
           loading={loading}
-          colorClass="bg-primary/10 text-primary"
+          colorClass="bg-[hsl(150,30%,92%)] text-[hsl(150,40%,30%)]"
         />
         <StatCard
           icon={CheckSquare}
           label="Ações pendentes"
           value={pendingActions.length}
           loading={loading}
-          colorClass="bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
+          colorClass="bg-[hsl(38,25%,92%)] text-[hsl(38,30%,35%)]"
         />
         <StatCard
           icon={CircleDot}
           label="Em andamento"
           value={inProgressActions.length}
           loading={loading}
-          colorClass="bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400"
+          colorClass="bg-[hsl(38,25%,92%)] text-[hsl(38,30%,35%)]"
         />
         <StatCard
           icon={AlertTriangle}
           label="Bloqueadas"
           value={blockedActions.length}
           loading={loading}
-          colorClass="bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400"
+          colorClass="bg-[hsl(0,20%,93%)] text-[hsl(0,40%,45%)]"
         />
       </div>
 
@@ -264,8 +259,8 @@ export function GovernanceDashboard() {
                 </div>
               ) : pendingActions.length === 0 ? (
                 <div className="py-12 text-center">
-                  <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center mx-auto mb-3">
-                    <CheckSquare className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  <div className="w-10 h-10 rounded-full bg-[hsl(150,30%,92%)] flex items-center justify-center mx-auto mb-3">
+                    <CheckSquare className="w-5 h-5 text-[hsl(150,40%,30%)]" />
                   </div>
                   <p className="text-sm font-medium text-muted-foreground">Tudo em dia!</p>
                   <p className="text-xs text-muted-foreground mt-1">Nenhuma ação pendente.</p>

@@ -29,13 +29,32 @@ export class AuthGuard implements CanActivate {
 
     const token = authHeader.slice(7);
 
-    const { data, error } = await supabaseAdmin.auth.getUser(token);
-
-    if (error || !data.user) {
-      throw new UnauthorizedException('Invalid or expired token');
+    let supabaseUser: Record<string, unknown> | null = null;
+    try {
+      const result = await supabaseAdmin.auth.getUser(token);
+      if (result.error || !result.data.user) {
+        throw new UnauthorizedException('Invalid or expired token');
+      }
+      supabaseUser = result.data.user as unknown as Record<string, unknown>;
+    } catch (err) {
+      if (err instanceof UnauthorizedException) throw err;
+      throw new UnauthorizedException('Authentication service unavailable');
     }
 
-    request.user = data.user;
+    const userId = supabaseUser.id as string;
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    const existingMetadata = (supabaseUser.user_metadata ?? {}) as Record<string, unknown>;
+    supabaseUser.user_metadata = {
+      ...existingMetadata,
+      role: profile?.role ?? existingMetadata.role,
+    };
+
+    request.user = supabaseUser;
     return true;
   }
 }

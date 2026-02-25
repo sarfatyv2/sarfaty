@@ -7,7 +7,7 @@ export default function ActionItemsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Planos de Ação</h1>
+        <h1 className="text-3xl font-normal">Planos de Ação</h1>
         <p className="text-sm text-muted-foreground">
           Acompanhe e gerencie as ações designadas nos comitês
         </p>

@@ -95,6 +95,30 @@ export {
   type ActionUpdate,
 } from './governance';
 export {
+  IRPF_DOCUMENT_SUBTYPES,
+  type IrpfDocumentSubtype,
+  IRPF_EXTRACTION_STATUSES,
+  type IrpfExtractionStatus,
+  IRPF_CONFIDENCE_LEVELS,
+  type IrpfConfidenceLevel,
+  IRPF_REQUIRED_YEARS,
+  type IrpfRequiredYear,
+  IRPF_DECLARATION_TYPES,
+  type IrpfDeclarationType,
+  IRPF_TAXATION_OPTIONS,
+  type IrpfTaxationOption,
+  type IrpfDependent,
+  type IrpfIncomeItem,
+  type IrpfExemptIncomeItem,
+  type IrpfExclusiveIncomeItem,
+  type IrpfPayment,
+  type IrpfAsset,
+  type IrpfDebt,
+  type IrpfConflict,
+  type IrpfFieldEvidence,
+  type IrpfExtractionSummary,
+} from './irpf';
+export {
   ANNOUNCEMENT_STATUSES,
   type AnnouncementStatus,
   WIKI_ARTICLE_STATUSES,
@@ -103,3 +127,11 @@ export {
   type WikiCategory,
   type WikiArticle,
 } from './communication';
+export {
+  FATURAMENTO_EXTRACTION_STATUSES,
+  type FaturamentoExtractionStatus,
+  FATURAMENTO_CONFIDENCE_LEVELS,
+  type FaturamentoConfidenceLevel,
+  type FaturamentoMonthlyRevenues,
+  type FaturamentoExtractionSummary,
+} from './faturamento';

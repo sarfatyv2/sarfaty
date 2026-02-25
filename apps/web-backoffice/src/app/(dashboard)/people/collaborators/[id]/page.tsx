@@ -132,7 +132,7 @@ export default async function CollaboratorDetailPage({ params }: PageProps) {
             <ArrowLeft size={18} />
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">{collaborator.fullName}</h1>
+        <h1 className="text-3xl font-normal">{collaborator.fullName}</h1>
       </div>
 
       <Tabs defaultValue="dados" className="w-full">

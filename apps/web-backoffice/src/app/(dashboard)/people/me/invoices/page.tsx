@@ -79,7 +79,7 @@ export default function MyInvoicesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Minhas Notas Fiscais</h1>
+        <h1 className="text-3xl font-normal">Minhas Notas Fiscais</h1>
         <p className="text-sm text-muted-foreground">
           Envie suas notas fiscais mensais como colaborador PJ
         </p>

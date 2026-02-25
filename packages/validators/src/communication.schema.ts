@@ -50,6 +50,7 @@ export const createWikiArticleSchema = z.object({
   title: z.string().min(2),
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be kebab-case'),
   content: z.unknown().optional(),
+  status: z.enum(['draft', 'published']).default('draft'),
 });
 
 export type CreateWikiArticleDto = z.infer<typeof createWikiArticleSchema>;

@@ -52,7 +52,7 @@ export default async function DraweesPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Sacados</h1>
+          <h1 className="text-3xl font-normal">Sacados</h1>
           <p className="text-sm text-muted-foreground">
             Gestão de sacados para operações de antecipação
           </p>

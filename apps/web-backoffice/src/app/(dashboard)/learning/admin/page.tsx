@@ -260,7 +260,7 @@ export default function LearningAdminPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Gestao de Cursos</h1>
+          <h1 className="text-3xl font-normal">Gestao de Cursos</h1>
           <p className="text-sm text-muted-foreground">
             Gerencie cursos e acompanhe o progresso dos colaboradores
           </p>

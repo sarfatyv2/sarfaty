@@ -20,33 +20,33 @@ import { cn } from '@nexus/ui';
 const PHASE_CONFIG: Record<PipelinePhase, { icon: LucideIcon; dot: string; active: string }> = {
   registration: {
     icon: Pencil,
-    dot: 'bg-gray-400',
-    active: 'border-gray-200 dark:border-gray-700',
+    dot: 'bg-[hsl(38,30%,60%)]',
+    active: 'border-[hsl(38,30%,85%)]',
   },
   documentation: {
     icon: FileText,
-    dot: 'bg-blue-500',
-    active: 'border-blue-200 dark:border-blue-800',
+    dot: 'bg-[hsl(38,30%,60%)]',
+    active: 'border-[hsl(38,30%,85%)]',
   },
   analysis: {
     icon: Search,
-    dot: 'bg-violet-500',
-    active: 'border-violet-200 dark:border-violet-800',
+    dot: 'bg-[hsl(38,30%,60%)]',
+    active: 'border-[hsl(38,30%,85%)]',
   },
   approval: {
     icon: CheckCircle2,
-    dot: 'bg-emerald-500',
-    active: 'border-emerald-200 dark:border-emerald-800',
+    dot: 'bg-[hsl(38,30%,60%)]',
+    active: 'border-[hsl(38,30%,85%)]',
   },
   homologation: {
     icon: Shield,
-    dot: 'bg-indigo-500',
-    active: 'border-indigo-200 dark:border-indigo-800',
+    dot: 'bg-[hsl(38,30%,60%)]',
+    active: 'border-[hsl(38,30%,85%)]',
   },
   operation: {
     icon: Activity,
-    dot: 'bg-teal-500',
-    active: 'border-teal-200 dark:border-teal-800',
+    dot: 'bg-[hsl(38,30%,60%)]',
+    active: 'border-[hsl(38,30%,85%)]',
   },
 };
 

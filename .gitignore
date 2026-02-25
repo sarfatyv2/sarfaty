@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 .pnpm-store/
+docs/teste irpf
 
 # Build outputs
 dist/

@@ -86,9 +86,15 @@ export class AuditInterceptor implements NestInterceptor {
     );
   }
 
-  private sanitizeAuditPayload(value: unknown): unknown {
+  private sanitizeAuditPayload(value: unknown, seen = new Set<unknown>(), depth = 0): unknown {
+    const MAX_DEPTH = 10;
+
     if (value === null || value === undefined) {
       return value;
+    }
+
+    if (Buffer.isBuffer(value)) {
+      return `[BUFFER ${value.length}b]`;
     }
 
     if (typeof value === 'string') {
@@ -101,10 +107,34 @@ export class AuditInterceptor implements NestInterceptor {
       return value;
     }
 
+    // Stop at max depth or circular reference
+    if (depth >= MAX_DEPTH || seen.has(value)) {
+      return '[TRUNCATED]';
+    }
+
+    // Skip streams and file-like objects from multipart
+    if (
+      typeof (value as Record<string, unknown>)['pipe'] === 'function' ||
+      typeof (value as Record<string, unknown>)['read'] === 'function' ||
+      (value as Record<string, unknown>)['type'] === 'file'
+    ) {
+      const fileObj = value as Record<string, unknown>;
+      return {
+        type: 'file',
+        filename: fileObj['filename'] ?? fileObj['originalname'],
+        mimetype: fileObj['mimetype'],
+        fieldname: fileObj['fieldname'],
+      };
+    }
+
+    seen.add(value);
+
     if (Array.isArray(value)) {
-      return value
+      const result = value
         .slice(0, MAX_ARRAY_ITEMS)
-        .map((item) => this.sanitizeAuditPayload(item));
+        .map((item) => this.sanitizeAuditPayload(item, seen, depth + 1));
+      seen.delete(value);
+      return result;
     }
 
     const plainObject = value as Record<string, unknown>;
@@ -118,9 +148,10 @@ export class AuditInterceptor implements NestInterceptor {
         continue;
       }
 
-      sanitizedObject[rawKey] = this.sanitizeAuditPayload(rawValue);
+      sanitizedObject[rawKey] = this.sanitizeAuditPayload(rawValue, seen, depth + 1);
     }
 
+    seen.delete(value);
     return sanitizedObject;
   }
 }

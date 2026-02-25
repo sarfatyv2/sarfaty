@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { MulterModule } from '@nestjs/platform-express';
 import { ClientsController } from './controllers/clients.controller';
 import { DocumentsController } from './controllers/documents.controller';
 import { CnpjController } from './controllers/cnpj.controller';
@@ -55,13 +54,28 @@ import { CLIENT_CONTACT_REPOSITORY } from './domain/client-contact.repository';
 import { CLIENT_ADDRESS_REPOSITORY } from './domain/client-address.repository';
 import { CLIENT_BANK_ACCOUNT_REPOSITORY } from './domain/client-bank-account.repository';
 import { CLIENT_AUTHORIZED_PERSON_REPOSITORY } from './domain/client-authorized-person.repository';
+import { IRPF_EXTRACTION_REPOSITORY } from './domain/irpf-extraction.repository';
+import { DrizzleIrpfExtractionRepository } from './infra/drizzle-irpf-extraction.repository';
+import { IrpfClassifierService } from './infra/irpf-classifier.service';
+import { IrpfGeminiService } from './infra/gemini/irpf-gemini.service';
+import { IrpfValidatorService } from './infra/irpf-validator.service';
+import { IrpfUnifierService } from './infra/irpf-unifier.service';
+import { ProcessIrpfDocumentUseCase } from './use-cases/process-irpf-document.use-case';
+import { GetIrpfExtractionUseCase } from './use-cases/get-irpf-extraction.use-case';
+import { IrpfDocumentListener } from './listeners/irpf-document.listener';
+import { IrpfController } from './controllers/irpf.controller';
+import { FATURAMENTO_EXTRACTION_REPOSITORY } from './domain/faturamento-extraction.repository';
+import { DrizzleFaturamentoExtractionRepository } from './infra/drizzle-faturamento-extraction.repository';
+import { FaturamentoGeminiService } from './infra/gemini/faturamento-gemini.service';
+import { FaturamentoValidatorService } from './infra/faturamento-validator.service';
+import { FaturamentoUnifierService } from './infra/faturamento-unifier.service';
+import { ProcessFaturamentoDocumentUseCase } from './use-cases/process-faturamento-document.use-case';
+import { GetFaturamentoExtractionUseCase } from './use-cases/get-faturamento-extraction.use-case';
+import { FaturamentoDocumentListener } from './listeners/faturamento-document.listener';
+import { FaturamentoController } from './controllers/faturamento.controller';
 
 @Module({
-  imports: [
-    MulterModule.register({
-      limits: { fileSize: 25 * 1024 * 1024 }, // 25MB
-    }),
-  ],
+  imports: [],
   controllers: [
     ClientsController,
     DocumentsController,
@@ -72,6 +86,8 @@ import { CLIENT_AUTHORIZED_PERSON_REPOSITORY } from './domain/client-authorized-
     ClientBankAccountsController,
     ClientAuthorizedPersonsController,
     ClientCommercialReportsController,
+    IrpfController,
+    FaturamentoController,
   ],
   providers: [
     // Use cases — core
@@ -116,10 +132,31 @@ import { CLIENT_AUTHORIZED_PERSON_REPOSITORY } from './domain/client-authorized-
     { provide: CLIENT_BANK_ACCOUNT_REPOSITORY, useClass: DrizzleClientBankAccountRepository },
     { provide: CLIENT_AUTHORIZED_PERSON_REPOSITORY, useClass: DrizzleClientAuthorizedPersonRepository },
     { provide: COMMERCIAL_REPORT_REPOSITORY, useClass: DrizzleCommercialReportRepository },
+    { provide: IRPF_EXTRACTION_REPOSITORY, useClass: DrizzleIrpfExtractionRepository },
+    { provide: FATURAMENTO_EXTRACTION_REPOSITORY, useClass: DrizzleFaturamentoExtractionRepository },
     // Services
     ClientStorageService,
     ExcelExtractionService,
     CnpjApiAdapter,
+    // IRPF agent services
+    IrpfClassifierService,
+    IrpfGeminiService,
+    IrpfValidatorService,
+    IrpfUnifierService,
+    // IRPF use cases
+    ProcessIrpfDocumentUseCase,
+    GetIrpfExtractionUseCase,
+    // IRPF listener
+    IrpfDocumentListener,
+    // Faturamento agent services
+    FaturamentoGeminiService,
+    FaturamentoValidatorService,
+    FaturamentoUnifierService,
+    // Faturamento use cases
+    ProcessFaturamentoDocumentUseCase,
+    GetFaturamentoExtractionUseCase,
+    // Faturamento listener
+    FaturamentoDocumentListener,
   ],
 })
 export class ClientsModule {}

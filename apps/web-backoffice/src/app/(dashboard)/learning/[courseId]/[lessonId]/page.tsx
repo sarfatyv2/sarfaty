@@ -145,7 +145,7 @@ export default function LessonPage() {
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
               {lesson.moduleName}
             </p>
-            <h1 className="text-xl font-bold">{lesson.title}</h1>
+            <h1 className="text-xl font-normal">{lesson.title}</h1>
             {lesson.description && (
               <p className="text-muted-foreground mt-2">{lesson.description}</p>
             )}

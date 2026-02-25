@@ -227,7 +227,7 @@ export default function MyProfilePage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold">Meu Perfil</h1>
+      <h1 className="text-3xl font-normal">Meu Perfil</h1>
 
       {/* Header Card */}
       <Card>

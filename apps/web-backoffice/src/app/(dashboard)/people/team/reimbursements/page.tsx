@@ -100,7 +100,7 @@ export default function TeamReimbursementsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Reembolsos do Time</h1>
+        <h1 className="text-3xl font-normal">Reembolsos do Time</h1>
         <p className="text-sm text-muted-foreground">
           Aprove ou rejeite reembolsos dos colaboradores do seu time
         </p>

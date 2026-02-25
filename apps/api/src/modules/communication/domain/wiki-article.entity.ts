@@ -42,13 +42,16 @@ export class WikiArticle {
   }
 
   static create(
-    props: Omit<WikiArticleProps, 'id' | 'status' | 'publishedAt' | 'lastUpdatedBy' | 'createdAt' | 'updatedAt'>,
+    props: Omit<WikiArticleProps, 'id' | 'status' | 'publishedAt' | 'lastUpdatedBy' | 'createdAt' | 'updatedAt'> & {
+      status?: WikiArticleStatus;
+    },
   ): WikiArticle {
+    const status = props.status ?? 'draft';
     return new WikiArticle({
       ...props,
       id: '',
-      status: 'draft',
-      publishedAt: null,
+      status,
+      publishedAt: status === 'published' ? new Date() : null,
       lastUpdatedBy: null,
       createdAt: new Date(),
       updatedAt: new Date(),
