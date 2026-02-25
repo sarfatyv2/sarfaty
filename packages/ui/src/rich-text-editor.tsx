@@ -214,9 +214,10 @@ export function RichTextEditor({
   return (
     <div
       className={cn(
-        'rounded-md border border-input bg-background text-sm ring-offset-background',
-        'focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
-        readOnly && 'bg-muted/50 cursor-default',
+        'text-sm',
+        readOnly
+          ? 'cursor-default'
+          : 'rounded-md border border-input bg-background ring-offset-background focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
         className,
       )}
     >

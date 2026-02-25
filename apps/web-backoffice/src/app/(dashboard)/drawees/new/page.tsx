@@ -184,7 +184,7 @@ export default function NewDraweePage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Novo Sacado</h1>
+          <h1 className="text-3xl font-normal">Novo Sacado</h1>
           <p className="text-sm text-muted-foreground">Cadastre um novo sacado</p>
         </div>
       </div>

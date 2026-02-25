@@ -174,6 +174,35 @@ export {
   type CreateActionUpdateDto,
 } from './governance.schema';
 
+// IRPF schemas
+export {
+  irpfDependentSchema,
+  irpfIncomeItemSchema,
+  irpfExemptIncomeItemSchema,
+  irpfExclusiveIncomeItemSchema,
+  irpfPaymentSchema,
+  irpfAssetSchema,
+  irpfDebtSchema,
+  irpfConflictSchema,
+  irpfFieldEvidenceSchema,
+  irpfRawExtractionSchema,
+  type IrpfRawExtraction,
+  type IrpfDependentDto,
+  type IrpfIncomeItemDto,
+  type IrpfPaymentDto,
+  type IrpfAssetDto,
+  type IrpfDebtDto,
+  type IrpfConflictDto,
+} from './irpf.schema';
+
+// Faturamento schemas
+export {
+  faturamentoMonthlyRevenuesSchema,
+  faturamentoRawExtractionSchema,
+  type FaturamentoRawExtraction,
+  type FaturamentoMonthlyRevenuesDto,
+} from './faturamento.schema';
+
 // Audit schemas
 export {
   listAuditLogsQuerySchema,

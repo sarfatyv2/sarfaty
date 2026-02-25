@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { serverFetch } from '@/lib/api-server';
-import { Button, Skeleton } from '@nexus/ui';
+import { Skeleton } from '@nexus/ui';
 import { ArrowLeft } from 'lucide-react';
 import { ClientDetail } from './_components/client-detail';
 
@@ -71,6 +71,8 @@ async function ClientDetailLoader({ clientId }: { clientId: string }) {
         client={clientRes.data}
         segmentName={segmentNames[clientRes.data.segmentId] ?? '—'}
         productName={productNames[clientRes.data.creditProductId] ?? '—'}
+        segments={segmentsRes.data ?? []}
+        products={productsRes.data ?? []}
       />
     );
   } catch (err) {
@@ -87,11 +89,27 @@ async function ClientDetailLoader({ clientId }: { clientId: string }) {
 function DetailSkeleton() {
   return (
     <div className="space-y-6">
-      <Skeleton className="h-8 w-64" />
-      <div className="grid grid-cols-2 gap-4">
-        {Array.from({ length: 8 }).map(() => (
-          <Skeleton key={crypto.randomUUID()} className="h-16 w-full" />
-        ))}
+      {/* Header skeleton */}
+      <Skeleton className="h-28 w-full rounded-2xl" />
+      {/* Partners skeleton */}
+      <div className="space-y-3">
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-16 w-full rounded-xl" />
+        <Skeleton className="h-16 w-full rounded-xl" />
+      </div>
+      {/* Faturamento skeleton */}
+      <div className="space-y-3">
+        <Skeleton className="h-5 w-28" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+      </div>
+      {/* Tabs skeleton */}
+      <div className="space-y-4">
+        <Skeleton className="h-9 w-full rounded-lg" />
+        <div className="grid grid-cols-2 gap-4">
+          {['sk-0', 'sk-1', 'sk-2', 'sk-3', 'sk-4', 'sk-5'].map((k) => (
+            <Skeleton key={k} className="h-16 w-full" />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -101,17 +119,11 @@ export default async function ClientDetailPage({ params }: PageProps) {
   const { id } = await params;
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
-      <div className="flex items-center gap-4">
-        <Link href="/clients">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft size={18} />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold">Detalhe do Cliente</h1>
-        </div>
-      </div>
+    <div className="space-y-6 max-w-5xl mx-auto">
+      <Link href="/clients" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ArrowLeft size={16} />
+        <span>Voltar para Clientes</span>
+      </Link>
 
       <Suspense fallback={<DetailSkeleton />}>
         <ClientDetailLoader clientId={id} />

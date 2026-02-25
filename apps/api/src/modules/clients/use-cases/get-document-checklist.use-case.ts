@@ -1,9 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { eq, and, inArray } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import type { DocumentChecklistItem } from '@nexus/types';
 import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
 import { CLIENT_REPOSITORY, type ClientRepository } from '../domain/client.repository';
 import { ClientNotFoundException } from '../domain/exceptions/client-not-found.exception';
+import { clientDocuments } from '../../../database/schema';
+
+// Document types that support multiple uploads per checklist slot
+const MULTI_UPLOAD_TYPES = ['revenue'];
 
 interface ChecklistRow {
   document_type: string;
@@ -16,6 +21,10 @@ interface ChecklistRow {
   document_id: string | null;
   file_name: string | null;
   validation_status: string | null;
+  partner_name: string | null;
+  partner_cpf: string | null;
+  reference_year: number | null;
+  rejection_reason: string | null;
   [key: string]: unknown;
 }
 
@@ -33,9 +42,34 @@ export class GetDocumentChecklistUseCase {
       throw new ClientNotFoundException(clientId);
     }
 
-    const result = await this.db.execute<ChecklistRow>(
-      sql`SELECT * FROM get_document_checklist(${clientId}::uuid)`,
-    );
+    const [result, multiDocs] = await Promise.all([
+      this.db.execute<ChecklistRow>(
+        sql`SELECT * FROM get_document_checklist(${clientId}::uuid)`,
+      ),
+      this.db
+        .select({
+          id: clientDocuments.id,
+          documentType: clientDocuments.documentType,
+          fileName: clientDocuments.fileName,
+          validationStatus: clientDocuments.validationStatus,
+        })
+        .from(clientDocuments)
+        .where(
+          and(
+            eq(clientDocuments.clientId, clientId),
+            inArray(clientDocuments.documentType, MULTI_UPLOAD_TYPES),
+          ),
+        )
+        .orderBy(clientDocuments.createdAt),
+    ]);
+
+    // Group all uploaded docs by document type for fast lookup
+    const multiDocsByType = new Map<string, typeof multiDocs>();
+    for (const doc of multiDocs) {
+      const list = multiDocsByType.get(doc.documentType) ?? [];
+      list.push(doc);
+      multiDocsByType.set(doc.documentType, list);
+    }
 
     return [...result].map((row) => ({
       documentType: row.document_type,
@@ -48,6 +82,15 @@ export class GetDocumentChecklistUseCase {
       documentId: row.document_id ?? null,
       fileName: row.file_name ?? null,
       validationStatus: row.validation_status ?? null,
+      partnerName: (row.partner_name as string) ?? null,
+      partnerCpf: (row.partner_cpf as string) ?? null,
+      referenceYear: (row.reference_year as number) ?? null,
+      rejectionReason: (row.rejection_reason as string) ?? null,
+      uploadedDocuments: (multiDocsByType.get(row.document_type) ?? []).map((d) => ({
+        id: d.id,
+        fileName: d.fileName ?? '',
+        validationStatus: d.validationStatus ?? null,
+      })),
     }));
   }
 }

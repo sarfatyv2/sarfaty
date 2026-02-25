@@ -10,7 +10,7 @@ export default function NewUserPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Novo Usuário</h1>
+        <h1 className="text-3xl font-normal">Novo Usuário</h1>
         <p className="text-sm text-muted-foreground">
           Preencha os dados para criar um novo usuário na plataforma
         </p>

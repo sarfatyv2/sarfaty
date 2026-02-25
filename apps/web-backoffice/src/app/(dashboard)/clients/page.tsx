@@ -93,7 +93,7 @@ export default async function ClientsPage({ searchParams }: PageProps) {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Clientes</h1>
+          <h1 className="text-3xl font-normal">Clientes</h1>
           <p className="text-sm text-muted-foreground">
             Gerencie seus clientes e operações de crédito
           </p>

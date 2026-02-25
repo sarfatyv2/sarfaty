@@ -31,13 +31,13 @@ export const FUNNEL_STAGE_ICONS: Record<FunnelStage, string> = {
 };
 
 export const FUNNEL_STAGE_COLORS: Record<FunnelStage, string> = {
-  prospecting: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600',
-  documentation: 'bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-700',
-  analysis: 'bg-violet-50 text-violet-700 border-violet-300 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-700',
-  approval: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700',
-  approved: 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-700',
-  active: 'bg-teal-50 text-teal-700 border-teal-300 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-700',
-  lost: 'bg-red-50 text-red-700 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-700',
+  prospecting: 'bg-[hsl(38,25%,95%)] text-[hsl(38,30%,35%)] border-[hsl(38,25%,82%)]',
+  documentation: 'bg-[hsl(38,25%,95%)] text-[hsl(38,30%,35%)] border-[hsl(38,25%,82%)]',
+  analysis: 'bg-[hsl(38,25%,95%)] text-[hsl(38,30%,35%)] border-[hsl(38,25%,82%)]',
+  approval: 'bg-[hsl(38,25%,95%)] text-[hsl(38,30%,35%)] border-[hsl(38,25%,82%)]',
+  approved: 'bg-[hsl(38,25%,95%)] text-[hsl(38,30%,35%)] border-[hsl(38,25%,82%)]',
+  active: 'bg-[hsl(38,25%,95%)] text-[hsl(38,30%,35%)] border-[hsl(38,25%,82%)]',
+  lost: 'bg-[hsl(38,25%,95%)] text-[hsl(38,30%,35%)] border-[hsl(38,25%,82%)]',
 };
 
 export const FUNNEL_STAGE_ORDER: FunnelStage[] = [

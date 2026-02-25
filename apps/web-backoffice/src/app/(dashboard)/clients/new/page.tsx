@@ -295,7 +295,7 @@ export default function NewClientPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Novo Cliente</h1>
+          <h1 className="text-3xl font-normal">Novo Cliente</h1>
           <p className="text-sm text-muted-foreground">
             Cadastre um novo cliente para operação de crédito
           </p>
@@ -638,6 +638,7 @@ export default function NewClientPage() {
                 checklist={checklist}
                 canSubmitResult={canSubmitResult}
                 onRefresh={loadChecklist}
+                onSilentRefresh={loadChecklist}
                 onSubmit={handleSubmitForAnalysis}
                 submitting={submitting}
               />

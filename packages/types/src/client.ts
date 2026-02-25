@@ -62,6 +62,12 @@ export interface DocumentChecklistItem {
   documentId: string | null;
   fileName: string | null;
   validationStatus: string | null;
+  // Fields for partner-scoped documents (e.g. IRPF per partner per year)
+  partnerName: string | null;
+  partnerCpf: string | null;
+  referenceYear: number | null;
+  rejectionReason: string | null;
+  uploadedDocuments: { id: string; fileName: string; validationStatus: string | null }[];
 }
 
 export interface CanSubmitResult {

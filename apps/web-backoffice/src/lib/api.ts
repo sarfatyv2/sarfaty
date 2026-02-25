@@ -22,6 +22,7 @@ class ApiError extends Error {
     public readonly status: number,
     public readonly code: string,
     message: string,
+    public readonly errors?: Record<string, string[]>,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -77,6 +78,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<A
       response.status,
       errorData?.code ?? 'UNKNOWN_ERROR',
       errorData?.message ?? `Request failed with status ${response.status}`,
+      errorData?.errors as Record<string, string[]> | undefined,
     );
   }
 

@@ -1,9 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { UploadDocumentDto } from '@nexus/validators';
 import { CLIENT_REPOSITORY, type ClientRepository } from '../domain/client.repository';
 import { CLIENT_DOCUMENT_REPOSITORY, type ClientDocumentRepository, type ClientDocumentRow } from '../domain/client-document.repository';
 import { ClientStorageService } from '../infra/client-storage.service';
 import { ClientNotFoundException } from '../domain/exceptions/client-not-found.exception';
+import type { IrpfDocumentUploadedPayload } from '../listeners/irpf-document.listener';
+import type { FaturamentoDocumentUploadedPayload } from '../listeners/faturamento-document.listener';
 
 export interface UploadDocumentInput {
   clientId: string;
@@ -20,6 +23,7 @@ export class UploadDocumentUseCase {
     @Inject(CLIENT_DOCUMENT_REPOSITORY)
     private readonly documentRepository: ClientDocumentRepository,
     private readonly storageService: ClientStorageService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(input: UploadDocumentInput): Promise<ClientDocumentRow> {
@@ -64,6 +68,32 @@ export class UploadDocumentUseCase {
       await this.clientRepository.update(input.clientId, {
         status: 'pending_documents',
       });
+    }
+
+    // Trigger async IRPF extraction agent
+    if (input.dto.documentType === 'irpf') {
+      const payload: IrpfDocumentUploadedPayload = {
+        documentId: document.id,
+        clientId: input.clientId,
+        storagePath: uploadResult.path,
+        authorizedPersonId: null,
+        partnerName: input.dto.partnerName ?? null,
+        referenceYear: input.dto.referenceYear ?? null,
+      };
+      this.eventEmitter.emit('document.uploaded.irpf', payload);
+    }
+
+    // Trigger async faturamento extraction agent
+    // 'revenue' is the checklist document type for faturamento documents
+    if (input.dto.documentType === 'faturamento' || input.dto.documentType === 'revenue') {
+      const payload: FaturamentoDocumentUploadedPayload = {
+        documentId: document.id,
+        clientId: input.clientId,
+        storagePath: uploadResult.path,
+        mimeType: input.file.mimetype,
+        referenceYear: input.dto.referenceYear ?? null,
+      };
+      this.eventEmitter.emit('document.uploaded.faturamento', payload);
     }
 
     return document;

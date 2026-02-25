@@ -73,7 +73,7 @@ function ClientCard({
           'group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2',
         )}
       >
-        <div className="px-5 py-4 sm:px-6">
+        <div className="px-7 py-6 sm:px-8">
           <div className="flex items-start gap-4">
             {/* Left: company info */}
             <div className="min-w-0 flex-1">

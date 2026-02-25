@@ -85,7 +85,7 @@ export default function OverdueInvoicesPage() {
               </Link>
             </Button>
           </div>
-          <h1 className="text-2xl font-bold">Notas Fiscais Atrasadas</h1>
+          <h1 className="text-3xl font-normal">Notas Fiscais Atrasadas</h1>
           <p className="text-sm text-muted-foreground">
             NFs pendentes de envio além do prazo
           </p>

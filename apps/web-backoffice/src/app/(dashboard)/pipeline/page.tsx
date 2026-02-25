@@ -7,7 +7,7 @@ export default function PipelinePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Pipeline de Vendas</h1>
+        <h1 className="text-3xl font-normal">Pipeline de Vendas</h1>
         <p className="text-sm text-muted-foreground">
           Acompanhe o funil comercial e mova clientes entre etapas
         </p>

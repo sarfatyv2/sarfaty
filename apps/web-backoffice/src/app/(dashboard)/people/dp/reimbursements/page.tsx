@@ -100,7 +100,7 @@ export default function DpReimbursementsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Reembolsos</h1>
+        <h1 className="text-3xl font-normal">Reembolsos</h1>
         <p className="text-sm text-muted-foreground">
           Fila de reembolsos para aprovação e pagamento
         </p>

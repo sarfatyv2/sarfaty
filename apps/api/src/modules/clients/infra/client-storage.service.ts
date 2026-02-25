@@ -3,12 +3,12 @@ import { supabaseAdmin } from '../../../config/supabase';
 
 const BUCKET_ID = 'client-documents';
 const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25MB
-const ALLOWED_MIME_TYPES = [
+const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
   'image/jpeg',
   'image/png',
   'image/webp',
-];
+]);
 
 export interface UploadResult {
   path: string;
@@ -25,7 +25,7 @@ export class ClientStorageService {
   ): Promise<UploadResult> {
     this.validateFile(file.buffer, file.mimetype);
 
-    const sanitized = file.originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const sanitized = file.originalName.replaceAll(/[^a-zA-Z0-9.-]/g, '_');
     const filename = `${Date.now()}-${sanitized}`;
     const path = `${clientId}/${documentType}/${filename}`;
 
@@ -37,7 +37,10 @@ export class ClientStorageService {
       });
 
     if (error) {
-      throw new Error(`Storage upload failed: ${error.message}`);
+      const detail = (error as { statusCode?: string; error?: string }).statusCode
+        ? `[${(error as { statusCode?: string }).statusCode}] ${error.message}`
+        : error.message;
+      throw new Error(`Falha ao enviar arquivo para o armazenamento: ${detail}. Verifique se o arquivo não está corrompido ou protegido por senha.`);
     }
 
     return {
@@ -57,6 +60,19 @@ export class ClientStorageService {
     }
   }
 
+  async downloadDocument(path: string): Promise<Buffer> {
+    const { data, error } = await supabaseAdmin.storage
+      .from(BUCKET_ID)
+      .download(path);
+
+    if (error || !data) {
+      throw new Error(`Storage download failed for path "${path}": ${error?.message ?? 'no data'}`);
+    }
+
+    const arrayBuffer = await data.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  }
+
   async getSignedUrl(path: string, expiresInSeconds = 3600): Promise<string | null> {
     const { data } = await supabaseAdmin.storage
       .from(BUCKET_ID)
@@ -68,7 +84,7 @@ export class ClientStorageService {
     if (buffer.length > MAX_FILE_SIZE_BYTES) {
       throw new Error(`File exceeds maximum size of ${MAX_FILE_SIZE_BYTES / 1024 / 1024}MB`);
     }
-    if (!ALLOWED_MIME_TYPES.includes(mimetype)) {
+    if (!ALLOWED_MIME_TYPES.has(mimetype)) {
       throw new Error('Invalid file type. Accepted: PDF, JPEG, PNG, WebP');
     }
   }

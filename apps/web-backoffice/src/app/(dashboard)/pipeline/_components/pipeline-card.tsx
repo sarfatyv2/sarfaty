@@ -86,7 +86,7 @@ export function PipelineCard({ client, isDragOverlay }: PipelineCardProps) {
             </div>
 
             {client.approvedAmount && (
-              <div className="text-[10px] font-medium text-emerald-600">
+              <div className="text-[10px] font-medium text-[hsl(38,30%,35%)]">
                 Aprovado: {formatCurrency(client.approvedAmount)}
               </div>
             )}

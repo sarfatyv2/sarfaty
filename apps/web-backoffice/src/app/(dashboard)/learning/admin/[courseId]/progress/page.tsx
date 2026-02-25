@@ -180,7 +180,7 @@ export default async function CourseProgressPage({
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Progresso do Curso</h1>
+          <h1 className="text-3xl font-normal">Progresso do Curso</h1>
           <p className="text-sm text-muted-foreground">
             Acompanhe o andamento de cada colaborador inscrito
           </p>

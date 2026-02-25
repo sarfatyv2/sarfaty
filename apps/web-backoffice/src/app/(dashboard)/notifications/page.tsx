@@ -113,7 +113,7 @@ export default function NotificationsPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Bell size={24} className="text-muted-foreground" />
-          <h1 className="text-2xl font-bold tracking-tight">Notificações</h1>
+          <h1 className="text-3xl font-normal tracking-tight">Notificações</h1>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex rounded-lg border">

@@ -33,7 +33,7 @@ export default async function AdminUsersPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Usuários</h1>
+          <h1 className="text-3xl font-normal">Usuários</h1>
           <p className="text-sm text-muted-foreground">
             Gerencie os usuários da plataforma
           </p>

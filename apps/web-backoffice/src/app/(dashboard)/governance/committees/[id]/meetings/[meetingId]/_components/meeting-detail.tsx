@@ -110,7 +110,7 @@ export function MeetingDetail({
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">{meeting.title}</h1>
+            <h1 className="text-3xl font-normal">{meeting.title}</h1>
             <Badge variant="outline">{MEETING_STATUS_LABELS[meeting.status] ?? meeting.status}</Badge>
           </div>
           <p className="text-muted-foreground mt-1">

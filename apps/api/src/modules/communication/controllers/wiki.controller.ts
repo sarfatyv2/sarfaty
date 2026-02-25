@@ -122,6 +122,7 @@ export class WikiController {
       slug: dto.slug,
       content: dto.content ?? null,
       authorId: user.id,
+      status: dto.status,
     });
     const saved = await this.articleRepository.save(article);
     return { data: saved.toPlainObject() };

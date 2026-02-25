@@ -207,12 +207,12 @@ export default function ArchitecturePage() {
               {
                 icon: Shield,
                 title: 'Globais (cross-cutting)',
-                items: ['DatabaseModule (Drizzle)', 'AuditModule (interceptor)', 'NotificationsModule (dispatcher)', 'ConfigModule (env vars)'],
+                items: ['DatabaseModule (Drizzle)', 'AuditModule (interceptor)', 'NotificationsModule (dispatcher)', 'ConfigModule (env vars)', 'EventEmitterModule (async events)'],
               },
               {
                 icon: Layers,
                 title: 'Infra por módulo',
-                items: ['Controller (Fastify)', 'Guard (JWT + Role)', 'UseCase (orquestração)', 'Repository (Drizzle)', 'Mapper (DB ↔ Domain)'],
+                items: ['Controller (Fastify)', 'Guard (JWT + Role)', 'UseCase (orquestração)', 'Repository (Drizzle)', 'Mapper (DB ↔ Domain)', 'LLM Service (Google Gemini)'],
               },
             ].map((col) => (
               <div key={col.title} className="p-4 bg-white rounded-xl border border-[hsl(30,20%,88%)] shadow-sm">

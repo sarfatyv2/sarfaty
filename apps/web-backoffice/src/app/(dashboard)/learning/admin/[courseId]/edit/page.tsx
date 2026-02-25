@@ -188,7 +188,7 @@ export default function EditCoursePage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Editar Curso</h1>
+          <h1 className="text-3xl font-normal">Editar Curso</h1>
           <div className="flex items-center gap-2 mt-1">
             <Badge variant={getCourseStatusColor(status)}>
               {getCourseStatusLabel(status)}

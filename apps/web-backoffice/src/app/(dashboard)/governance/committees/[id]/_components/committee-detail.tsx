@@ -259,7 +259,7 @@ export function CommitteeDetail({ id }: { id: string }) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">{committee.name}</h1>
+            <h1 className="text-3xl font-normal">{committee.name}</h1>
             <Badge variant={committee.status === 'active' ? 'default' : 'secondary'}>
               {committee.status === 'active' ? 'Ativo' : 'Inativo'}
             </Badge>

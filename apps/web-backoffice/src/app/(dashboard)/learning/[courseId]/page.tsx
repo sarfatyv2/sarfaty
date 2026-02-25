@@ -115,7 +115,7 @@ async function CourseContent({ courseId }: { courseId: string }) {
                 </Badge>
               )}
             </div>
-            <h1 className="text-2xl font-bold">{course.title}</h1>
+            <h1 className="text-3xl font-normal">{course.title}</h1>
             {course.description && (
               <p className="text-muted-foreground">{course.description}</p>
             )}
