@@ -6,6 +6,7 @@ import { GetVaduResultsUseCase } from '../use-cases/get-vadu-results.use-case';
 import { RequestCreditboxReportUseCase } from '../use-cases/request-creditbox-report.use-case';
 import { SyncCreditboxReportUseCase } from '../use-cases/sync-creditbox-report.use-case';
 import { GetCreditboxReportUseCase } from '../use-cases/get-creditbox-report.use-case';
+import { GetComplianceResultsUseCase } from '../use-cases/get-compliance-results.use-case';
 import { CreditboxReportMapper } from '../infra/mappers/creditbox-report.mapper';
 
 @ApiTags('Credit')
@@ -18,6 +19,7 @@ export class CreditController {
     private readonly requestCreditboxReportUseCase: RequestCreditboxReportUseCase,
     private readonly syncCreditboxReportUseCase: SyncCreditboxReportUseCase,
     private readonly getCreditboxReportUseCase: GetCreditboxReportUseCase,
+    private readonly getComplianceResultsUseCase: GetComplianceResultsUseCase,
   ) {}
 
   @Get('vadu-results')
@@ -62,6 +64,17 @@ export class CreditController {
   async getCreditboxReport(@Param('clientId') clientId: string) {
     const report = await this.getCreditboxReportUseCase.execute(clientId);
     return { data: report ? CreditboxReportMapper.toPersistence(report) : null };
+  }
+
+  @Get('compliance-results')
+  @Roles(
+    'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
+    'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
+    'legal', 'risk_manager', 'recovery', 'litigation', 'admin',
+  )
+  async getComplianceResults(@Param('clientId') clientId: string) {
+    const data = await this.getComplianceResultsUseCase.execute(clientId);
+    return { data };
   }
 }
 

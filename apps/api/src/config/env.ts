@@ -8,6 +8,10 @@ const envSchema = z.object({
   SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   VADU_API_KEY: z.string().min(1).default('dummy'),
+  SERASA_CLIENT_ID: z.string().optional().default(''),
+  SERASA_CLIENT_SECRET: z.string().optional().default(''),
+  CGU_API_KEY: z.string().optional().default(''),
+  GEMINI_API_KEY: z.string().optional().default(''),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
 });
 
