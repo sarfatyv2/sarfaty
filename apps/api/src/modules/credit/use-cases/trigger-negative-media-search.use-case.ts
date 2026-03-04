@@ -1,4 +1,5 @@
 import { Injectable, Inject, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { NegativeMediaAdapter } from '../bureaus/negative-media/negative-media.adapter';
 import { NegativeMediaRepository, NEGATIVE_MEDIA_REPOSITORY } from '../domain/negative-media.repository';
 import { NegativeMediaResult } from '../domain/negative-media-result.entity';
@@ -29,6 +30,7 @@ export class TriggerNegativeMediaSearchUseCase {
     const result = await this.negativeMediaAdapter.search(client.companyName, client.cnpj, client.tradeName);
 
     const entity = NegativeMediaResult.create({
+      id: randomUUID(),
       clientId,
       cnpj: client.cnpj,
       companyName: client.companyName,

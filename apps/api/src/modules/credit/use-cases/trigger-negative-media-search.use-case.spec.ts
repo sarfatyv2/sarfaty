@@ -96,6 +96,7 @@ describe('TriggerNegativeMediaSearchUseCase', () => {
     expect(savedEntity.clientId).toBe(CLIENT_ID);
     expect(savedEntity.riskLevel).toBe('CLEAR');
     expect(savedEntity.cnpj).toBe('12345678000190');
+    expect(savedEntity.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
   });
 
   it('should return formatted result with all fields', async () => {
