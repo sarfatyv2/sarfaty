@@ -73,6 +73,7 @@ import { ProcessFaturamentoDocumentUseCase } from './use-cases/process-faturamen
 import { GetFaturamentoExtractionUseCase } from './use-cases/get-faturamento-extraction.use-case';
 import { FaturamentoDocumentListener } from './listeners/faturamento-document.listener';
 import { FaturamentoController } from './controllers/faturamento.controller';
+import { EnrichClientFromBureauUseCase } from './use-cases/enrich-client-from-bureau.use-case';
 
 @Module({
   imports: [],
@@ -114,6 +115,8 @@ import { FaturamentoController } from './controllers/faturamento.controller';
     CreateClientAddressUseCase,
     UpdateClientAddressUseCase,
     DeleteClientAddressUseCase,
+    // Use cases — bureau enrichment
+    EnrichClientFromBureauUseCase,
     // Use cases — bank accounts
     ListClientBankAccountsUseCase,
     CreateClientBankAccountUseCase,
@@ -157,6 +160,11 @@ import { FaturamentoController } from './controllers/faturamento.controller';
     GetFaturamentoExtractionUseCase,
     // Faturamento listener
     FaturamentoDocumentListener,
+  ],
+  exports: [
+    EnrichClientFromBureauUseCase,
+    CLIENT_ADDRESS_REPOSITORY,
+    CLIENT_CONTACT_REPOSITORY,
   ],
 })
 export class ClientsModule {}

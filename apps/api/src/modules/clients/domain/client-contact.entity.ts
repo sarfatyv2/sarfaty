@@ -11,6 +11,8 @@ export interface ClientContactProps {
   whatsapp: boolean;
   homepage: string | null;
   notes: string | null;
+  source: string | null;
+  sourceQueriedAt: Date | null;
   isPrimary: boolean;
   isActive: boolean;
   createdAt: Date | null;
@@ -30,6 +32,8 @@ export class ClientContact {
   readonly whatsapp: boolean;
   readonly homepage: string | null;
   readonly notes: string | null;
+  readonly source: string | null;
+  readonly sourceQueriedAt: Date | null;
   readonly isPrimary: boolean;
   readonly isActive: boolean;
   readonly createdAt: Date | null;
@@ -48,6 +52,8 @@ export class ClientContact {
     this.whatsapp = props.whatsapp;
     this.homepage = props.homepage;
     this.notes = props.notes;
+    this.source = props.source;
+    this.sourceQueriedAt = props.sourceQueriedAt;
     this.isPrimary = props.isPrimary;
     this.isActive = props.isActive;
     this.createdAt = props.createdAt;
@@ -81,6 +87,8 @@ export class ClientContact {
       whatsapp: this.whatsapp,
       homepage: this.homepage,
       notes: this.notes,
+      source: this.source,
+      sourceQueriedAt: this.sourceQueriedAt?.toISOString() ?? null,
       isPrimary: this.isPrimary,
       isActive: this.isActive,
       createdAt: this.createdAt?.toISOString() ?? null,

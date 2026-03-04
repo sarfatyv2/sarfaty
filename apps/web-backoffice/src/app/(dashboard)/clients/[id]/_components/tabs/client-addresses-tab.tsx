@@ -23,7 +23,7 @@ import {
   Skeleton,
   Badge,
 } from '@nexus/ui';
-import { Plus, Pencil, Trash2, Loader2, MapPin, Star } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, MapPin, Star, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
 import type { ClientAddress } from '@nexus/types';
@@ -206,6 +206,12 @@ export function ClientAddressesTab({ clientId }: ClientAddressesTabProps) {
                         {a.useType && (
                           <Badge variant="outline" className="text-[10px] h-4 px-1.5">
                             {USE_TYPE_OPTIONS.find((o) => o.value === a.useType)?.label ?? a.useType}
+                          </Badge>
+                        )}
+                        {a.source && a.source !== 'manual' && (
+                          <Badge variant="outline" className="text-[10px] h-4 px-1.5 text-blue-600 border-blue-200">
+                            <Database size={8} className="mr-0.5" />
+                            {a.source.toUpperCase()}
                           </Badge>
                         )}
                       </div>

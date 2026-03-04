@@ -18,6 +18,8 @@ export class ClientContactMapper {
       whatsapp: row.whatsapp ?? false,
       homepage: row.homepage,
       notes: row.notes,
+      source: row.source,
+      sourceQueriedAt: row.sourceQueriedAt,
       isPrimary: row.isPrimary ?? false,
       isActive: row.isActive ?? true,
       createdAt: row.createdAt,
@@ -39,6 +41,8 @@ export class ClientContactMapper {
       whatsapp: contact.whatsapp,
       homepage: contact.homepage,
       notes: contact.notes,
+      source: contact.source,
+      sourceQueriedAt: contact.sourceQueriedAt,
       isPrimary: contact.isPrimary,
       isActive: contact.isActive,
     };

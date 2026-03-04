@@ -32,6 +32,7 @@ export {
   CONDITIONAL_DOCUMENT_TYPES,
 } from './client';
 export {
+  type BureauSource,
   type ClientContact,
   type ClientAddress,
   type ClientBankAccount,

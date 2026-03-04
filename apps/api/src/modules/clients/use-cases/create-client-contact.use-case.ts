@@ -23,6 +23,8 @@ export class CreateClientContactUseCase {
       whatsapp: dto.whatsapp,
       homepage: dto.homepage ?? null,
       notes: dto.notes ?? null,
+      source: 'manual',
+      sourceQueriedAt: null,
       isPrimary: dto.isPrimary,
       isActive: dto.isActive,
     });

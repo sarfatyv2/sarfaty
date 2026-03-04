@@ -10,6 +10,8 @@ export interface ClientAddressProps {
   zipCode: string | null;
   city: string | null;
   state: string | null;
+  source: string | null;
+  sourceQueriedAt: Date | null;
   isPrimary: boolean;
   isActive: boolean;
   createdAt: Date | null;
@@ -28,6 +30,8 @@ export class ClientAddress {
   readonly zipCode: string | null;
   readonly city: string | null;
   readonly state: string | null;
+  readonly source: string | null;
+  readonly sourceQueriedAt: Date | null;
   readonly isPrimary: boolean;
   readonly isActive: boolean;
   readonly createdAt: Date | null;
@@ -45,6 +49,8 @@ export class ClientAddress {
     this.zipCode = props.zipCode;
     this.city = props.city;
     this.state = props.state;
+    this.source = props.source;
+    this.sourceQueriedAt = props.sourceQueriedAt;
     this.isPrimary = props.isPrimary;
     this.isActive = props.isActive;
     this.createdAt = props.createdAt;
@@ -77,6 +83,8 @@ export class ClientAddress {
       zipCode: this.zipCode,
       city: this.city,
       state: this.state,
+      source: this.source,
+      sourceQueriedAt: this.sourceQueriedAt?.toISOString() ?? null,
       isPrimary: this.isPrimary,
       isActive: this.isActive,
       createdAt: this.createdAt?.toISOString() ?? null,
