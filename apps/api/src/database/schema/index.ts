@@ -104,6 +104,9 @@ export { vaduCompanyResults } from './vadu-company-results';
 export { vaduPersonResults } from './vadu-person-results';
 export { creditboxReports } from './creditbox-reports';
 
+// Serasa
+export { serasaReportResults } from './serasa-report-results';
+
 // Compliance Checks
 export { cguCheckResults } from './cgu-check-results';
 export { pepCheckResults } from './pep-check-results';

@@ -18,6 +18,8 @@ export class CreateClientAuthorizedPersonUseCase {
       cpf: dto.cpf ?? null,
       phone: dto.phone ?? null,
       email: dto.email ?? null,
+      source: 'manual',
+      sourceQueriedAt: null,
       isActive: dto.isActive,
     });
     const saved = await this.personRepository.save(person);
