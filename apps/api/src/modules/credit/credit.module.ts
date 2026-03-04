@@ -43,9 +43,10 @@ import { DatabaseModule } from '../../database/database.module';
 import { VaduClientListener } from './infra/events/vadu-client.listener';
 import { ComplianceCheckListener } from './infra/events/compliance-check.listener';
 import { CreditController } from './controllers/credit.controller';
+import { ClientsModule } from '../clients/clients.module';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, ClientsModule],
   controllers: [CreditController],
   providers: [
     // Adapters

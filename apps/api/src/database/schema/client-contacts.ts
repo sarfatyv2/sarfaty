@@ -14,6 +14,8 @@ export const clientContacts = pgTable('client_contacts', {
   whatsapp: boolean('whatsapp').notNull().default(false),
   homepage: text('homepage'),
   notes: text('notes'),
+  source: text('source'),  // 'manual' | 'vadu' | 'serasa' | 'brasilapi' | 'creditbox'
+  sourceQueriedAt: timestamp('source_queried_at', { withTimezone: true }),
   isPrimary: boolean('is_primary').notNull().default(false),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),

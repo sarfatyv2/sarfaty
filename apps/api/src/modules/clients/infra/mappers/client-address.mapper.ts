@@ -17,6 +17,8 @@ export class ClientAddressMapper {
       zipCode: row.zipCode,
       city: row.city,
       state: row.state,
+      source: row.source,
+      sourceQueriedAt: row.sourceQueriedAt,
       isPrimary: row.isPrimary ?? false,
       isActive: row.isActive ?? true,
       createdAt: row.createdAt,
@@ -37,6 +39,8 @@ export class ClientAddressMapper {
       zipCode: address.zipCode,
       city: address.city,
       state: address.state,
+      source: address.source,
+      sourceQueriedAt: address.sourceQueriedAt,
       isPrimary: address.isPrimary,
       isActive: address.isActive,
     };

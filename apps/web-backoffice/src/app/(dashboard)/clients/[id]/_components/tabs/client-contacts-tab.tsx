@@ -23,7 +23,7 @@ import {
   Skeleton,
   Badge,
 } from '@nexus/ui';
-import { Plus, Pencil, Trash2, Loader2, Phone, Mail, Star, MessageCircle, Users } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Phone, Mail, Star, MessageCircle, Users, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
 import type { ClientContact } from '@nexus/types';
@@ -200,6 +200,12 @@ export function ClientContactsTab({ clientId }: ClientContactsTabProps) {
                           <Badge variant="outline" className="text-[10px] h-4 px-1.5 text-green-600 border-green-200">
                             <MessageCircle size={8} className="mr-0.5" />
                             WhatsApp
+                          </Badge>
+                        )}
+                        {c.source && c.source !== 'manual' && (
+                          <Badge variant="outline" className="text-[10px] h-4 px-1.5 text-blue-600 border-blue-200">
+                            <Database size={8} className="mr-0.5" />
+                            {c.source.toUpperCase()}
                           </Badge>
                         )}
                       </div>

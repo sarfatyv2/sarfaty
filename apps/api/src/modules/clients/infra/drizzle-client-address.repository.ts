@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
 import { clientAddresses } from '../../../database/schema';
 import type { ClientAddressRepository } from '../domain/client-address.repository';
@@ -23,6 +23,15 @@ export class DrizzleClientAddressRepository implements ClientAddressRepository {
       .select()
       .from(clientAddresses)
       .where(eq(clientAddresses.id, id))
+      .limit(1);
+    return row ? ClientAddressMapper.toDomain(row) : null;
+  }
+
+  async findByClientAndSource(clientId: string, source: string): Promise<ClientAddress | null> {
+    const [row] = await this.db
+      .select()
+      .from(clientAddresses)
+      .where(and(eq(clientAddresses.clientId, clientId), eq(clientAddresses.source, source)))
       .limit(1);
     return row ? ClientAddressMapper.toDomain(row) : null;
   }

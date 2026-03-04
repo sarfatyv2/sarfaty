@@ -3,6 +3,7 @@ import { VaduAdapter } from '../bureaus/vadu/vadu.adapter';
 import { VaduRepository, VADU_REPOSITORY } from '../domain/vadu.repository';
 import { VaduCompanyResult } from '../domain/vadu-company-result.entity';
 import { VaduPersonResult } from '../domain/vadu-person-result.entity';
+import { EnrichClientFromBureauUseCase } from '../../clients/use-cases/enrich-client-from-bureau.use-case';
 
 export interface SyncVaduClientInput {
   clientId: string;
@@ -21,6 +22,7 @@ export class SyncVaduClientUseCase {
     private readonly vaduAdapter: VaduAdapter,
     @Inject(VADU_REPOSITORY)
     private readonly vaduRepository: VaduRepository,
+    private readonly enrichClientUseCase: EnrichClientFromBureauUseCase,
   ) {}
 
   async execute(input: SyncVaduClientInput): Promise<void> {
@@ -72,6 +74,26 @@ export class SyncVaduClientUseCase {
 
       await this.vaduRepository.saveCompanyResult(domainEntity);
       this.logger.debug(`Successfully saved Vadu company result for CNPJ ${cnpj}`);
+
+      await this.enrichClientUseCase.execute({
+        clientId,
+        source: 'vadu',
+        data: {
+          address: {
+            street: rawData.Logradouro || null,
+            number: rawData.NumeroLogradouro || null,
+            complement: rawData.ComplementoEndereco || null,
+            neighborhood: rawData.BairroEndereco || null,
+            city: rawData.MunicipioEndereco || null,
+            state: rawData.UfEndereco || null,
+            zipCode: rawData.CepEnderecoFormatado || null,
+          },
+          contact: {
+            phone: rawData.TelefonePrincipal || null,
+            email: rawData.EmailPrincipal || null,
+          },
+        },
+      });
     } catch (error) {
       this.logger.error(`Failed to sync company CNPJ ${cnpj}: ${(error as Error).message}`);
     }

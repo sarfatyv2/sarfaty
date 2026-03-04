@@ -22,6 +22,8 @@ export class CreateClientAddressUseCase {
       zipCode: dto.zipCode ?? null,
       city: dto.city ?? null,
       state: dto.state ?? null,
+      source: 'manual',
+      sourceQueriedAt: null,
       isPrimary: dto.isPrimary,
       isActive: dto.isActive,
     });
