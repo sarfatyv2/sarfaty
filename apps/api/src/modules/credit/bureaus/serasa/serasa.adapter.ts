@@ -49,11 +49,12 @@ export class SerasaAdapter {
     }
 
     const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    const loginUrl = `${this.baseUrl}/security/iam/v1/client-identities/login`;
 
-    this.logger.debug('Fetching new Serasa IAM token');
+    this.logger.log(`Serasa IAM login → ${loginUrl} (env=${env.SERASA_ENV}, clientId=${clientId.slice(0, 6)}…)`);
 
     const response = await this.fetchWithRetry(
-      `${this.baseUrl}/security/iam/v1/client-identities/login`,
+      loginUrl,
       {
         method: 'POST',
         headers: {
@@ -67,8 +68,8 @@ export class SerasaAdapter {
 
     if (!response.ok) {
       const body = await response.text().catch(() => '');
-      this.logger.error(`Serasa IAM login failed: ${response.status} — ${body}`);
-      throw new Error(`Serasa IAM login failed: ${response.status}`);
+      this.logger.error(`Serasa IAM login failed: ${response.status} — url=${loginUrl} env=${env.SERASA_ENV} body=${body}`);
+      throw new Error(`Serasa IAM login failed: ${response.status} (env=${env.SERASA_ENV}, url=${this.baseUrl})`);
     }
 
     const json = await response.json() as {
