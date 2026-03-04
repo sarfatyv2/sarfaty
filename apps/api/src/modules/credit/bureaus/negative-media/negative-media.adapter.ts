@@ -34,7 +34,7 @@ export class NegativeMediaAdapter {
   private readonly logger = new Logger(NegativeMediaAdapter.name);
   private readonly apiUrl =
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
-  private readonly requestTimeoutMs = 45_000;
+  private readonly requestTimeoutMs = 60_000;
 
   async search(
     companyName: string,
@@ -83,7 +83,8 @@ export class NegativeMediaAdapter {
       tools: [{ google_search: {} }],
       generationConfig: {
         temperature: 0.1,
-        maxOutputTokens: 4096,
+        maxOutputTokens: 16384,
+        thinkingConfig: { thinkingBudget: 1024 },
       },
     };
 
@@ -124,6 +125,11 @@ export class NegativeMediaAdapter {
     }
 
     const candidate = candidates[0]!;
+    const finishReason = candidate.finishReason as string | undefined;
+    if (finishReason === 'MAX_TOKENS') {
+      this.logger.warn('Gemini response truncated (MAX_TOKENS) — output was cut before completing the JSON');
+    }
+
     const content = candidate.content as Record<string, unknown> | undefined;
     const parts = content?.parts as Array<Record<string, unknown>> | undefined;
     const textPart = parts?.find((p) => typeof p.text === 'string');
