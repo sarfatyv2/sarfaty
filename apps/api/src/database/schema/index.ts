@@ -104,6 +104,17 @@ export { vaduCompanyResults } from './vadu-company-results';
 export { vaduPersonResults } from './vadu-person-results';
 export { creditboxReports } from './creditbox-reports';
 
+// Compliance Checks
+export { cguCheckResults } from './cgu-check-results';
+export { pepCheckResults } from './pep-check-results';
+export { pgfnCheckResults } from './pgfn-check-results';
+export { cndtCheckResults } from './cndt-check-results';
+export { addressValidationResults } from './address-validation-results';
+export { sanctionsCheckResults } from './sanctions-check-results';
+export { slaveLaborCheckResults } from './slave-labor-check-results';
+export { negativeMediaResults } from './negative-media-results';
+export { digitalPresenceResults } from './digital-presence-results';
+
 // Governance
 export { govCommittees } from './gov-committees';
 export { govCommitteeMembers } from './gov-committee-members';

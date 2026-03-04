@@ -1,9 +1,9 @@
 # Dicionario de Dados — Plataforma Sarfaty
 
-**Versao:** 2.0  
-**Data:** 20 de Fevereiro de 2026  
+**Versao:** 3.0  
+**Data:** 03 de Março de 2026  
 **Banco:** Supabase PostgreSQL 15+ (schema `public`)  
-**Total de tabelas:** 73  
+**Total de tabelas:** 83  
 
 ---
 
@@ -65,24 +65,34 @@
 | 52 | Fornecedores | `supplier_documents` | Documentos do fornecedor |
 | 53 | Integracoes | `vadu_company_results` | Resultado de consulta CNPJ (Vadu) |
 | 54 | Integracoes | `vadu_person_results` | Resultado de consulta CPF (Vadu) |
-| 55 | People | `collaborators` | Colaboradores (dados completos de RH) |
-| 56 | People | `collaborator_clt_data` | Dados especificos CLT |
-| 57 | People | `collaborator_pj_data` | Dados especificos PJ |
-| 58 | People | `collaborator_dependents` | Dependentes de colaboradores |
-| 59 | People | `collaborator_documents` | Documentos de colaboradores |
-| 60 | People | `collaborator_compensation` | Historico de movimentacoes salariais |
-| 61 | People | `medical_plan_entries` | Plano medico (titulares e dependentes) |
-| 62 | People | `reimbursements` | Solicitacoes de reembolso |
-| 63 | People | `pj_invoices` | Notas fiscais PJ (mensal) |
-| 64 | People | `onboarding_templates` | Templates de tarefas de onboarding |
-| 65 | People | `onboarding_tasks` | Tarefas de onboarding por colaborador |
-| 66 | People | `performance_review_cycles` | Ciclos de avaliacao de desempenho |
-| 67 | People | `performance_reviews` | Avaliacoes individuais |
-| 68 | Learning | `learning_courses` | Cursos |
-| 69 | Learning | `learning_modules` | Modulos dentro de cursos |
-| 70 | Learning | `learning_lessons` | Aulas dentro de modulos |
-| 71 | Learning | `learning_enrollments` | Matriculas de colaboradores em cursos |
-| 72 | Learning | `learning_lesson_completions` | Progresso por aula |
+| 55 | Integracoes | `creditbox_reports` | Relatorio CreditBox assincrono (Vadu) |
+| 56 | Compliance | `cgu_check_results` | Verificacoes CGU (CEIS, CNEP, CEPIM) |
+| 57 | Compliance | `pgfn_check_results` | Divida Ativa da Uniao (PGFN) |
+| 58 | Compliance | `cndt_check_results` | Certidao Negativa de Debitos Trabalhistas |
+| 59 | Compliance | `pep_check_results` | Pessoa Exposta Politicamente |
+| 60 | Compliance | `sanctions_check_results` | Listas de Sancoes (OFAC) |
+| 61 | Compliance | `slave_labor_check_results` | Lista de Trabalho Escravo |
+| 62 | Compliance | `address_validation_results` | Validacao de Endereco (ViaCEP) |
+| 63 | Compliance | `negative_media_results` | Resultados OSINT / Midia Negativa (Gemini) |
+| 64 | Compliance | `digital_presence_results` | Verificacao de Presenca Digital |
+| 65 | People | `collaborators` | Colaboradores (dados completos de RH) |
+| 64 | People | `collaborator_clt_data` | Dados especificos CLT |
+| 65 | People | `collaborator_pj_data` | Dados especificos PJ |
+| 66 | People | `collaborator_dependents` | Dependentes de colaboradores |
+| 67 | People | `collaborator_documents` | Documentos de colaboradores |
+| 68 | People | `collaborator_compensation` | Historico de movimentacoes salariais |
+| 69 | People | `medical_plan_entries` | Plano medico (titulares e dependentes) |
+| 70 | People | `reimbursements` | Solicitacoes de reembolso |
+| 71 | People | `pj_invoices` | Notas fiscais PJ (mensal) |
+| 72 | People | `onboarding_templates` | Templates de tarefas de onboarding |
+| 73 | People | `onboarding_tasks` | Tarefas de onboarding por colaborador |
+| 74 | People | `performance_review_cycles` | Ciclos de avaliacao de desempenho |
+| 75 | People | `performance_reviews` | Avaliacoes individuais |
+| 76 | Learning | `learning_courses` | Cursos |
+| 77 | Learning | `learning_modules` | Modulos dentro de cursos |
+| 78 | Learning | `learning_lessons` | Aulas dentro de modulos |
+| 79 | Learning | `learning_enrollments` | Matriculas de colaboradores em cursos |
+| 80 | Learning | `learning_lesson_completions` | Progresso por aula |
 
 ---
 
@@ -1883,6 +1893,203 @@ Resultados de consultas de CPF via Vadu.
 
 ---
 
+## Modulo Compliance
+
+Verificacoes automatizadas de fontes publicas gratuitas, disparadas automaticamente nos eventos `ClientCreatedEvent` / `ClientSubmittedEvent`. Documentacao completa em `compliance_checks_integracao.md`.
+
+### 73. cgu_check_results
+
+Resultados de verificacao no Portal da Transparencia da CGU. Um registro por tipo de check (CEIS, CNEP, CEPIM).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `cnpj` | text | YES | — | CNPJ consultado |
+| `check_type` | text | NO | — | Tipo (CEIS, CNEP, CEPIM) |
+| `has_match` | boolean | NO | false | Encontrou correspondencia |
+| `match_count` | integer | NO | 0 | Quantidade de registros encontrados |
+| `summary` | text | YES | — | Resumo textual |
+| `raw_data` | jsonb | YES | — | Resposta bruta da API |
+| `queried_at` | timestamptz | NO | now() | Data/hora da consulta |
+
+**Constraints:** FK(client_id)
+**Indices:** `client_id`, `cnpj`, `check_type`
+
+---
+
+### 74. pgfn_check_results
+
+Resultados de consulta de Divida Ativa da Uniao (PGFN).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `cnpj` | text | YES | — | CNPJ consultado |
+| `has_debt` | boolean | NO | false | Possui divida ativa |
+| `total_debt_amount` | numeric(15,2) | YES | — | Valor total da divida |
+| `debt_count` | integer | NO | 0 | Quantidade de inscricoes |
+| `summary` | text | YES | — | Resumo textual |
+| `raw_data` | jsonb | YES | — | Resposta bruta |
+| `queried_at` | timestamptz | NO | now() | Data/hora da consulta |
+
+**Constraints:** FK(client_id)
+**Indices:** `client_id`, `cnpj`
+
+---
+
+### 75. cndt_check_results
+
+Resultados de consulta da Certidao Negativa de Debitos Trabalhistas (TST).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `cnpj` | text | YES | — | CNPJ consultado |
+| `certificate_status` | text | NO | — | Status (NEGATIVE, POSITIVE, POSITIVE_WITH_EFFECTS, UNAVAILABLE, UNKNOWN) |
+| `certificate_number` | text | YES | — | Numero da certidao |
+| `valid_until` | timestamptz | YES | — | Data de validade |
+| `raw_data` | jsonb | YES | — | Dados brutos |
+| `queried_at` | timestamptz | NO | now() | Data/hora da consulta |
+
+**Constraints:** FK(client_id)
+**Indices:** `client_id`, `cnpj`
+
+---
+
+### 76. pep_check_results
+
+Resultados de verificacao de Pessoa Exposta Politicamente (CGU). Um registro por CPF verificado.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `cpf` | text | YES | — | CPF consultado |
+| `person_name` | text | YES | — | Nome da pessoa |
+| `has_match` | boolean | NO | false | Encontrou correspondencia PEP |
+| `matched_role` | text | YES | — | Funcao/cargo encontrado |
+| `matched_org` | text | YES | — | Orgao encontrado |
+| `raw_data` | jsonb | YES | — | Resposta bruta da API |
+| `queried_at` | timestamptz | NO | now() | Data/hora da consulta |
+
+**Constraints:** FK(client_id)
+**Indices:** `client_id`, `cpf`
+
+---
+
+### 77. sanctions_check_results
+
+Resultados de verificacao em listas de sancoes internacionais (OFAC SDN List). Um registro por source/match.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `entity_name` | text | YES | — | Nome da entidade pesquisada |
+| `document_searched` | text | YES | — | Documento pesquisado |
+| `source` | text | NO | — | Fonte (OFAC, UN, EU, OPENSANCTIONS) |
+| `has_match` | boolean | NO | false | Encontrou correspondencia |
+| `match_score` | numeric(5,4) | YES | — | Score de correspondencia (0-1) |
+| `match_details` | text | YES | — | Detalhes da correspondencia |
+| `raw_data` | jsonb | YES | — | Dados brutos |
+| `queried_at` | timestamptz | NO | now() | Data/hora da consulta |
+
+**Constraints:** FK(client_id)
+**Indices:** `client_id`, `source`
+
+---
+
+### 78. slave_labor_check_results
+
+Resultados de verificacao na "Lista Suja" de trabalho escravo (Ministerio do Trabalho).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `cnpj` | text | YES | — | CNPJ consultado |
+| `has_match` | boolean | NO | false | Encontrou correspondencia |
+| `employer_name` | text | YES | — | Nome do empregador |
+| `rescued_workers` | integer | YES | — | Trabalhadores resgatados |
+| `inspection_date` | timestamptz | YES | — | Data da fiscalizacao |
+| `raw_data` | jsonb | YES | — | Dados brutos |
+| `queried_at` | timestamptz | NO | now() | Data/hora da consulta |
+
+**Constraints:** FK(client_id)
+**Indices:** `client_id`, `cnpj`
+
+---
+
+### 79. address_validation_results
+
+Resultados de validacao de endereco via ViaCEP com comparacao ao endereco cadastrado.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `cep` | text | YES | — | CEP consultado |
+| `is_valid` | boolean | NO | false | CEP valido |
+| `street` | text | YES | — | Logradouro retornado |
+| `neighborhood` | text | YES | — | Bairro retornado |
+| `city` | text | YES | — | Cidade retornada |
+| `state` | text | YES | — | UF retornada |
+| `matches_registered` | boolean | YES | — | Confere com endereco cadastrado |
+| `raw_data` | jsonb | YES | — | Resposta bruta da API ViaCEP |
+| `queried_at` | timestamptz | NO | now() | Data/hora da consulta |
+
+**Constraints:** FK(client_id)
+**Indices:** `client_id`
+
+---
+
+### 80. negative_media_results
+
+Resultados de busca de midia negativa (OSINT) via Gemini API com Google Search Grounding.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `cnpj` | text | YES | — | CNPJ pesquisado |
+| `company_name` | text | YES | — | Nome da empresa pesquisada |
+| `risk_level` | text | NO | — | Nivel de risco: HIGH, MEDIUM, LOW, CLEAR |
+| `findings_count` | integer | NO | 0 | Quantidade de mencoes negativas |
+| `findings` | jsonb | YES | — | Array de findings (categoria, titulo, snippet, URL, fonte, data) |
+| `summary` | text | YES | — | Resumo gerado pela IA |
+| `grounding_sources` | jsonb | YES | — | URLs de fontes do Google Search |
+| `raw_response` | jsonb | YES | — | Resposta bruta da Gemini API |
+| `queried_at` | timestamptz | NO | now() | Data/hora da consulta |
+
+**Constraints:** FK(client_id)
+**Indices:** `client_id`, `cnpj`
+
+---
+
+### 81. digital_presence_results
+
+Resultados de verificacao de presenca digital (DNS, site ativo, tipo de e-mail).
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `client_id` | uuid | NO | — | FK -> clients.id |
+| `domain` | text | YES | — | Dominio extraido do e-mail |
+| `email_type` | text | NO | — | Tipo: corporate, free, unknown |
+| `has_dns` | boolean | NO | false | Dominio resolve via DNS |
+| `has_active_site` | boolean | NO | false | Site responde com HTTP 200 |
+| `site_title` | text | YES | — | Titulo do site (tag <title>) |
+| `raw_data` | jsonb | YES | — | Dados brutos da verificacao |
+| `queried_at` | timestamptz | NO | now() | Data/hora da consulta |
+
+**Constraints:** FK(client_id)
+**Indices:** `client_id`
+
+---
+
 ## Diagrama de Relacionamentos
 
 ```
@@ -1900,6 +2107,16 @@ profiles (auth.users)
   |     +-- client_authorized_persons (client_id)
   |           +-- vadu_person_results (authorized_person_id)
   |     +-- vadu_company_results (client_id)
+  |     +-- creditbox_reports (client_id)
+  |     +-- cgu_check_results (client_id)
+  |     +-- pgfn_check_results (client_id)
+  |     +-- cndt_check_results (client_id)
+  |     +-- pep_check_results (client_id)
+  |     +-- sanctions_check_results (client_id)
+  |     +-- slave_labor_check_results (client_id)
+  |     +-- address_validation_results (client_id)
+  |     +-- negative_media_results (client_id)
+  |     +-- digital_presence_results (client_id)
   |     +-- financial_accounts (client_id)
   |           +-- financial_transactions (financial_account_id)
   |           +-- financial_pendencies (financial_account_id)
@@ -1991,9 +2208,9 @@ market_rates (independente — lookup de taxas por data)
 
 | Metrica | Valor |
 |---------|-------|
-| Total de tabelas | 72 |
-| Total de colunas | ~760 |
-| Tabelas com RLS | 72/72 (100%) |
+| Total de tabelas | 83 |
+| Total de colunas | ~830 |
+| Tabelas com RLS | 72/81 (compliance tables pendentes) |
 | Policies ativas | 70+ (People + Comercial); restantes pendentes |
-| Foreign keys | 120+ |
+| Foreign keys | 130+ |
 | Unique constraints | 25+ |

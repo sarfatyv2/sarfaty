@@ -1,6 +1,6 @@
 # Status do Projeto — Plataforma Sarfaty
 
-**Última atualização:** 23 de Fevereiro de 2026  
+**Última atualização:** 03 de Março de 2026  
 **Referência rápida para contexto do projeto**
 
 ---
@@ -95,8 +95,9 @@ sarfaty/
 | `notifications` | `GET /api/notifications`, `GET /unread-count`, `PATCH :id/read`, `PATCH /read-all` | Notificações com contagem e marcação de leitura (todos os roles) |
 | `governance` | `POST/GET/PATCH /api/governance/committees`, `GET/POST/PATCH/DELETE :id/members`, `POST/GET/PATCH .../meetings`, `GET/POST/PATCH .../minute`, `POST .../minute/publish`, `GET/POST/PATCH/DELETE /api/governance/actions`, `GET/POST .../updates` | Comitês, reuniões, atas (rich text), ações e atualizações — DDD completo (12 use-cases) |
 | `communication` | `POST/GET/PATCH/DELETE /api/wiki/categories`, `POST/GET/PATCH/DELETE /api/wiki/articles`, `POST/GET/PATCH/DELETE /api/intranet/announcements` | Wiki (base de conhecimento com rich text) + Intranet (comunicados com targetRoles) |
+| `credit/compliance` | `GET /api/clients/:clientId/credit-analysis/compliance-results` | Verificações automatizadas de compliance: CGU (CEIS/CNEP/CEPIM), PGFN, CNDT, PEP, Sanções (OFAC), Trabalho Escravo, Validação de Endereço (ViaCEP), Mídia Negativa (OSINT via Gemini), Presença Digital. Disparadas automaticamente via eventos. Ver `compliance_checks_integracao.md` |
 
-**Database — 82 schemas Drizzle:**
+**Database — 89 schemas Drizzle:**
 
 | # | Schema | Tabela | Módulo |
 |---|--------|--------|--------|
@@ -167,23 +168,33 @@ sarfaty/
 | 64 | `supplier-documents.ts` | `supplier_documents` | Fornecedores |
 | 65 | `vadu-company-results.ts` | `vadu_company_results` (resultado CNPJ) | Integrações |
 | 66 | `vadu-person-results.ts` | `vadu_person_results` (resultado CPF) | Integrações |
-| 67 | `audit.ts` | `audit_logs` | Core |
-| 68 | `learning-courses.ts` | `learning_courses` | Learning |
-| 69 | `learning-modules.ts` | `learning_modules` | Learning |
-| 70 | `learning-lessons.ts` | `learning_lessons` | Learning |
-| 71 | `learning-enrollments.ts` | `learning_enrollments` | Learning |
-| 72 | `learning-lesson-completions.ts` | `learning_lesson_completions` | Learning |
-|| 73 | `gov-committees.ts` | `gov_committees` | Governance |
-|| 74 | `gov-committee-members.ts` | `gov_committee_members` | Governance |
-|| 75 | `gov-meetings.ts` | `gov_meetings` | Governance |
-|| 76 | `gov-meeting-minutes.ts` | `gov_meeting_minutes` | Governance |
-|| 77 | `gov-action-items.ts` | `gov_action_items` | Governance |
-|| 78 | `gov-action-updates.ts` | `gov_action_updates` | Governance |
-|| 79 | `comm-wiki-categories.ts` | `comm_wiki_categories` | Communication |
-|| 80 | `comm-wiki-articles.ts` | `comm_wiki_articles` | Communication |
-|| 81 | `comm-announcements.ts` | `comm_announcements` | Communication |
+| 67 | `creditbox-reports.ts` | `creditbox_reports` (relatório CreditBox) | Integrações |
+| 68 | `cgu-check-results.ts` | `cgu_check_results` (CEIS, CNEP, CEPIM) | Compliance |
+| 69 | `pgfn-check-results.ts` | `pgfn_check_results` (Dívida Ativa) | Compliance |
+| 70 | `cndt-check-results.ts` | `cndt_check_results` (Certidão Trabalhista) | Compliance |
+| 71 | `pep-check-results.ts` | `pep_check_results` (PEP) | Compliance |
+| 72 | `sanctions-check-results.ts` | `sanctions_check_results` (Sanções OFAC) | Compliance |
+| 73 | `slave-labor-check-results.ts` | `slave_labor_check_results` (Trabalho Escravo) | Compliance |
+| 74 | `address-validation-results.ts` | `address_validation_results` (Validação Endereço) | Compliance |
+| 75 | `negative-media-results.ts` | `negative_media_results` (Mídia Negativa/OSINT) | Compliance |
+| 76 | `digital-presence-results.ts` | `digital_presence_results` (Presença Digital) | Compliance |
+| 75 | `audit.ts` | `audit_logs` | Core |
+| 76 | `learning-courses.ts` | `learning_courses` | Learning |
+| 77 | `learning-modules.ts` | `learning_modules` | Learning |
+| 78 | `learning-lessons.ts` | `learning_lessons` | Learning |
+| 79 | `learning-enrollments.ts` | `learning_enrollments` | Learning |
+| 80 | `learning-lesson-completions.ts` | `learning_lesson_completions` | Learning |
+| 81 | `gov-committees.ts` | `gov_committees` | Governance |
+| 82 | `gov-committee-members.ts` | `gov_committee_members` | Governance |
+| 83 | `gov-meetings.ts` | `gov_meetings` | Governance |
+| 84 | `gov-meeting-minutes.ts` | `gov_meeting_minutes` | Governance |
+| 85 | `gov-action-items.ts` | `gov_action_items` | Governance |
+| 86 | `gov-action-updates.ts` | `gov_action_updates` | Governance |
+| 87 | `comm-wiki-categories.ts` | `comm_wiki_categories` | Communication |
+| 88 | `comm-wiki-articles.ts` | `comm_wiki_articles` | Communication |
+| 89 | `comm-announcements.ts` | `comm_announcements` | Communication |
 
-**Env vars do backend:** `NODE_ENV`, `PORT` (4000), `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CORS_ORIGINS`.
+**Env vars do backend:** `NODE_ENV`, `PORT` (4000), `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CORS_ORIGINS`, `VADU_API_KEY`, `CGU_API_KEY`, `GEMINI_API_KEY`.
 
 ### 4.2 Frontend (`apps/web-backoffice`)
 
@@ -283,7 +294,7 @@ src/app/
 
 ### 4.4 Banco de Dados e Storage (Supabase)
 
-- 82 tabelas (16 People + 36 Comercial/Sacados + 4 Grupos Econômicos + 5 Financeiro + 2 Portfólio + 6 Debêntures + 5 Fornecedores + 2 Integrações + 1 Core + 5 Learning + 6 Governance + 3 Communication) + 1 view (`collaborators_with_computed`) + trigger `on_auth_user_created`
+- 91 tabelas (16 People + 36 Comercial/Sacados + 4 Grupos Econômicos + 5 Financeiro + 2 Portfólio + 6 Debêntures + 5 Fornecedores + 3 Integrações + 9 Compliance + 1 Core + 5 Learning + 6 Governance + 3 Communication) + 1 view (`collaborators_with_computed`) + trigger `on_auth_user_created`
 - **Não existe signup público** — todo acesso criado por admin/RH
 - Cadeia: `auth.users` -> trigger -> `profiles` -> `collaborators`
 - **RLS policies (tabelas):** NENHUMA criada ainda
@@ -358,8 +369,10 @@ src/app/
 
 - [ ] Temporal.io Cloud — workflows: `CreditAnalysisWorkflow`, `DelinquencyEscalationWorkflow`, `DocumentValidationWorkflow`, `HomologationWorkflow`, `ContractGenerationWorkflow`
 - [ ] Redis (Upstash) + BullMQ
-- [ ] Módulo `credit` — adapters de bureaus (CERC, VADU, Upminer, Allcheck) com circuit breaker
-- [ ] Módulo `compliance` — adapters (Neoway, idwall, BigData, Judit)
+- [x] Módulo `credit/vadu` — adapters VADU (consulta CNPJ/CPF síncrona) + CreditBox (relatório assíncrono com polling e PDF). Ver `vadu_integracao.md`
+- [x] Módulo `credit/compliance` — 9 verificações automáticas: CGU (CEIS/CNEP/CEPIM), PGFN, CNDT, PEP, Sanções (OFAC), Trabalho Escravo, Validação de Endereço (ViaCEP), Mídia Negativa (OSINT via Gemini API + Google Search Grounding), Presença Digital (DNS + HTTP probe). Disparadas automaticamente via eventos, exibidas na aba Bureau. Ver `compliance_checks_integracao.md`
+- [ ] Módulo `credit` — adapters de bureaus adicionais (CERC, Upminer, Allcheck) com circuit breaker
+- [ ] Módulo `compliance` — adapters comerciais (Neoway, idwall, BigData, Judit)
 - [ ] Módulo `approval` — mesa aprovadora
 - [ ] Módulo `legal` — contratos + extrajudiciais
 - [ ] Módulo `communication` — email + WhatsApp
@@ -461,6 +474,8 @@ O frontend consome esse mapa e renderiza por composição — zero condicionais 
 | `dicionario_dados.md` | Dicionário de dados: todas as 72 tabelas, colunas, tipos, constraints, FKs, RLS, diagrama ER | ~750 |
 | `audit_trail.md` | Sistema de auditoria centralizado: interceptor, tabela, correlação | ~300 |
 | `governance_communication_implementacao.md` | Módulos Governance (comitês, reuniões, atas, ações) e Communication (wiki, intranet): domínio, banco, endpoints, CRON, frontend, RBAC | ~400 |
+| `vadu_integracao.md` | Integração VADU: consulta CNPJ/CPF síncrona + CreditBox assíncrono (polling, PDF, JSON). Adapters, domínio, persistência, frontend | ~100 |
+| `compliance_checks_integracao.md` | Verificações de compliance: 9 fontes (CGU, PGFN, CNDT, PEP, Sanções, Trabalho Escravo, ViaCEP, Mídia Negativa/OSINT, Presença Digital). Arquitetura, adapters, use cases, cálculo de risco, testes | ~300 |
 
 ---
 

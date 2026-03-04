@@ -1,7 +1,7 @@
 # Integração VADU — Consulta de CNPJ, CPF e CreditBox
 
-**Versão:** 1.1  
-**Data:** 21 de Fevereiro de 2026  
+**Versão:** 1.2  
+**Data:** 03 de Março de 2026  
 **Status:** Adaptadores, Persistência e UI completos (Módulos Síncronos e Assíncronos)  
 
 ---
@@ -98,3 +98,15 @@ Foi criada a aba **Bureau** na página de Detalhes do Cliente (`ClientDetail`), 
 VADU_API_KEY: z.string().min(1),
 ```
 Esta mesma chave é utilizada para autenticação tanto na API padrão da VADU quanto no CreditBox.
+
+---
+
+## 6. Módulo de Compliance Checks (Complementar)
+
+Além das consultas VADU e CreditBox, o sistema executa **7 verificações automatizadas de fontes públicas gratuitas** em paralelo, disparadas pelos mesmos eventos (`ClientCreatedEvent` / `ClientSubmittedEvent`).
+
+As verificações cobrem: CGU (CEIS/CNEP/CEPIM), PGFN (Dívida Ativa), CNDT (Certidão Trabalhista), PEP (Pessoa Exposta Politicamente), Listas de Sanções (OFAC), Lista de Trabalho Escravo e Validação de Endereço (ViaCEP).
+
+Os resultados são exibidos junto com os dados VADU/CreditBox na aba **Bureau** do detalhe do cliente, em cards expansíveis separados (Compliance e Validação de Endereço).
+
+**Documentação completa:** `docs/compliance_checks_integracao.md`
