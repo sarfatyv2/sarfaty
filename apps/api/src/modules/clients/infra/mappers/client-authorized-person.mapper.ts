@@ -13,6 +13,8 @@ export class ClientAuthorizedPersonMapper {
       cpf: row.cpf,
       phone: row.phone,
       email: row.email,
+      source: row.source,
+      sourceQueriedAt: row.sourceQueriedAt,
       isActive: row.isActive ?? true,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
@@ -28,6 +30,8 @@ export class ClientAuthorizedPersonMapper {
       cpf: person.cpf,
       phone: person.phone,
       email: person.email,
+      source: person.source,
+      sourceQueriedAt: person.sourceQueriedAt,
       isActive: person.isActive,
     };
   }

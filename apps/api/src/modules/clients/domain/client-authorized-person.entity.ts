@@ -6,6 +6,8 @@ export interface ClientAuthorizedPersonProps {
   cpf: string | null;
   phone: string | null;
   email: string | null;
+  source: string | null;
+  sourceQueriedAt: Date | null;
   isActive: boolean;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -19,6 +21,8 @@ export class ClientAuthorizedPerson {
   readonly cpf: string | null;
   readonly phone: string | null;
   readonly email: string | null;
+  readonly source: string | null;
+  readonly sourceQueriedAt: Date | null;
   readonly isActive: boolean;
   readonly createdAt: Date | null;
   readonly updatedAt: Date | null;
@@ -31,6 +35,8 @@ export class ClientAuthorizedPerson {
     this.cpf = props.cpf;
     this.phone = props.phone;
     this.email = props.email;
+    this.source = props.source;
+    this.sourceQueriedAt = props.sourceQueriedAt;
     this.isActive = props.isActive;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
@@ -58,6 +64,8 @@ export class ClientAuthorizedPerson {
       cpf: this.cpf,
       phone: this.phone,
       email: this.email,
+      source: this.source,
+      sourceQueriedAt: this.sourceQueriedAt?.toISOString() ?? null,
       isActive: this.isActive,
       createdAt: this.createdAt?.toISOString() ?? null,
       updatedAt: this.updatedAt?.toISOString() ?? null,

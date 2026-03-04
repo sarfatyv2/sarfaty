@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { VaduAdapter } from './bureaus/vadu/vadu.adapter';
 import { CreditboxAdapter } from './bureaus/creditbox/creditbox.adapter';
+import { SerasaAdapter } from './bureaus/serasa/serasa.adapter';
 import { CguAdapter } from './bureaus/cgu/cgu.adapter';
 import { PepAdapter } from './bureaus/pep/pep.adapter';
 import { PgfnAdapter } from './bureaus/pgfn/pgfn.adapter';
@@ -12,6 +13,7 @@ import { NegativeMediaAdapter } from './bureaus/negative-media/negative-media.ad
 import { DigitalPresenceAdapter } from './bureaus/digital-presence/digital-presence.adapter';
 import { DrizzleVaduRepository } from './infra/drizzle/drizzle-vadu.repository';
 import { DrizzleCreditboxRepository } from './infra/drizzle/drizzle-creditbox.repository';
+import { DrizzleSerasaReportRepository } from './infra/drizzle/drizzle-serasa-report.repository';
 import { DrizzleCguCheckRepository } from './infra/drizzle/drizzle-cgu-check.repository';
 import { DrizzlePepCheckRepository } from './infra/drizzle/drizzle-pep-check.repository';
 import { DrizzlePgfnCheckRepository } from './infra/drizzle/drizzle-pgfn-check.repository';
@@ -26,11 +28,15 @@ import { GetVaduResultsUseCase } from './use-cases/get-vadu-results.use-case';
 import { RequestCreditboxReportUseCase } from './use-cases/request-creditbox-report.use-case';
 import { SyncCreditboxReportUseCase } from './use-cases/sync-creditbox-report.use-case';
 import { GetCreditboxReportUseCase } from './use-cases/get-creditbox-report.use-case';
+import { RequestSerasaReportUseCase } from './use-cases/request-serasa-report.use-case';
+import { GetSerasaReportUseCase } from './use-cases/get-serasa-report.use-case';
+import { SyncSerasaClientUseCase } from './use-cases/sync-serasa-client.use-case';
 import { SyncComplianceChecksUseCase } from './use-cases/sync-compliance-checks.use-case';
 import { GetComplianceResultsUseCase } from './use-cases/get-compliance-results.use-case';
 import { TriggerNegativeMediaSearchUseCase } from './use-cases/trigger-negative-media-search.use-case';
 import { VADU_REPOSITORY } from './domain/vadu.repository';
 import { CREDITBOX_REPOSITORY } from './domain/creditbox.repository';
+import { SERASA_REPORT_REPOSITORY } from './domain/serasa-report.repository';
 import { CGU_CHECK_REPOSITORY } from './domain/cgu-check.repository';
 import { PEP_CHECK_REPOSITORY } from './domain/pep-check.repository';
 import { PGFN_CHECK_REPOSITORY } from './domain/pgfn-check.repository';
@@ -53,6 +59,7 @@ import { ClientsModule } from '../clients/clients.module';
     // Adapters
     VaduAdapter,
     CreditboxAdapter,
+    SerasaAdapter,
     CguAdapter,
     PepAdapter,
     PgfnAdapter,
@@ -66,6 +73,7 @@ import { ClientsModule } from '../clients/clients.module';
     // Repositories
     { provide: VADU_REPOSITORY, useClass: DrizzleVaduRepository },
     { provide: CREDITBOX_REPOSITORY, useClass: DrizzleCreditboxRepository },
+    { provide: SERASA_REPORT_REPOSITORY, useClass: DrizzleSerasaReportRepository },
     { provide: CGU_CHECK_REPOSITORY, useClass: DrizzleCguCheckRepository },
     { provide: PEP_CHECK_REPOSITORY, useClass: DrizzlePepCheckRepository },
     { provide: PGFN_CHECK_REPOSITORY, useClass: DrizzlePgfnCheckRepository },
@@ -82,6 +90,9 @@ import { ClientsModule } from '../clients/clients.module';
     RequestCreditboxReportUseCase,
     SyncCreditboxReportUseCase,
     GetCreditboxReportUseCase,
+    RequestSerasaReportUseCase,
+    GetSerasaReportUseCase,
+    SyncSerasaClientUseCase,
     SyncComplianceChecksUseCase,
     GetComplianceResultsUseCase,
     TriggerNegativeMediaSearchUseCase,

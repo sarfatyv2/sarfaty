@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../../common/guards/roles.guard';
@@ -8,7 +8,10 @@ import { SyncCreditboxReportUseCase } from '../use-cases/sync-creditbox-report.u
 import { GetCreditboxReportUseCase } from '../use-cases/get-creditbox-report.use-case';
 import { GetComplianceResultsUseCase } from '../use-cases/get-compliance-results.use-case';
 import { TriggerNegativeMediaSearchUseCase } from '../use-cases/trigger-negative-media-search.use-case';
+import { RequestSerasaReportUseCase } from '../use-cases/request-serasa-report.use-case';
+import { GetSerasaReportUseCase } from '../use-cases/get-serasa-report.use-case';
 import { CreditboxReportMapper } from '../infra/mappers/creditbox-report.mapper';
+import { SerasaReportMapper } from '../infra/mappers/serasa-report.mapper';
 
 @ApiTags('Credit')
 @ApiBearerAuth()
@@ -22,6 +25,8 @@ export class CreditController {
     private readonly getCreditboxReportUseCase: GetCreditboxReportUseCase,
     private readonly getComplianceResultsUseCase: GetComplianceResultsUseCase,
     private readonly triggerNegativeMediaSearchUseCase: TriggerNegativeMediaSearchUseCase,
+    private readonly requestSerasaReportUseCase: RequestSerasaReportUseCase,
+    private readonly getSerasaReportUseCase: GetSerasaReportUseCase,
   ) {}
 
   @Get('vadu-results')
@@ -88,6 +93,41 @@ export class CreditController {
   async triggerNegativeMediaSearch(@Param('clientId') clientId: string) {
     const data = await this.triggerNegativeMediaSearchUseCase.execute(clientId);
     return { data };
+  }
+
+  @Post('serasa')
+  @Roles(
+    'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
+    'legal', 'risk_manager', 'admin',
+  )
+  async requestSerasaReport(
+    @Param('clientId') clientId: string,
+    @Query('reportName') reportName?: string,
+    @Query('features') features?: string,
+  ) {
+    const featureList = features?.split(',').filter(Boolean);
+    const report = await this.requestSerasaReportUseCase.execute(clientId, reportName, featureList);
+    return { data: SerasaReportMapper.toPersistence(report) };
+  }
+
+  @Get('serasa')
+  @Roles(
+    'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
+    'legal', 'risk_manager', 'admin',
+  )
+  async getSerasaReport(@Param('clientId') clientId: string) {
+    const report = await this.getSerasaReportUseCase.execute(clientId);
+    return { data: report ? SerasaReportMapper.toPersistence(report) : null };
+  }
+
+  @Get('serasa/history')
+  @Roles(
+    'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
+    'legal', 'risk_manager', 'admin',
+  )
+  async getSerasaReportHistory(@Param('clientId') clientId: string) {
+    const reports = await this.getSerasaReportUseCase.executeAll(clientId);
+    return { data: reports.map(SerasaReportMapper.toPersistence) };
   }
 }
 

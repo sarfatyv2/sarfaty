@@ -166,6 +166,7 @@ import { EnrichClientFromBureauUseCase } from './use-cases/enrich-client-from-bu
     CLIENT_REPOSITORY,
     CLIENT_ADDRESS_REPOSITORY,
     CLIENT_CONTACT_REPOSITORY,
+    CLIENT_AUTHORIZED_PERSON_REPOSITORY,
   ],
 })
 export class ClientsModule {}

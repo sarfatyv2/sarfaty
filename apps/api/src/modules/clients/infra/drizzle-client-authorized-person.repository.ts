@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
 import { clientAuthorizedPersons } from '../../../database/schema';
 import type { ClientAuthorizedPersonRepository } from '../domain/client-authorized-person.repository';
@@ -25,6 +25,17 @@ export class DrizzleClientAuthorizedPersonRepository implements ClientAuthorized
       .where(eq(clientAuthorizedPersons.id, id))
       .limit(1);
     return row ? ClientAuthorizedPersonMapper.toDomain(row) : null;
+  }
+
+  async findByClientAndSource(clientId: string, source: string): Promise<ClientAuthorizedPerson[]> {
+    const rows = await this.db
+      .select()
+      .from(clientAuthorizedPersons)
+      .where(and(
+        eq(clientAuthorizedPersons.clientId, clientId),
+        eq(clientAuthorizedPersons.source, source),
+      ));
+    return rows.map(ClientAuthorizedPersonMapper.toDomain);
   }
 
   async save(person: ClientAuthorizedPerson): Promise<ClientAuthorizedPerson> {

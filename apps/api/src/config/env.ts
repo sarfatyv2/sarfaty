@@ -10,6 +10,7 @@ const envSchema = z.object({
   VADU_API_KEY: z.string().min(1).default('dummy'),
   SERASA_CLIENT_ID: z.string().optional().default(''),
   SERASA_CLIENT_SECRET: z.string().optional().default(''),
+  SERASA_ENV: z.enum(['uat', 'prod']).optional().default('uat'),
   CGU_API_KEY: z.string().optional().default(''),
   GEMINI_API_KEY: z.string().optional().default(''),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
