@@ -1,4 +1,5 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
+import { ClientRepository, CLIENT_REPOSITORY } from '../../clients/domain/client.repository';
 import { CguCheckRepository, CGU_CHECK_REPOSITORY } from '../domain/cgu-check.repository';
 import { PepCheckRepository, PEP_CHECK_REPOSITORY } from '../domain/pep-check.repository';
 import { PgfnCheckRepository, PGFN_CHECK_REPOSITORY } from '../domain/pgfn-check.repository';
@@ -8,11 +9,18 @@ import { SanctionsCheckRepository, SANCTIONS_CHECK_REPOSITORY } from '../domain/
 import { SlaveLaborCheckRepository, SLAVE_LABOR_CHECK_REPOSITORY } from '../domain/slave-labor-check.repository';
 import { NegativeMediaRepository, NEGATIVE_MEDIA_REPOSITORY } from '../domain/negative-media.repository';
 import { DigitalPresenceRepository, DIGITAL_PRESENCE_REPOSITORY } from '../domain/digital-presence.repository';
+import type { Client } from '../../clients/domain/client.entity';
 
 export type RiskLevel = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'CLEAR' | 'PENDING';
 
+export type ComplianceCheckName =
+  | 'cgu' | 'pep' | 'pgfn' | 'cndt'
+  | 'addressValidation' | 'sanctions' | 'slaveLaborCheck'
+  | 'negativeMedia' | 'digitalPresence';
+
 export interface ComplianceResultsOutput {
   overallRisk: RiskLevel;
+  pendingChecks: ComplianceCheckName[];
   cgu: {
     ceis: { hasMatch: boolean; matchCount: number; summary: string | null; rawData: any; queriedAt: string | null };
     cnep: { hasMatch: boolean; matchCount: number; summary: string | null; rawData: any; queriedAt: string | null };
@@ -97,6 +105,7 @@ export class GetComplianceResultsUseCase {
   private readonly logger = new Logger(GetComplianceResultsUseCase.name);
 
   constructor(
+    @Inject(CLIENT_REPOSITORY) private readonly clientRepo: ClientRepository,
     @Inject(CGU_CHECK_REPOSITORY) private readonly cguRepo: CguCheckRepository,
     @Inject(PEP_CHECK_REPOSITORY) private readonly pepRepo: PepCheckRepository,
     @Inject(PGFN_CHECK_REPOSITORY) private readonly pgfnRepo: PgfnCheckRepository,
@@ -109,8 +118,9 @@ export class GetComplianceResultsUseCase {
   ) {}
 
   async execute(clientId: string): Promise<ComplianceResultsOutput> {
-    const [cguResults, pepResults, pgfnResult, cndtResult, addressResult, sanctionsResults, slaveLaborResult, negativeMediaResults, digitalPresenceResult] =
+    const [client, cguResults, pepResults, pgfnResult, cndtResult, addressResult, sanctionsResults, slaveLaborResult, negativeMediaResults, digitalPresenceResult] =
       await Promise.all([
+        this.clientRepo.findById(clientId),
         this.cguRepo.getLatestByClientId(clientId),
         this.pepRepo.getLatestByClientId(clientId),
         this.pgfnRepo.getLatestByClientId(clientId),
@@ -130,6 +140,7 @@ export class GetComplianceResultsUseCase {
 
     const output: ComplianceResultsOutput = {
       overallRisk: 'PENDING',
+      pendingChecks: [],
       cgu: {
         ceis: ceisCheck
           ? { hasMatch: ceisCheck.hasMatch, matchCount: ceisCheck.matchCount, summary: ceisCheck.summary, rawData: ceisCheck.rawData, queriedAt: ceisCheck.queriedAt.toISOString() }
@@ -232,8 +243,47 @@ export class GetComplianceResultsUseCase {
         : null,
     };
 
+    output.pendingChecks = this.computePendingChecks(client, output);
     output.overallRisk = this.calculateOverallRisk(output);
     return output;
+  }
+
+  private computePendingChecks(
+    client: Client | null,
+    results: ComplianceResultsOutput,
+  ): ComplianceCheckName[] {
+    if (!client) return [];
+
+    const PENDING_WINDOW_MS = 3 * 60 * 1000;
+    const ageMs = client.createdAt
+      ? Date.now() - client.createdAt.getTime()
+      : Infinity;
+
+    if (ageMs > PENDING_WINDOW_MS) return [];
+
+    const pending: ComplianceCheckName[] = [];
+
+    if (client.cnpj) {
+      const hasCgu = results.cgu.ceis.queriedAt || results.cgu.cnep.queriedAt || results.cgu.cepim.queriedAt;
+      if (!hasCgu) pending.push('cgu');
+      if (!results.pgfn) pending.push('pgfn');
+      if (!results.cndt) pending.push('cndt');
+      if (!results.slaveLaborCheck) pending.push('slaveLaborCheck');
+    }
+
+    if (client.companyName && results.sanctions.length === 0) {
+      pending.push('sanctions');
+    }
+
+    if (client.companyName && client.cnpj && results.negativeMedia.length === 0) {
+      pending.push('negativeMedia');
+    }
+
+    if (client.email && !results.digitalPresence) {
+      pending.push('digitalPresence');
+    }
+
+    return pending;
   }
 
   private calculateOverallRisk(data: ComplianceResultsOutput): RiskLevel {

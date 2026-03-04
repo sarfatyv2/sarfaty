@@ -12,8 +12,21 @@ import { DigitalPresenceResult } from '../domain/digital-presence-result.entity'
 const CLIENT_ID = 'client-456';
 const NOW = new Date('2025-06-15T12:00:00Z');
 
+function createMockClient(overrides: Record<string, unknown> = {}) {
+  return {
+    id: CLIENT_ID,
+    companyName: 'Acme Corp',
+    cnpj: '12345678000190',
+    tradeName: null,
+    email: 'acme@acme.com',
+    createdAt: new Date(),
+    ...overrides,
+  };
+}
+
 function createMockRepos() {
   return {
+    clientRepo: { findById: vi.fn().mockResolvedValue(createMockClient()) },
     cguRepo: { save: vi.fn(), getLatestByClientId: vi.fn().mockResolvedValue([]) },
     pepRepo: { save: vi.fn(), getLatestByClientId: vi.fn().mockResolvedValue([]) },
     pgfnRepo: { save: vi.fn(), getLatestByClientId: vi.fn().mockResolvedValue(null) },
@@ -28,6 +41,7 @@ function createMockRepos() {
 
 function buildUseCase(repos: ReturnType<typeof createMockRepos>) {
   return new GetComplianceResultsUseCase(
+    repos.clientRepo as any,
     repos.cguRepo as any,
     repos.pepRepo as any,
     repos.pgfnRepo as any,
@@ -189,6 +203,43 @@ describe('GetComplianceResultsUseCase', () => {
     expect(result.slaveLaborCheck).toBeNull();
     expect(result.pep).toHaveLength(0);
     expect(result.sanctions).toHaveLength(0);
+  });
+
+  it('should return pendingChecks for recently created client with no results', async () => {
+    const result = await useCase.execute(CLIENT_ID);
+
+    expect(result.pendingChecks).toContain('cgu');
+    expect(result.pendingChecks).toContain('pgfn');
+    expect(result.pendingChecks).toContain('cndt');
+    expect(result.pendingChecks).toContain('slaveLaborCheck');
+    expect(result.pendingChecks).toContain('sanctions');
+    expect(result.pendingChecks).toContain('negativeMedia');
+    expect(result.pendingChecks).toContain('digitalPresence');
+  });
+
+  it('should return empty pendingChecks for old client with no results', async () => {
+    const oldDate = new Date(Date.now() - 10 * 60 * 1000);
+    repos.clientRepo.findById.mockResolvedValue(createMockClient({ createdAt: oldDate }));
+
+    const result = await useCase.execute(CLIENT_ID);
+
+    expect(result.pendingChecks).toHaveLength(0);
+  });
+
+  it('should exclude completed checks from pendingChecks', async () => {
+    repos.cguRepo.getLatestByClientId.mockResolvedValue([
+      makeCguResult('CEIS', false),
+      makeCguResult('CNEP', false),
+      makeCguResult('CEPIM', false),
+    ]);
+    repos.pgfnRepo.getLatestByClientId.mockResolvedValue(makePgfnResult(false));
+
+    const result = await useCase.execute(CLIENT_ID);
+
+    expect(result.pendingChecks).not.toContain('cgu');
+    expect(result.pendingChecks).not.toContain('pgfn');
+    expect(result.pendingChecks).toContain('cndt');
+    expect(result.pendingChecks).toContain('negativeMedia');
   });
 
   it('should return CLEAR when all checks are clean', async () => {

@@ -151,9 +151,15 @@ interface SerasaReportData {
   createdAt: string;
 }
 
+type ComplianceCheckName =
+  | 'cgu' | 'pep' | 'pgfn' | 'cndt'
+  | 'addressValidation' | 'sanctions' | 'slaveLaborCheck'
+  | 'negativeMedia' | 'digitalPresence';
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface ComplianceResults {
   overallRisk: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'CLEAR' | 'PENDING';
+  pendingChecks: ComplianceCheckName[];
   cgu: {
     ceis: { hasMatch: boolean; matchCount: number; summary: string | null; rawData: any; queriedAt: string | null };
     cnep: { hasMatch: boolean; matchCount: number; summary: string | null; rawData: any; queriedAt: string | null };
@@ -1093,22 +1099,117 @@ function SanctionsSubCard({ sanctions, viewRaw, toggleRaw }: Readonly<{
   );
 }
 
-function ComplianceSection({ clientId, compliance, viewRaw, toggleRaw }: Readonly<{
+function PendingCheckCard({ icon, title }: Readonly<{ icon: React.ReactNode; title: string }>) {
+  return (
+    <Card className="overflow-hidden opacity-60">
+      <div className="flex items-center justify-between px-5 py-3 bg-gradient-to-r from-primary/5 to-transparent">
+        <div className="flex items-center gap-2">
+          {icon}
+          <span className="text-sm font-medium">{title}</span>
+          <Badge className="bg-blue-100 text-blue-700 border-blue-200 font-semibold px-2.5 py-0.5 animate-pulse">
+            Consultando...
+          </Badge>
+        </div>
+        <Loader2 size={14} className="animate-spin text-muted-foreground" />
+      </div>
+    </Card>
+  );
+}
+
+const PENDING_CHECK_LABELS: Record<ComplianceCheckName, { icon: React.ReactNode; title: string }> = {
+  cgu: { icon: <Landmark size={15} className="text-primary" />, title: 'CGU — Portal da Transparência' },
+  pep: { icon: <UserCheck size={15} className="text-primary" />, title: 'PEP — Pessoas Expostas Politicamente' },
+  pgfn: { icon: <Landmark size={15} className="text-primary" />, title: 'PGFN — Dívida Ativa da União' },
+  cndt: { icon: <Scale size={15} className="text-primary" />, title: 'CNDT — Débitos Trabalhistas (TST)' },
+  addressValidation: { icon: <MapPin size={15} className="text-primary" />, title: 'Validação de Endereço' },
+  sanctions: { icon: <Globe size={15} className="text-primary" />, title: 'Sanções Internacionais (OFAC/UN)' },
+  slaveLaborCheck: { icon: <AlertTriangle size={15} className="text-primary" />, title: 'Lista de Trabalho Escravo (MTE)' },
+  negativeMedia: { icon: <Search size={15} className="text-primary" />, title: 'Mídia Negativa — OSINT' },
+  digitalPresence: { icon: <Monitor size={15} className="text-primary" />, title: 'Presença Digital' },
+};
+
+function ComplianceCheckOrPending({ name, hasData, pendingChecks, children }: Readonly<{
+  name: ComplianceCheckName;
+  hasData: boolean;
+  pendingChecks: ComplianceCheckName[];
+  children: React.ReactNode;
+}>) {
+  if (hasData) return <>{children}</>;
+  if (pendingChecks.includes(name)) return <PendingCheckCard {...PENDING_CHECK_LABELS[name]} />;
+  return null;
+}
+
+function PgfnCheckCard({ pgfn, viewRaw, toggleRaw }: Readonly<{
+  pgfn: NonNullable<ComplianceResults['pgfn']>;
+  viewRaw: Record<string, boolean>;
+  toggleRaw: (id: string) => void;
+}>) {
+  const pgfnTotal = pgfn.totalDebtAmount ? formatCurrency(String(pgfn.totalDebtAmount)) : 'N/I';
+  const pgfnDetail = pgfn.hasDebt ? `${pgfn.debtCount} dívida(s) — Total: ${pgfnTotal}` : null;
+
+  return (
+    <ComplianceSubCard
+      icon={<Landmark size={15} className="text-primary" />}
+      title="PGFN — Dívida Ativa da União"
+      badge={<StatusBadge value={pgfn.hasDebt ? 'Devedor' : 'Nada consta'} type={pgfn.hasDebt ? 'danger' : 'success'} />}
+    >
+      <CheckRow
+        label="Lista de Devedores"
+        icon={<AlertTriangle size={13} className={pgfn.hasDebt ? 'text-destructive' : 'text-emerald-600'} />}
+        hasMatch={pgfn.hasDebt}
+        detail={pgfnDetail}
+        queriedAt={pgfn.queriedAt}
+        rawData={pgfn.rawData}
+        viewRaw={viewRaw['pgfn']}
+        onToggleRaw={() => toggleRaw('pgfn')}
+      />
+    </ComplianceSubCard>
+  );
+}
+
+function SlaveLaborCard({ check, viewRaw, toggleRaw }: Readonly<{
+  check: NonNullable<ComplianceResults['slaveLaborCheck']>;
+  viewRaw: Record<string, boolean>;
+  toggleRaw: (id: string) => void;
+}>) {
+  const detail = check.hasMatch
+    ? `${check.employerName} — ${check.rescuedWorkers || 0} trabalhador(es) resgatado(s)`
+    : null;
+
+  return (
+    <ComplianceSubCard
+      icon={<AlertTriangle size={15} className="text-primary" />}
+      title="Lista de Trabalho Escravo (MTE)"
+      badge={<StatusBadge value={check.hasMatch ? 'Encontrado' : 'Nada consta'} type={check.hasMatch ? 'danger' : 'success'} />}
+    >
+      <CheckRow
+        label="Cadastro de Empregadores"
+        icon={<AlertTriangle size={13} className={check.hasMatch ? 'text-destructive' : 'text-emerald-600'} />}
+        hasMatch={check.hasMatch}
+        detail={detail}
+        queriedAt={check.queriedAt}
+        rawData={check.rawData}
+        viewRaw={viewRaw['slave-labor']}
+        onToggleRaw={() => toggleRaw('slave-labor')}
+      />
+    </ComplianceSubCard>
+  );
+}
+
+function ComplianceSection({ clientId, compliance, viewRaw, toggleRaw, pendingChecks }: Readonly<{
   clientId: string;
   compliance: ComplianceResults;
   viewRaw: Record<string, boolean>;
   toggleRaw: (id: string) => void;
+  pendingChecks: ComplianceCheckName[];
 }>) {
-  const pgfnTotal = compliance.pgfn?.totalDebtAmount
-    ? formatCurrency(String(compliance.pgfn.totalDebtAmount))
-    : 'N/I';
-  const pgfnDetail = compliance.pgfn?.hasDebt
-    ? `${compliance.pgfn.debtCount} dívida(s) — Total: ${pgfnTotal}`
-    : null;
+  const hasCguData = !!(compliance.cgu.ceis.queriedAt || compliance.cgu.cnep.queriedAt || compliance.cgu.cepim.queriedAt);
 
   return (
     <div className="px-8 pb-8 space-y-3">
-      <CguSubCard cgu={compliance.cgu} viewRaw={viewRaw} toggleRaw={toggleRaw} />
+      <ComplianceCheckOrPending name="cgu" hasData={hasCguData} pendingChecks={pendingChecks}>
+        <CguSubCard cgu={compliance.cgu} viewRaw={viewRaw} toggleRaw={toggleRaw} />
+      </ComplianceCheckOrPending>
 
       {compliance.pep.length > 0 && (
         <ComplianceSubCard
@@ -1134,86 +1235,127 @@ function ComplianceSection({ clientId, compliance, viewRaw, toggleRaw }: Readonl
         </ComplianceSubCard>
       )}
 
-      {compliance.pgfn && (
-        <ComplianceSubCard
-          icon={<Landmark size={15} className="text-primary" />}
-          title="PGFN — Dívida Ativa da União"
-          badge={<StatusBadge value={compliance.pgfn.hasDebt ? 'Devedor' : 'Nada consta'} type={compliance.pgfn.hasDebt ? 'danger' : 'success'} />}
-        >
-          <CheckRow
-            label="Lista de Devedores"
-            icon={<AlertTriangle size={13} className={compliance.pgfn.hasDebt ? 'text-destructive' : 'text-emerald-600'} />}
-            hasMatch={compliance.pgfn.hasDebt}
-            detail={pgfnDetail}
-            queriedAt={compliance.pgfn.queriedAt}
-            rawData={compliance.pgfn.rawData}
-            viewRaw={viewRaw['pgfn']}
-            onToggleRaw={() => toggleRaw('pgfn')}
-          />
-        </ComplianceSubCard>
-      )}
+      <ComplianceCheckOrPending name="pgfn" hasData={!!compliance.pgfn} pendingChecks={pendingChecks}>
+        {compliance.pgfn && <PgfnCheckCard pgfn={compliance.pgfn} viewRaw={viewRaw} toggleRaw={toggleRaw} />}
+      </ComplianceCheckOrPending>
 
-      {compliance.cndt && (
-        <ComplianceSubCard
-          icon={<Scale size={15} className="text-primary" />}
-          title="CNDT — Débitos Trabalhistas (TST)"
-          badge={<CndtBadge status={compliance.cndt.certificateStatus} />}
-        >
-          <CndtStatusContent cndt={compliance.cndt} />
-        </ComplianceSubCard>
-      )}
+      <ComplianceCheckOrPending name="cndt" hasData={!!compliance.cndt} pendingChecks={pendingChecks}>
+        {compliance.cndt && (
+          <ComplianceSubCard
+            icon={<Scale size={15} className="text-primary" />}
+            title="CNDT — Débitos Trabalhistas (TST)"
+            badge={<CndtBadge status={compliance.cndt.certificateStatus} />}
+          >
+            <CndtStatusContent cndt={compliance.cndt} />
+          </ComplianceSubCard>
+        )}
+      </ComplianceCheckOrPending>
 
-      {compliance.sanctions.length > 0 && (
+      <ComplianceCheckOrPending name="sanctions" hasData={compliance.sanctions.length > 0} pendingChecks={pendingChecks}>
         <SanctionsSubCard sanctions={compliance.sanctions} viewRaw={viewRaw} toggleRaw={toggleRaw} />
-      )}
+      </ComplianceCheckOrPending>
 
-      {compliance.slaveLaborCheck && (
+      <ComplianceCheckOrPending name="slaveLaborCheck" hasData={!!compliance.slaveLaborCheck} pendingChecks={pendingChecks}>
+        {compliance.slaveLaborCheck && <SlaveLaborCard check={compliance.slaveLaborCheck} viewRaw={viewRaw} toggleRaw={toggleRaw} />}
+      </ComplianceCheckOrPending>
+
+      <ComplianceCheckOrPending name="negativeMedia" hasData={compliance.negativeMedia.length > 0} pendingChecks={pendingChecks}>
         <ComplianceSubCard
-          icon={<AlertTriangle size={15} className="text-primary" />}
-          title="Lista de Trabalho Escravo (MTE)"
-          badge={<StatusBadge value={compliance.slaveLaborCheck.hasMatch ? 'Encontrado' : 'Nada consta'} type={compliance.slaveLaborCheck.hasMatch ? 'danger' : 'success'} />}
+          icon={<Search size={15} className="text-primary" />}
+          title="Mídia Negativa — OSINT"
+          badge={compliance.negativeMedia.length > 0 ? <MediaRiskBadge level={compliance.negativeMedia[0]?.riskLevel ?? 'CLEAR'} /> : undefined}
+          defaultOpen={compliance.negativeMedia[0]?.riskLevel === 'HIGH' || compliance.negativeMedia[0]?.riskLevel === 'MEDIUM'}
         >
-          <CheckRow
-            label="Cadastro de Empregadores"
-            icon={<AlertTriangle size={13} className={compliance.slaveLaborCheck.hasMatch ? 'text-destructive' : 'text-emerald-600'} />}
-            hasMatch={compliance.slaveLaborCheck.hasMatch}
-            detail={compliance.slaveLaborCheck.hasMatch
-              ? `${compliance.slaveLaborCheck.employerName} — ${compliance.slaveLaborCheck.rescuedWorkers || 0} trabalhador(es) resgatado(s)`
-              : null}
-            queriedAt={compliance.slaveLaborCheck.queriedAt}
-            rawData={compliance.slaveLaborCheck.rawData}
-            viewRaw={viewRaw['slave-labor']}
-            onToggleRaw={() => toggleRaw('slave-labor')}
-          />
+          <NegativeMediaSection clientId={clientId} initialSearches={compliance.negativeMedia} />
         </ComplianceSubCard>
-      )}
+      </ComplianceCheckOrPending>
 
-      <ComplianceSubCard
-        icon={<Search size={15} className="text-primary" />}
-        title="Mídia Negativa — OSINT"
-        badge={compliance.negativeMedia.length > 0 ? <MediaRiskBadge level={compliance.negativeMedia[0]?.riskLevel ?? 'CLEAR'} /> : undefined}
-        defaultOpen={compliance.negativeMedia[0]?.riskLevel === 'HIGH' || compliance.negativeMedia[0]?.riskLevel === 'MEDIUM'}
-      >
-        <NegativeMediaSection clientId={clientId} initialSearches={compliance.negativeMedia} />
-      </ComplianceSubCard>
-
-      {compliance.digitalPresence && (
-        <ComplianceSubCard
-          icon={<Monitor size={15} className="text-primary" />}
-          title="Presença Digital"
-          badge={<DigitalPresenceBadge digitalPresence={compliance.digitalPresence} />}
-        >
-          <DigitalPresenceSection digitalPresence={compliance.digitalPresence} />
-        </ComplianceSubCard>
-      )}
+      <ComplianceCheckOrPending name="digitalPresence" hasData={!!compliance.digitalPresence} pendingChecks={pendingChecks}>
+        {compliance.digitalPresence && (
+          <ComplianceSubCard
+            icon={<Monitor size={15} className="text-primary" />}
+            title="Presença Digital"
+            badge={<DigitalPresenceBadge digitalPresence={compliance.digitalPresence} />}
+          >
+            <DigitalPresenceSection digitalPresence={compliance.digitalPresence} />
+          </ComplianceSubCard>
+        )}
+      </ComplianceCheckOrPending>
     </div>
   );
+}
+
+function useCompliancePolling(clientId: string) {
+  const [compliance, setCompliance] = useState<ComplianceResults | null>(null);
+  const [isPolling, setIsPolling] = useState(false);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const attemptsRef = useRef(0);
+
+  const MAX_ATTEMPTS = 24;
+  const POLL_INTERVAL_MS = 5_000;
+
+  const fetchCompliance = useCallback(async () => {
+    try {
+      const res = await api.get<ComplianceResults>(
+        `/clients/${clientId}/credit-analysis/compliance-results`,
+      );
+      return res.data ?? null;
+    } catch {
+      return null;
+    }
+  }, [clientId]);
+
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    setIsPolling(false);
+    attemptsRef.current = 0;
+  }, []);
+
+  const startPolling = useCallback(() => {
+    if (pollingRef.current) return;
+    setIsPolling(true);
+
+    pollingRef.current = setInterval(async () => {
+      attemptsRef.current += 1;
+      const data = await fetchCompliance();
+
+      if (data) {
+        setCompliance(data);
+        if (data.pendingChecks.length === 0 || attemptsRef.current >= MAX_ATTEMPTS) {
+          stopPolling();
+        }
+      }
+
+      if (attemptsRef.current >= MAX_ATTEMPTS) {
+        stopPolling();
+      }
+    }, POLL_INTERVAL_MS);
+  }, [fetchCompliance, stopPolling]);
+
+  const load = useCallback(async () => {
+    const data = await fetchCompliance();
+    setCompliance(data);
+
+    if (data && data.pendingChecks.length > 0) {
+      startPolling();
+    }
+
+    return data;
+  }, [fetchCompliance, startPolling]);
+
+  useEffect(() => {
+    return () => stopPolling();
+  }, [stopPolling]);
+
+  return { compliance, setCompliance, isPolling, load, startPolling, stopPolling };
 }
 
 export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: string }>) {
   const [data, setData] = useState<VaduResultsOutput | null>(null);
   const [creditbox, setCreditbox] = useState<CreditboxReport | null>(null);
-  const [compliance, setCompliance] = useState<ComplianceResults | null>(null);
   const [serasa, setSerasa] = useState<SerasaReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1225,21 +1367,26 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
   const [serasaExpanded, setSerasaExpanded] = useState(false);
   const [complianceExpanded, setComplianceExpanded] = useState(false);
   const [addressExpanded, setAddressExpanded] = useState(false);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const creditboxPollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  const {
+    compliance,
+    isPolling: isCompliancePolling,
+    load: loadCompliance,
+  } = useCompliancePolling(clientId);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [vaduRes, cbRes, compRes, serasaRes] = await Promise.all([
+      const [vaduRes, cbRes, , serasaRes] = await Promise.all([
         api.get<VaduResultsOutput>(`/clients/${clientId}/credit-analysis/vadu-results`),
         api.get<CreditboxReport>(`/clients/${clientId}/credit-analysis/creditbox`),
-        api.get<ComplianceResults>(`/clients/${clientId}/credit-analysis/compliance-results`).catch(() => ({ data: null })),
+        loadCompliance(),
         api.get<SerasaReportData>(`/clients/${clientId}/credit-analysis/serasa`).catch(() => ({ data: null })),
       ]);
       setData(vaduRes.data || { company: null, persons: [] });
       setCreditbox(cbRes.data || null);
-      setCompliance(compRes.data || null);
       setSerasa(serasaRes.data || null);
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Erro ao carregar análise de crédito';
@@ -1247,7 +1394,7 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
     } finally {
       setLoading(false);
     }
-  }, [clientId]);
+  }, [clientId, loadCompliance]);
 
   useEffect(() => {
     loadData();
@@ -1259,7 +1406,7 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
       if (res.data) {
         setCreditbox(res.data);
         if (res.data.status === 'COMPLETED' || res.data.status === 'ERROR') {
-          if (pollingRef.current) clearInterval(pollingRef.current);
+          if (creditboxPollingRef.current) clearInterval(creditboxPollingRef.current);
           if (res.data.status === 'COMPLETED') toast.success('Relatório CreditBox gerado com sucesso!');
         }
       }
@@ -1271,16 +1418,16 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
 
   useEffect(() => {
     if (creditbox && (creditbox.status === 'PENDING' || creditbox.status === 'PROCESSING')) {
-      if (!pollingRef.current) {
-        pollingRef.current = setInterval(pollCreditbox, 5000);
+      if (!creditboxPollingRef.current) {
+        creditboxPollingRef.current = setInterval(pollCreditbox, 5000);
       }
-    } else if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
+    } else if (creditboxPollingRef.current) {
+      clearInterval(creditboxPollingRef.current);
+      creditboxPollingRef.current = null;
     }
 
     return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
+      if (creditboxPollingRef.current) clearInterval(creditboxPollingRef.current);
     };
   }, [creditbox?.status, pollCreditbox]);
 
@@ -1422,18 +1569,28 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
     </Card>
 
     {/* Compliance Card */}
-    {compliance && compliance.overallRisk !== 'PENDING' && (
+    {compliance && (
       <Card className="overflow-hidden">
         <ExpandableHeader
           icon={<Scale size={15} className="text-primary" />}
           title="Compliance"
           subtitle="Consultas Gratuitas"
-          badge={<RiskBadge level={compliance.overallRisk} />}
+          badge={
+            isCompliancePolling
+              ? <Badge className="bg-blue-100 text-blue-700 border-blue-200 font-semibold px-2.5 py-0.5 animate-pulse">Processando...</Badge>
+              : <RiskBadge level={compliance.overallRisk} />
+          }
           isOpen={complianceExpanded}
           onToggle={() => setComplianceExpanded((v) => !v)}
         />
         <ExpandableContent isOpen={complianceExpanded}>
-          <ComplianceSection clientId={clientId} compliance={compliance} viewRaw={viewRaw} toggleRaw={toggleRaw} />
+          <ComplianceSection
+            clientId={clientId}
+            compliance={compliance}
+            viewRaw={viewRaw}
+            toggleRaw={toggleRaw}
+            pendingChecks={compliance.pendingChecks}
+          />
         </ExpandableContent>
       </Card>
     )}
