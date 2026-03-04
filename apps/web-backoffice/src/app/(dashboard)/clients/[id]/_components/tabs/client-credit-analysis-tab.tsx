@@ -796,6 +796,36 @@ function ComplianceSection({ compliance, viewRaw, toggleRaw }: Readonly<{
           </CardContent>
         </Card>
       )}
+
+      {compliance.negativeMedia && (
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Search size={15} className="text-primary" />
+              Mídia Negativa — OSINT
+              <MediaRiskBadge level={compliance.negativeMedia.riskLevel} />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <NegativeMediaSection negativeMedia={compliance.negativeMedia} />
+          </CardContent>
+        </Card>
+      )}
+
+      {compliance.digitalPresence && (
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Monitor size={15} className="text-primary" />
+              Presença Digital
+              <DigitalPresenceBadge digitalPresence={compliance.digitalPresence} />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DigitalPresenceSection digitalPresence={compliance.digitalPresence} />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
@@ -812,8 +842,6 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
   const [vaduExpanded, setVaduExpanded] = useState(false);
   const [complianceExpanded, setComplianceExpanded] = useState(false);
   const [addressExpanded, setAddressExpanded] = useState(false);
-  const [negativeMediaExpanded, setNegativeMediaExpanded] = useState(false);
-  const [digitalPresenceExpanded, setDigitalPresenceExpanded] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadData = useCallback(async () => {
@@ -1010,39 +1038,6 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
       </Card>
     )}
 
-    {/* Negative Media Card */}
-    {compliance?.negativeMedia && (
-      <Card className="overflow-hidden">
-        <ExpandableHeader
-          icon={<Search size={15} className="text-primary" />}
-          title="Mídia Negativa"
-          subtitle="OSINT — Gemini Search"
-          badge={<MediaRiskBadge level={compliance.negativeMedia.riskLevel} />}
-          isOpen={negativeMediaExpanded}
-          onToggle={() => setNegativeMediaExpanded((v) => !v)}
-        />
-        <ExpandableContent isOpen={negativeMediaExpanded}>
-          <NegativeMediaSection negativeMedia={compliance.negativeMedia} />
-        </ExpandableContent>
-      </Card>
-    )}
-
-    {/* Digital Presence Card */}
-    {compliance?.digitalPresence && (
-      <Card className="overflow-hidden">
-        <ExpandableHeader
-          icon={<Monitor size={15} className="text-primary" />}
-          title="Presença Digital"
-          subtitle="DNS + Site + E-mail"
-          badge={<DigitalPresenceBadge digitalPresence={compliance.digitalPresence} />}
-          isOpen={digitalPresenceExpanded}
-          onToggle={() => setDigitalPresenceExpanded((v) => !v)}
-        />
-        <ExpandableContent isOpen={digitalPresenceExpanded}>
-          <DigitalPresenceSection digitalPresence={compliance.digitalPresence} />
-        </ExpandableContent>
-      </Card>
-    )}
     </div>
   );
 }
