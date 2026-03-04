@@ -7,6 +7,7 @@ import { RequestCreditboxReportUseCase } from '../use-cases/request-creditbox-re
 import { SyncCreditboxReportUseCase } from '../use-cases/sync-creditbox-report.use-case';
 import { GetCreditboxReportUseCase } from '../use-cases/get-creditbox-report.use-case';
 import { GetComplianceResultsUseCase } from '../use-cases/get-compliance-results.use-case';
+import { TriggerNegativeMediaSearchUseCase } from '../use-cases/trigger-negative-media-search.use-case';
 import { CreditboxReportMapper } from '../infra/mappers/creditbox-report.mapper';
 
 @ApiTags('Credit')
@@ -20,6 +21,7 @@ export class CreditController {
     private readonly syncCreditboxReportUseCase: SyncCreditboxReportUseCase,
     private readonly getCreditboxReportUseCase: GetCreditboxReportUseCase,
     private readonly getComplianceResultsUseCase: GetComplianceResultsUseCase,
+    private readonly triggerNegativeMediaSearchUseCase: TriggerNegativeMediaSearchUseCase,
   ) {}
 
   @Get('vadu-results')
@@ -74,6 +76,16 @@ export class CreditController {
   )
   async getComplianceResults(@Param('clientId') clientId: string) {
     const data = await this.getComplianceResultsUseCase.execute(clientId);
+    return { data };
+  }
+
+  @Post('negative-media/search')
+  @Roles(
+    'credit_analyst', 'compliance_officer', 'approver',
+    'risk_manager', 'admin',
+  )
+  async triggerNegativeMediaSearch(@Param('clientId') clientId: string) {
+    const data = await this.triggerNegativeMediaSearchUseCase.execute(clientId);
     return { data };
   }
 }

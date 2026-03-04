@@ -70,14 +70,18 @@ export interface ComplianceResultsOutput {
     rawData: any;
     queriedAt: string | null;
   } | null;
-  negativeMedia: {
+  negativeMedia: Array<{
+    id: string;
     riskLevel: string;
     findingsCount: number;
-    findings: any[];
+    findings: Array<{
+      category: string; title: string; snippet: string;
+      sourceUrl: string | null; sourceName: string | null; date: string | null;
+    }>;
     summary: string | null;
-    groundingSources: any[];
-    queriedAt: string | null;
-  } | null;
+    groundingSources: Array<{ uri: string; title: string }>;
+    queriedAt: string;
+  }>;
   digitalPresence: {
     domain: string | null;
     emailType: string;
@@ -105,7 +109,7 @@ export class GetComplianceResultsUseCase {
   ) {}
 
   async execute(clientId: string): Promise<ComplianceResultsOutput> {
-    const [cguResults, pepResults, pgfnResult, cndtResult, addressResult, sanctionsResults, slaveLaborResult, negativeMediaResult, digitalPresenceResult] =
+    const [cguResults, pepResults, pgfnResult, cndtResult, addressResult, sanctionsResults, slaveLaborResult, negativeMediaResults, digitalPresenceResult] =
       await Promise.all([
         this.cguRepo.getLatestByClientId(clientId),
         this.pepRepo.getLatestByClientId(clientId),
@@ -114,7 +118,7 @@ export class GetComplianceResultsUseCase {
         this.addressRepo.getLatestByClientId(clientId),
         this.sanctionsRepo.getLatestByClientId(clientId),
         this.slaveLaborRepo.getLatestByClientId(clientId),
-        this.negativeMediaRepo.getLatestByClientId(clientId),
+        this.negativeMediaRepo.getAllByClientId(clientId),
         this.digitalPresenceRepo.getLatestByClientId(clientId),
       ]);
 
@@ -197,16 +201,25 @@ export class GetComplianceResultsUseCase {
             queriedAt: slaveLaborResult.queriedAt.toISOString(),
           }
         : null,
-      negativeMedia: negativeMediaResult
-        ? {
-            riskLevel: negativeMediaResult.riskLevel,
-            findingsCount: negativeMediaResult.findingsCount,
-            findings: (negativeMediaResult.findings ?? []) as any[],
-            summary: negativeMediaResult.summary,
-            groundingSources: (negativeMediaResult.groundingSources ?? []) as any[],
-            queriedAt: negativeMediaResult.queriedAt.toISOString(),
-          }
-        : null,
+      negativeMedia: negativeMediaResults.map((r) => ({
+        id: r.id,
+        riskLevel: r.riskLevel,
+        findingsCount: r.findingsCount,
+        findings: (r.findings ?? []).map((f) => ({
+          category: (f.category as string) ?? 'outro',
+          title: (f.title as string) ?? '',
+          snippet: (f.snippet as string) ?? '',
+          sourceUrl: (f.sourceUrl as string) ?? null,
+          sourceName: (f.sourceName as string) ?? null,
+          date: (f.date as string) ?? null,
+        })),
+        summary: r.summary,
+        groundingSources: (r.groundingSources ?? []).map((s) => ({
+          uri: (s.uri as string) ?? '',
+          title: (s.title as string) ?? '',
+        })),
+        queriedAt: r.queriedAt.toISOString(),
+      })),
       digitalPresence: digitalPresenceResult
         ? {
             domain: digitalPresenceResult.domain,
@@ -236,14 +249,14 @@ export class GetComplianceResultsUseCase {
       data.pgfn?.hasDebt ||
       data.cndt?.certificateStatus === 'POSITIVE' ||
       data.pep.some(p => p.hasMatch) ||
-      data.negativeMedia?.riskLevel === 'HIGH';
+      data.negativeMedia[0]?.riskLevel === 'HIGH';
 
     if (hasHigh) return 'HIGH';
 
     const hasMedium =
       data.cndt?.certificateStatus === 'POSITIVE_WITH_EFFECTS' ||
       data.addressValidation?.matchesRegistered === false ||
-      data.negativeMedia?.riskLevel === 'MEDIUM';
+      data.negativeMedia[0]?.riskLevel === 'MEDIUM';
 
     if (hasMedium) return 'MEDIUM';
 

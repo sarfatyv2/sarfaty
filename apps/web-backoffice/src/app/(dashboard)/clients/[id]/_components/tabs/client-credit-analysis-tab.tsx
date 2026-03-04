@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Skeleton, Badge, Button, ScrollArea } from '@nexus/ui';
-import { FileText, XCircle, Code2, Building2, MapPin, Activity, Leaf, Users, FileBarChart, Loader2, Download, Shield, AlertTriangle, CheckCircle2, Scale, Landmark, Globe, UserCheck, Search, Monitor, Mail, ExternalLink } from 'lucide-react';
+import { FileText, XCircle, Code2, Building2, MapPin, Activity, Leaf, Users, FileBarChart, Loader2, Download, Shield, AlertTriangle, CheckCircle2, Scale, Landmark, Globe, UserCheck, Search, Monitor, Mail, ExternalLink, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
 import { ExpandableContent, RotatingChevron } from '../motion-wrapper';
@@ -163,15 +163,15 @@ interface ComplianceResults {
     hasMatch: boolean; employerName: string | null; rescuedWorkers: number | null;
     inspectionDate: string | null; rawData: any; queriedAt: string | null;
   } | null;
-  negativeMedia: {
-    riskLevel: string; findingsCount: number;
+  negativeMedia: Array<{
+    id: string; riskLevel: string; findingsCount: number;
     findings: Array<{
       category: string; title: string; snippet: string;
       sourceUrl: string | null; sourceName: string | null; date: string | null;
     }>;
     summary: string | null; groundingSources: Array<{ uri: string; title: string }>;
-    queriedAt: string | null;
-  } | null;
+    queriedAt: string;
+  }>;
   digitalPresence: {
     domain: string | null; emailType: string;
     hasDns: boolean; hasActiveSite: boolean;
@@ -748,7 +748,8 @@ function SanctionsSubCard({ sanctions, viewRaw, toggleRaw }: Readonly<{
   );
 }
 
-function ComplianceSection({ compliance, viewRaw, toggleRaw }: Readonly<{
+function ComplianceSection({ clientId, compliance, viewRaw, toggleRaw }: Readonly<{
+  clientId: string;
   compliance: ComplianceResults;
   viewRaw: Record<string, boolean>;
   toggleRaw: (id: string) => void;
@@ -842,16 +843,14 @@ function ComplianceSection({ compliance, viewRaw, toggleRaw }: Readonly<{
         </ComplianceSubCard>
       )}
 
-      {compliance.negativeMedia && (
-        <ComplianceSubCard
-          icon={<Search size={15} className="text-primary" />}
-          title="Mídia Negativa — OSINT"
-          badge={<MediaRiskBadge level={compliance.negativeMedia.riskLevel} />}
-          defaultOpen={compliance.negativeMedia.riskLevel === 'HIGH' || compliance.negativeMedia.riskLevel === 'MEDIUM'}
-        >
-          <NegativeMediaSection negativeMedia={compliance.negativeMedia} />
-        </ComplianceSubCard>
-      )}
+      <ComplianceSubCard
+        icon={<Search size={15} className="text-primary" />}
+        title="Mídia Negativa — OSINT"
+        badge={compliance.negativeMedia.length > 0 ? <MediaRiskBadge level={compliance.negativeMedia[0]?.riskLevel ?? 'CLEAR'} /> : undefined}
+        defaultOpen={compliance.negativeMedia[0]?.riskLevel === 'HIGH' || compliance.negativeMedia[0]?.riskLevel === 'MEDIUM'}
+      >
+        <NegativeMediaSection clientId={clientId} initialSearches={compliance.negativeMedia} />
+      </ComplianceSubCard>
 
       {compliance.digitalPresence && (
         <ComplianceSubCard
@@ -1043,7 +1042,7 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
           onToggle={() => setComplianceExpanded((v) => !v)}
         />
         <ExpandableContent isOpen={complianceExpanded}>
-          <ComplianceSection compliance={compliance} viewRaw={viewRaw} toggleRaw={toggleRaw} />
+          <ComplianceSection clientId={clientId} compliance={compliance} viewRaw={viewRaw} toggleRaw={toggleRaw} />
         </ExpandableContent>
       </Card>
     )}
@@ -1103,32 +1102,103 @@ function FindingCategoryBadge({ category }: Readonly<{ category: string }>) {
   return <StatusBadge value={c.label} type={c.type} />;
 }
 
-function NegativeMediaSection({ negativeMedia }: Readonly<{ negativeMedia: NonNullable<ComplianceResults['negativeMedia']> }>) {
+type NegativeMediaSearch = ComplianceResults['negativeMedia'][number];
+
+function NegativeMediaSection({ clientId, initialSearches }: Readonly<{ clientId: string; initialSearches: ComplianceResults['negativeMedia'] }>) {
+  const [searches, setSearches] = useState<NegativeMediaSearch[]>(initialSearches);
+  const [searching, setSearching] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(() => {
+    const first = initialSearches[0];
+    return first ? new Set([first.id]) : new Set();
+  });
+
+  useEffect(() => {
+    setSearches(initialSearches);
+  }, [initialSearches]);
+
+  const toggleExpanded = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleNewSearch = async () => {
+    setSearching(true);
+    try {
+      const res = await api.post<NegativeMediaSearch>(`/clients/${clientId}/credit-analysis/negative-media/search`);
+      if (res.data) {
+        setSearches((prev) => [res.data!, ...prev]);
+        setExpanded((prev) => new Set([res.data!.id, ...prev]));
+        toast.success('Busca de mídia negativa concluída.');
+      }
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Erro ao realizar busca de mídia negativa';
+      toast.error(message);
+    } finally {
+      setSearching(false);
+    }
+  };
+
   return (
-    <div className="px-8 pb-8 space-y-5">
+    <div className="px-8 pb-8 space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Search size={15} className="text-primary" />
-          <span className="text-sm font-medium">Resultado da Busca</span>
-          <MediaRiskBadge level={negativeMedia.riskLevel} />
-        </div>
-        {negativeMedia.queriedAt && (
-          <span className="text-[10px] text-muted-foreground">{formatDate(negativeMedia.queriedAt)}</span>
-        )}
+        <span className="text-sm font-medium">Histórico de Buscas ({searches.length})</span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleNewSearch}
+          disabled={searching}
+          className="h-7 px-3 text-xs"
+        >
+          {searching ? <Loader2 size={12} className="animate-spin mr-1.5" /> : <RefreshCw size={12} className="mr-1.5" />}
+          Nova Busca
+        </Button>
       </div>
 
-      {negativeMedia.summary && (
-        <Card className="overflow-hidden">
-          <CardContent className="pt-4">
-            <p className="text-sm text-muted-foreground">{negativeMedia.summary}</p>
-          </CardContent>
-        </Card>
+      {searches.length === 0 && (
+        <p className="text-sm text-muted-foreground">Nenhuma busca realizada ainda.</p>
       )}
 
-      {negativeMedia.findings.length > 0 && (
+      {searches.map((search) => (
+        <Card key={search.id} className="overflow-hidden">
+          <button
+            type="button"
+            className="flex w-full items-center justify-between px-4 py-2.5 cursor-pointer text-left bg-gradient-to-r from-primary/5 to-transparent"
+            onClick={() => toggleExpanded(search.id)}
+          >
+            <div className="flex items-center gap-2">
+              <Search size={13} className="text-primary" />
+              <span className="text-xs font-medium">{formatDate(search.queriedAt)}</span>
+              <MediaRiskBadge level={search.riskLevel} />
+              <span className="text-[10px] text-muted-foreground">
+                {search.findingsCount} {search.findingsCount === 1 ? 'achado' : 'achados'}
+              </span>
+            </div>
+            <RotatingChevron isOpen={expanded.has(search.id)} className="text-muted-foreground" />
+          </button>
+          <ExpandableContent isOpen={expanded.has(search.id)}>
+            <NegativeMediaSearchDetail search={search} />
+          </ExpandableContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function NegativeMediaSearchDetail({ search }: Readonly<{ search: NegativeMediaSearch }>) {
+  return (
+    <div className="px-4 pb-4 pt-2 space-y-4">
+      {search.summary && (
+        <p className="text-sm text-muted-foreground">{search.summary}</p>
+      )}
+
+      {search.findings.length > 0 && (
         <div className="space-y-3">
-          {negativeMedia.findings.map((finding, idx) => (
-            <Card key={`finding-${finding.sourceUrl ?? idx}`} className="overflow-hidden">
+          {search.findings.map((finding, idx) => (
+            <Card key={`finding-${finding.sourceUrl ?? idx}`} className="overflow-hidden border-muted">
               <CardContent className="pt-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 space-y-1">
@@ -1161,10 +1231,30 @@ function NegativeMediaSection({ negativeMedia }: Readonly<{ negativeMedia: NonNu
         </div>
       )}
 
-      {negativeMedia.findings.length === 0 && negativeMedia.riskLevel === 'CLEAR' && (
+      {search.findings.length === 0 && search.riskLevel === 'CLEAR' && (
         <div className="flex items-center gap-2 text-emerald-600">
           <CheckCircle2 size={14} />
           <span className="text-sm">Nenhuma menção negativa encontrada na internet.</span>
+        </div>
+      )}
+
+      {search.groundingSources.length > 0 && (
+        <div className="space-y-1.5 pt-2 border-t">
+          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Fontes consultadas</span>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {search.groundingSources.map((source, idx) => (
+              <a
+                key={`source-${source.uri}`}
+                href={source.uri}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary hover:underline flex items-center gap-1"
+              >
+                <ExternalLink size={10} />
+                {source.title || source.uri}
+              </a>
+            ))}
+          </div>
         </div>
       )}
     </div>

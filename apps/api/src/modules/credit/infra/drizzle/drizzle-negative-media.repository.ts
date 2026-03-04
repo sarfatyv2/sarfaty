@@ -29,4 +29,15 @@ export class DrizzleNegativeMediaRepository implements NegativeMediaRepository {
 
     return rows.length > 0 ? NegativeMediaResultMapper.toDomain(rows[0]!) : null;
   }
+
+  async getAllByClientId(clientId: string): Promise<NegativeMediaResult[]> {
+    const rows = await this.db
+      .select()
+      .from(negativeMediaResults)
+      .where(eq(negativeMediaResults.clientId, clientId))
+      .orderBy(desc(negativeMediaResults.queriedAt))
+      .execute();
+
+    return rows.map((row) => NegativeMediaResultMapper.toDomain(row));
+  }
 }

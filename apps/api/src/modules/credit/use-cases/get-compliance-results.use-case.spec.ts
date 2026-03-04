@@ -21,7 +21,7 @@ function createMockRepos() {
     addressRepo: { save: vi.fn(), getLatestByClientId: vi.fn().mockResolvedValue(null) },
     sanctionsRepo: { save: vi.fn(), getLatestByClientId: vi.fn().mockResolvedValue([]) },
     slaveLaborRepo: { save: vi.fn(), getLatestByClientId: vi.fn().mockResolvedValue(null) },
-    negativeMediaRepo: { save: vi.fn(), getLatestByClientId: vi.fn().mockResolvedValue(null) },
+    negativeMediaRepo: { save: vi.fn(), getLatestByClientId: vi.fn().mockResolvedValue(null), getAllByClientId: vi.fn().mockResolvedValue([]) },
     digitalPresenceRepo: { save: vi.fn(), getLatestByClientId: vi.fn().mockResolvedValue(null) },
   };
 }
@@ -368,20 +368,34 @@ describe('GetComplianceResultsUseCase', () => {
     expect(result.cgu.cepim).toEqual({ hasMatch: false, matchCount: 0, summary: null, rawData: null, queriedAt: null });
   });
 
-  it('should return negative media results when available', async () => {
+  it('should return negative media results as array when available', async () => {
     repos.cguRepo.getLatestByClientId.mockResolvedValue([makeCguResult('CEIS', false)]);
     repos.pgfnRepo.getLatestByClientId.mockResolvedValue(makePgfnResult(false));
     repos.cndtRepo.getLatestByClientId.mockResolvedValue(makeCndtResult('NEGATIVE'));
-    repos.negativeMediaRepo.getLatestByClientId.mockResolvedValue(makeNegativeMediaResult('CLEAR'));
+    repos.negativeMediaRepo.getAllByClientId.mockResolvedValue([makeNegativeMediaResult('CLEAR')]);
 
     const result = await useCase.execute(CLIENT_ID);
 
-    expect(result.negativeMedia).not.toBeNull();
-    expect(result.negativeMedia?.riskLevel).toBe('CLEAR');
-    expect(result.negativeMedia?.queriedAt).toBe(NOW.toISOString());
+    expect(result.negativeMedia).toHaveLength(1);
+    expect(result.negativeMedia[0]?.riskLevel).toBe('CLEAR');
+    expect(result.negativeMedia[0]?.queriedAt).toBe(NOW.toISOString());
   });
 
-  it('should return HIGH risk when negative media has HIGH risk', async () => {
+  it('should return multiple negative media results ordered by date', async () => {
+    repos.cguRepo.getLatestByClientId.mockResolvedValue([makeCguResult('CEIS', false)]);
+    repos.pgfnRepo.getLatestByClientId.mockResolvedValue(makePgfnResult(false));
+    repos.cndtRepo.getLatestByClientId.mockResolvedValue(makeCndtResult('NEGATIVE'));
+    repos.negativeMediaRepo.getAllByClientId.mockResolvedValue([
+      makeNegativeMediaResult('CLEAR'),
+      makeNegativeMediaResult('HIGH', 2),
+    ]);
+
+    const result = await useCase.execute(CLIENT_ID);
+
+    expect(result.negativeMedia).toHaveLength(2);
+  });
+
+  it('should return HIGH risk when most recent negative media has HIGH risk', async () => {
     repos.cguRepo.getLatestByClientId.mockResolvedValue([
       makeCguResult('CEIS', false),
       makeCguResult('CNEP', false),
@@ -389,14 +403,14 @@ describe('GetComplianceResultsUseCase', () => {
     ]);
     repos.pgfnRepo.getLatestByClientId.mockResolvedValue(makePgfnResult(false));
     repos.cndtRepo.getLatestByClientId.mockResolvedValue(makeCndtResult('NEGATIVE'));
-    repos.negativeMediaRepo.getLatestByClientId.mockResolvedValue(makeNegativeMediaResult('HIGH', 2));
+    repos.negativeMediaRepo.getAllByClientId.mockResolvedValue([makeNegativeMediaResult('HIGH', 2)]);
 
     const result = await useCase.execute(CLIENT_ID);
 
     expect(result.overallRisk).toBe('HIGH');
   });
 
-  it('should return MEDIUM risk when negative media has MEDIUM risk', async () => {
+  it('should return MEDIUM risk when most recent negative media has MEDIUM risk', async () => {
     repos.cguRepo.getLatestByClientId.mockResolvedValue([
       makeCguResult('CEIS', false),
       makeCguResult('CNEP', false),
@@ -404,7 +418,7 @@ describe('GetComplianceResultsUseCase', () => {
     ]);
     repos.pgfnRepo.getLatestByClientId.mockResolvedValue(makePgfnResult(false));
     repos.cndtRepo.getLatestByClientId.mockResolvedValue(makeCndtResult('NEGATIVE'));
-    repos.negativeMediaRepo.getLatestByClientId.mockResolvedValue(makeNegativeMediaResult('MEDIUM', 1));
+    repos.negativeMediaRepo.getAllByClientId.mockResolvedValue([makeNegativeMediaResult('MEDIUM', 1)]);
 
     const result = await useCase.execute(CLIENT_ID);
 
@@ -425,10 +439,10 @@ describe('GetComplianceResultsUseCase', () => {
     expect(result.digitalPresence?.domain).toBe('empresa.com.br');
   });
 
-  it('should return null negative media and digital presence when not available', async () => {
+  it('should return empty negative media array and null digital presence when not available', async () => {
     const result = await useCase.execute(CLIENT_ID);
 
-    expect(result.negativeMedia).toBeNull();
+    expect(result.negativeMedia).toEqual([]);
     expect(result.digitalPresence).toBeNull();
   });
 });
