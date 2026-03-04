@@ -232,6 +232,18 @@ function CheckRow({ label, icon, hasMatch, detail, queriedAt, rawData, viewRaw, 
   );
 }
 
+function CndtBadge({ status }: Readonly<{ status: string }>) {
+  const map: Record<string, { label: string; type: BadgeType }> = {
+    NEGATIVE: { label: 'Negativa', type: 'success' },
+    POSITIVE_WITH_EFFECTS: { label: 'Positiva c/ efeito', type: 'warning' },
+    POSITIVE: { label: 'Positiva', type: 'danger' },
+    UNAVAILABLE: { label: 'Indisponível', type: 'warning' },
+    UNKNOWN: { label: 'Indisponível', type: 'warning' },
+  };
+  const c = map[status] ?? { label: status, type: 'neutral' as BadgeType };
+  return <StatusBadge value={c.label} type={c.type} />;
+}
+
 function CndtStatusContent({ cndt }: Readonly<{ cndt: NonNullable<ComplianceResults['cndt']> }>) {
   const isUnavailable = cndt.certificateStatus === 'UNAVAILABLE' || cndt.certificateStatus === 'UNKNOWN';
   const rawReason = (cndt.rawData as Record<string, unknown> | null)?.reason;
@@ -628,6 +640,114 @@ function PersonsList({ persons, viewRaw, toggleRaw }: Readonly<{
   );
 }
 
+function ComplianceSubCard({ icon, title, badge, children, defaultOpen = false }: Readonly<{
+  icon: React.ReactNode;
+  title: string;
+  badge?: React.ReactNode;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}>) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  return (
+    <Card className="overflow-hidden">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between px-5 py-3 cursor-pointer text-left bg-gradient-to-r from-primary/5 to-transparent"
+        onClick={() => setIsOpen((v) => !v)}
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <span className="text-sm font-medium">{title}</span>
+          {badge}
+        </div>
+        <RotatingChevron isOpen={isOpen} className="text-muted-foreground" />
+      </button>
+      <ExpandableContent isOpen={isOpen}>
+        <CardContent className="pt-3">{children}</CardContent>
+      </ExpandableContent>
+    </Card>
+  );
+}
+
+function CguSubCard({ cgu, viewRaw, toggleRaw }: Readonly<{
+  cgu: ComplianceResults['cgu'];
+  viewRaw: Record<string, boolean>;
+  toggleRaw: (id: string) => void;
+}>) {
+  const hasAny = cgu.ceis.hasMatch || cgu.cnep.hasMatch || cgu.cepim.hasMatch;
+  return (
+    <ComplianceSubCard
+      icon={<Landmark size={15} className="text-primary" />}
+      title="CGU — Portal da Transparência"
+      badge={<StatusBadge value={hasAny ? 'Restrição' : 'Nada consta'} type={hasAny ? 'danger' : 'success'} />}
+    >
+      <div className="space-y-3">
+        <CheckRow
+          label="CEIS — Empresas Inidôneas"
+          icon={<AlertTriangle size={13} className={cgu.ceis.hasMatch ? 'text-destructive' : 'text-emerald-600'} />}
+          hasMatch={cgu.ceis.hasMatch}
+          detail={cgu.ceis.summary}
+          queriedAt={cgu.ceis.queriedAt}
+          rawData={cgu.ceis.rawData}
+          viewRaw={viewRaw['cgu-ceis']}
+          onToggleRaw={() => toggleRaw('cgu-ceis')}
+        />
+        <CheckRow
+          label="CNEP — Empresas Punidas"
+          icon={<AlertTriangle size={13} className={cgu.cnep.hasMatch ? 'text-destructive' : 'text-emerald-600'} />}
+          hasMatch={cgu.cnep.hasMatch}
+          detail={cgu.cnep.summary}
+          queriedAt={cgu.cnep.queriedAt}
+          rawData={cgu.cnep.rawData}
+          viewRaw={viewRaw['cgu-cnep']}
+          onToggleRaw={() => toggleRaw('cgu-cnep')}
+        />
+        <CheckRow
+          label="CEPIM — Entidades Impedidas"
+          icon={<AlertTriangle size={13} className={cgu.cepim.hasMatch ? 'text-destructive' : 'text-emerald-600'} />}
+          hasMatch={cgu.cepim.hasMatch}
+          detail={cgu.cepim.summary}
+          queriedAt={cgu.cepim.queriedAt}
+          rawData={cgu.cepim.rawData}
+          viewRaw={viewRaw['cgu-cepim']}
+          onToggleRaw={() => toggleRaw('cgu-cepim')}
+        />
+      </div>
+    </ComplianceSubCard>
+  );
+}
+
+function SanctionsSubCard({ sanctions, viewRaw, toggleRaw }: Readonly<{
+  sanctions: ComplianceResults['sanctions'];
+  viewRaw: Record<string, boolean>;
+  toggleRaw: (id: string) => void;
+}>) {
+  const hasAny = sanctions.some((s) => s.hasMatch);
+  return (
+    <ComplianceSubCard
+      icon={<Globe size={15} className="text-primary" />}
+      title="Sanções Internacionais (OFAC/UN)"
+      badge={<StatusBadge value={hasAny ? 'Encontrado' : 'Nada consta'} type={hasAny ? 'danger' : 'success'} />}
+    >
+      <div className="space-y-3">
+        {sanctions.map((s) => (
+          <CheckRow
+            key={`sanc-${s.source}-${s.entityName ?? 'unknown'}`}
+            label={`${s.source} — ${s.entityName || 'Empresa'}`}
+            icon={<Globe size={13} className={s.hasMatch ? 'text-destructive' : 'text-emerald-600'} />}
+            hasMatch={s.hasMatch}
+            detail={s.matchDetails}
+            queriedAt={s.queriedAt}
+            rawData={s.rawData}
+            viewRaw={viewRaw[`sanc-${s.source}-${s.entityName ?? 'unknown'}`]}
+            onToggleRaw={() => toggleRaw(`sanc-${s.source}-${s.entityName ?? 'unknown'}`)}
+          />
+        ))}
+      </div>
+    </ComplianceSubCard>
+  );
+}
+
 function ComplianceSection({ compliance, viewRaw, toggleRaw }: Readonly<{
   compliance: ComplianceResults;
   viewRaw: Record<string, boolean>;
@@ -641,57 +761,16 @@ function ComplianceSection({ compliance, viewRaw, toggleRaw }: Readonly<{
     : null;
 
   return (
-    <div className="px-8 pb-8 space-y-5">
-      <Card className="overflow-hidden">
-        <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Landmark size={15} className="text-primary" />
-            CGU — Portal da Transparência
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <CheckRow
-            label="CEIS — Empresas Inidôneas"
-            icon={<AlertTriangle size={13} className={compliance.cgu.ceis.hasMatch ? 'text-destructive' : 'text-emerald-600'} />}
-            hasMatch={compliance.cgu.ceis.hasMatch}
-            detail={compliance.cgu.ceis.summary}
-            queriedAt={compliance.cgu.ceis.queriedAt}
-            rawData={compliance.cgu.ceis.rawData}
-            viewRaw={viewRaw['cgu-ceis']}
-            onToggleRaw={() => toggleRaw('cgu-ceis')}
-          />
-          <CheckRow
-            label="CNEP — Empresas Punidas"
-            icon={<AlertTriangle size={13} className={compliance.cgu.cnep.hasMatch ? 'text-destructive' : 'text-emerald-600'} />}
-            hasMatch={compliance.cgu.cnep.hasMatch}
-            detail={compliance.cgu.cnep.summary}
-            queriedAt={compliance.cgu.cnep.queriedAt}
-            rawData={compliance.cgu.cnep.rawData}
-            viewRaw={viewRaw['cgu-cnep']}
-            onToggleRaw={() => toggleRaw('cgu-cnep')}
-          />
-          <CheckRow
-            label="CEPIM — Entidades Impedidas"
-            icon={<AlertTriangle size={13} className={compliance.cgu.cepim.hasMatch ? 'text-destructive' : 'text-emerald-600'} />}
-            hasMatch={compliance.cgu.cepim.hasMatch}
-            detail={compliance.cgu.cepim.summary}
-            queriedAt={compliance.cgu.cepim.queriedAt}
-            rawData={compliance.cgu.cepim.rawData}
-            viewRaw={viewRaw['cgu-cepim']}
-            onToggleRaw={() => toggleRaw('cgu-cepim')}
-          />
-        </CardContent>
-      </Card>
+    <div className="px-8 pb-8 space-y-3">
+      <CguSubCard cgu={compliance.cgu} viewRaw={viewRaw} toggleRaw={toggleRaw} />
 
       {compliance.pep.length > 0 && (
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <UserCheck size={15} className="text-primary" />
-              PEP — Pessoas Expostas Politicamente
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        <ComplianceSubCard
+          icon={<UserCheck size={15} className="text-primary" />}
+          title="PEP — Pessoas Expostas Politicamente"
+          badge={<StatusBadge value={compliance.pep.some((p) => p.hasMatch) ? 'Encontrado' : 'Nada consta'} type={compliance.pep.some((p) => p.hasMatch) ? 'danger' : 'success'} />}
+        >
+          <div className="space-y-3">
             {compliance.pep.map((p) => (
               <CheckRow
                 key={`pep-${p.cpf}`}
@@ -705,126 +784,83 @@ function ComplianceSection({ compliance, viewRaw, toggleRaw }: Readonly<{
                 onToggleRaw={() => toggleRaw(`pep-${p.cpf}`)}
               />
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </ComplianceSubCard>
       )}
 
       {compliance.pgfn && (
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Landmark size={15} className="text-primary" />
-              PGFN — Dívida Ativa da União
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CheckRow
-              label="Lista de Devedores"
-              icon={<AlertTriangle size={13} className={compliance.pgfn.hasDebt ? 'text-destructive' : 'text-emerald-600'} />}
-              hasMatch={compliance.pgfn.hasDebt}
-              detail={pgfnDetail}
-              queriedAt={compliance.pgfn.queriedAt}
-              rawData={compliance.pgfn.rawData}
-              viewRaw={viewRaw['pgfn']}
-              onToggleRaw={() => toggleRaw('pgfn')}
-            />
-          </CardContent>
-        </Card>
+        <ComplianceSubCard
+          icon={<Landmark size={15} className="text-primary" />}
+          title="PGFN — Dívida Ativa da União"
+          badge={<StatusBadge value={compliance.pgfn.hasDebt ? 'Devedor' : 'Nada consta'} type={compliance.pgfn.hasDebt ? 'danger' : 'success'} />}
+        >
+          <CheckRow
+            label="Lista de Devedores"
+            icon={<AlertTriangle size={13} className={compliance.pgfn.hasDebt ? 'text-destructive' : 'text-emerald-600'} />}
+            hasMatch={compliance.pgfn.hasDebt}
+            detail={pgfnDetail}
+            queriedAt={compliance.pgfn.queriedAt}
+            rawData={compliance.pgfn.rawData}
+            viewRaw={viewRaw['pgfn']}
+            onToggleRaw={() => toggleRaw('pgfn')}
+          />
+        </ComplianceSubCard>
       )}
 
       {compliance.cndt && (
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Scale size={15} className="text-primary" />
-              CNDT — Débitos Trabalhistas (TST)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CndtStatusContent cndt={compliance.cndt} />
-          </CardContent>
-        </Card>
+        <ComplianceSubCard
+          icon={<Scale size={15} className="text-primary" />}
+          title="CNDT — Débitos Trabalhistas (TST)"
+          badge={<CndtBadge status={compliance.cndt.certificateStatus} />}
+        >
+          <CndtStatusContent cndt={compliance.cndt} />
+        </ComplianceSubCard>
       )}
 
       {compliance.sanctions.length > 0 && (
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Globe size={15} className="text-primary" />
-              Sanções Internacionais (OFAC/UN)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {compliance.sanctions.map((s) => (
-              <CheckRow
-                key={`sanc-${s.source}-${s.entityName ?? 'unknown'}`}
-                label={`${s.source} — ${s.entityName || 'Empresa'}`}
-                icon={<Globe size={13} className={s.hasMatch ? 'text-destructive' : 'text-emerald-600'} />}
-                hasMatch={s.hasMatch}
-                detail={s.matchDetails}
-                queriedAt={s.queriedAt}
-                rawData={s.rawData}
-                viewRaw={viewRaw[`sanc-${s.source}-${s.entityName ?? 'unknown'}`]}
-                onToggleRaw={() => toggleRaw(`sanc-${s.source}-${s.entityName ?? 'unknown'}`)}
-              />
-            ))}
-          </CardContent>
-        </Card>
+        <SanctionsSubCard sanctions={compliance.sanctions} viewRaw={viewRaw} toggleRaw={toggleRaw} />
       )}
 
       {compliance.slaveLaborCheck && (
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <AlertTriangle size={15} className="text-primary" />
-              Lista de Trabalho Escravo (MTE)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CheckRow
-              label="Cadastro de Empregadores"
-              icon={<AlertTriangle size={13} className={compliance.slaveLaborCheck.hasMatch ? 'text-destructive' : 'text-emerald-600'} />}
-              hasMatch={compliance.slaveLaborCheck.hasMatch}
-              detail={compliance.slaveLaborCheck.hasMatch
-                ? `${compliance.slaveLaborCheck.employerName} — ${compliance.slaveLaborCheck.rescuedWorkers || 0} trabalhador(es) resgatado(s)`
-                : null}
-              queriedAt={compliance.slaveLaborCheck.queriedAt}
-              rawData={compliance.slaveLaborCheck.rawData}
-              viewRaw={viewRaw['slave-labor']}
-              onToggleRaw={() => toggleRaw('slave-labor')}
-            />
-          </CardContent>
-        </Card>
+        <ComplianceSubCard
+          icon={<AlertTriangle size={15} className="text-primary" />}
+          title="Lista de Trabalho Escravo (MTE)"
+          badge={<StatusBadge value={compliance.slaveLaborCheck.hasMatch ? 'Encontrado' : 'Nada consta'} type={compliance.slaveLaborCheck.hasMatch ? 'danger' : 'success'} />}
+        >
+          <CheckRow
+            label="Cadastro de Empregadores"
+            icon={<AlertTriangle size={13} className={compliance.slaveLaborCheck.hasMatch ? 'text-destructive' : 'text-emerald-600'} />}
+            hasMatch={compliance.slaveLaborCheck.hasMatch}
+            detail={compliance.slaveLaborCheck.hasMatch
+              ? `${compliance.slaveLaborCheck.employerName} — ${compliance.slaveLaborCheck.rescuedWorkers || 0} trabalhador(es) resgatado(s)`
+              : null}
+            queriedAt={compliance.slaveLaborCheck.queriedAt}
+            rawData={compliance.slaveLaborCheck.rawData}
+            viewRaw={viewRaw['slave-labor']}
+            onToggleRaw={() => toggleRaw('slave-labor')}
+          />
+        </ComplianceSubCard>
       )}
 
       {compliance.negativeMedia && (
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Search size={15} className="text-primary" />
-              Mídia Negativa — OSINT
-              <MediaRiskBadge level={compliance.negativeMedia.riskLevel} />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <NegativeMediaSection negativeMedia={compliance.negativeMedia} />
-          </CardContent>
-        </Card>
+        <ComplianceSubCard
+          icon={<Search size={15} className="text-primary" />}
+          title="Mídia Negativa — OSINT"
+          badge={<MediaRiskBadge level={compliance.negativeMedia.riskLevel} />}
+          defaultOpen={compliance.negativeMedia.riskLevel === 'HIGH' || compliance.negativeMedia.riskLevel === 'MEDIUM'}
+        >
+          <NegativeMediaSection negativeMedia={compliance.negativeMedia} />
+        </ComplianceSubCard>
       )}
 
       {compliance.digitalPresence && (
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-transparent">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Monitor size={15} className="text-primary" />
-              Presença Digital
-              <DigitalPresenceBadge digitalPresence={compliance.digitalPresence} />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DigitalPresenceSection digitalPresence={compliance.digitalPresence} />
-          </CardContent>
-        </Card>
+        <ComplianceSubCard
+          icon={<Monitor size={15} className="text-primary" />}
+          title="Presença Digital"
+          badge={<DigitalPresenceBadge digitalPresence={compliance.digitalPresence} />}
+        >
+          <DigitalPresenceSection digitalPresence={compliance.digitalPresence} />
+        </ComplianceSubCard>
       )}
     </div>
   );
