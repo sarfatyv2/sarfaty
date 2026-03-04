@@ -28,6 +28,7 @@ import { SyncCreditboxReportUseCase } from './use-cases/sync-creditbox-report.us
 import { GetCreditboxReportUseCase } from './use-cases/get-creditbox-report.use-case';
 import { SyncComplianceChecksUseCase } from './use-cases/sync-compliance-checks.use-case';
 import { GetComplianceResultsUseCase } from './use-cases/get-compliance-results.use-case';
+import { TriggerNegativeMediaSearchUseCase } from './use-cases/trigger-negative-media-search.use-case';
 import { VADU_REPOSITORY } from './domain/vadu.repository';
 import { CREDITBOX_REPOSITORY } from './domain/creditbox.repository';
 import { CGU_CHECK_REPOSITORY } from './domain/cgu-check.repository';
@@ -83,6 +84,7 @@ import { ClientsModule } from '../clients/clients.module';
     GetCreditboxReportUseCase,
     SyncComplianceChecksUseCase,
     GetComplianceResultsUseCase,
+    TriggerNegativeMediaSearchUseCase,
 
     // Event Listeners
     VaduClientListener,
