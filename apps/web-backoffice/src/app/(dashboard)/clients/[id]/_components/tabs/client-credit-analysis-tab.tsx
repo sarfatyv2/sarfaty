@@ -442,8 +442,8 @@ function SerasaSection({ report, isRequesting, onRequest, viewRaw, toggleRaw }: 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SerasaScoreCards({ raw }: Readonly<{ raw: any }>) {
-  const scores = raw?.reports?.[0]?.registration?.optionalFeatures?.score;
-  const hlc1 = raw?.reports?.[0]?.registration?.optionalFeatures?.scores?.scoreResponse;
+  const scores = raw?.optionalFeatures?.score;
+  const hlc1 = raw?.optionalFeatures?.scores?.scoreResponse;
 
   const mainScore = scores?.score;
   const mainMessage = scores?.message;
@@ -494,7 +494,7 @@ function SerasaScoreBadge({ score }: Readonly<{ score: number }>) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SerasaNegativeData({ raw }: Readonly<{ raw: any }>) {
-  const neg = raw?.reports?.[0]?.registration?.negativeData;
+  const neg = raw?.reports?.[0]?.negativeData;
   if (!neg) return null;
 
   const pefin = neg.pefin?.summary;
@@ -540,7 +540,7 @@ function NegativeSummaryItem({ label, count, balance }: Readonly<{ label: string
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SerasaJudicial({ raw }: Readonly<{ raw: any }>) {
-  const facts = raw?.reports?.[0]?.registration?.facts;
+  const facts = raw?.reports?.[0]?.facts;
   if (!facts) return null;
 
   const judgements = facts.judgementFilings?.summary;
@@ -583,7 +583,7 @@ function SerasaJudicial({ raw }: Readonly<{ raw: any }>) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SerasaQsa({ raw }: Readonly<{ raw: any }>) {
-  const qsa = raw?.reports?.[0]?.registration?.optionalFeatures?.QSAReport;
+  const qsa = raw?.optionalFeatures?.QSAReport;
   if (!qsa) return null;
 
   const partners = qsa.partnerCompleteReport?.partnersList ?? [];
@@ -654,7 +654,7 @@ function SerasaQsa({ raw }: Readonly<{ raw: any }>) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SerasaRegistration({ raw }: Readonly<{ raw: any }>) {
-  const identification = raw?.reports?.[0]?.registration?.identificationReport;
+  const identification = raw?.reports?.[0]?.identificationReport;
   if (!identification) return null;
 
   return (
@@ -667,20 +667,15 @@ function SerasaRegistration({ raw }: Readonly<{ raw: any }>) {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
           <InfoField label="Razão Social" value={identification.companyName} />
           <InfoField label="CNPJ" value={identification.documentNumber} />
-          <InfoField label="Fundação" value={identification.foundationDate ? formatDate(identification.foundationDate) : null} />
-          {identification.mainAddress && (
+          <InfoField label="Fundação" value={identification.companyFoundation ? formatDate(identification.companyFoundation) : null} />
+          {identification.address && (
             <>
-              <InfoField label="Endereço" value={identification.mainAddress.addressLine} />
+              <InfoField label="Endereço" value={identification.address.addressLine} />
               <InfoField label="Cidade / UF" value={
-                [identification.mainAddress.city, identification.mainAddress.state].filter(Boolean).join(' / ') || null
+                [identification.address.city, identification.address.state].filter(Boolean).join(' / ') || null
               } />
-              <InfoField label="CEP" value={identification.mainAddress.zipCode} />
+              <InfoField label="CEP" value={identification.address.zipCode} />
             </>
-          )}
-          {identification.mainPhone && (
-            <InfoField label="Telefone" value={
-              `(${identification.mainPhone.areaCode || ''}) ${identification.mainPhone.phoneNumber || ''}`
-            } />
           )}
         </div>
       </CardContent>
@@ -1529,8 +1524,8 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
         icon={<Search size={15} className="text-primary" />}
         title="Serasa Experian"
         subtitle="Relatório Avançado PJ"
-        badge={serasa?.rawResponse?.reports?.[0]?.registration?.optionalFeatures?.score?.score != null
-          ? <SerasaScoreBadge score={Number(serasa.rawResponse.reports[0].registration.optionalFeatures.score.score)} />
+        badge={serasa?.rawResponse?.optionalFeatures?.score?.score != null
+          ? <SerasaScoreBadge score={Number(serasa.rawResponse.optionalFeatures.score.score)} />
           : undefined}
         isOpen={serasaExpanded}
         onToggle={() => setSerasaExpanded((v) => !v)}
