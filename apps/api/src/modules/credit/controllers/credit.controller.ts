@@ -81,8 +81,9 @@ export class CreditController {
 
   @Post('negative-media/search')
   @Roles(
-    'credit_analyst', 'compliance_officer', 'approver',
-    'risk_manager', 'admin',
+    'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
+    'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
+    'legal', 'risk_manager', 'recovery', 'litigation', 'admin',
   )
   async triggerNegativeMediaSearch(@Param('clientId') clientId: string) {
     const data = await this.triggerNegativeMediaSearchUseCase.execute(clientId);
