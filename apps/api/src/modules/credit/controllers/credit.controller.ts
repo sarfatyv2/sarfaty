@@ -97,8 +97,9 @@ export class CreditController {
 
   @Post('serasa')
   @Roles(
+    'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
     'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
-    'legal', 'risk_manager', 'admin',
+    'legal', 'risk_manager', 'recovery', 'litigation', 'admin',
   )
   async requestSerasaReport(
     @Param('clientId') clientId: string,
@@ -112,8 +113,9 @@ export class CreditController {
 
   @Get('serasa')
   @Roles(
+    'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
     'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
-    'legal', 'risk_manager', 'admin',
+    'legal', 'risk_manager', 'recovery', 'litigation', 'admin',
   )
   async getSerasaReport(@Param('clientId') clientId: string) {
     const report = await this.getSerasaReportUseCase.execute(clientId);
@@ -122,8 +124,9 @@ export class CreditController {
 
   @Get('serasa/history')
   @Roles(
+    'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
     'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
-    'legal', 'risk_manager', 'admin',
+    'legal', 'risk_manager', 'recovery', 'litigation', 'admin',
   )
   async getSerasaReportHistory(@Param('clientId') clientId: string) {
     const reports = await this.getSerasaReportUseCase.executeAll(clientId);
