@@ -1,7 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DRAWEE_REPOSITORY, type DraweeRepository } from '../domain/drawee.repository';
 import { Drawee } from '../domain/drawee.entity';
 import { CnpjAlreadyExistsException } from '../domain/exceptions/cnpj-already-exists.exception';
+import { DraweeCreatedEvent } from '../domain/events/drawee-created.event';
 import type { CreateDraweeDto } from '@nexus/validators';
 
 @Injectable()
@@ -9,6 +11,7 @@ export class CreateDraweeUseCase {
   constructor(
     @Inject(DRAWEE_REPOSITORY)
     private readonly draweeRepository: DraweeRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(dto: CreateDraweeDto): Promise<Drawee> {
@@ -44,6 +47,10 @@ export class CreateDraweeUseCase {
       legacyNfId: null,
     });
 
-    return this.draweeRepository.save(drawee);
+    const saved = await this.draweeRepository.save(drawee);
+
+    this.eventEmitter.emit(DraweeCreatedEvent.EVENT_NAME, new DraweeCreatedEvent(saved.id));
+
+    return saved;
   }
 }

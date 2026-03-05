@@ -107,10 +107,13 @@ export { learningLessonCompletions } from './learning-lesson-completions';
 // Vadu
 export { vaduCompanyResults } from './vadu-company-results';
 export { vaduPersonResults } from './vadu-person-results';
+export { vaduDraweeCompanyResults } from './vadu-drawee-company-results';
+export { vaduDraweePersonResults } from './vadu-drawee-person-results';
 export { creditboxReports } from './creditbox-reports';
 
 // Serasa
 export { serasaReportResults } from './serasa-report-results';
+export { serasaDraweeReportResults } from './serasa-drawee-report-results';
 
 // Compliance Checks
 export { cguCheckResults } from './cgu-check-results';
@@ -122,6 +125,16 @@ export { sanctionsCheckResults } from './sanctions-check-results';
 export { slaveLaborCheckResults } from './slave-labor-check-results';
 export { negativeMediaResults } from './negative-media-results';
 export { digitalPresenceResults } from './digital-presence-results';
+// Compliance Checks - Drawees
+export { cguDraweeCheckResults } from './cgu-drawee-check-results';
+export { pepDraweeCheckResults } from './pep-drawee-check-results';
+export { pgfnDraweeCheckResults } from './pgfn-drawee-check-results';
+export { cndtDraweeCheckResults } from './cndt-drawee-check-results';
+export { addressValidationDraweeResults } from './address-validation-drawee-results';
+export { sanctionsDraweeCheckResults } from './sanctions-drawee-check-results';
+export { slaveLaborDraweeCheckResults } from './slave-labor-drawee-check-results';
+export { negativeMediaDraweeResults } from './negative-media-drawee-results';
+export { digitalPresenceDraweeResults } from './digital-presence-drawee-results';
 
 // Governance
 export { govCommittees } from './gov-committees';

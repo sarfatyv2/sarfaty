@@ -49,11 +49,46 @@ import { DIGITAL_PRESENCE_REPOSITORY } from './domain/digital-presence.repositor
 import { DatabaseModule } from '../../database/database.module';
 import { VaduClientListener } from './infra/events/vadu-client.listener';
 import { ComplianceCheckListener } from './infra/events/compliance-check.listener';
+import { DraweeBureauListener } from './infra/events/drawee-bureau.listener';
 import { CreditController } from './controllers/credit.controller';
+import { DraweeCreditController } from './controllers/drawee-credit.controller';
 import { ClientsModule } from '../clients/clients.module';
+import { DraweesModule } from '../drawees/drawees.module';
+import { CnabModule } from '../cnab/cnab.module';
+import { ListDraweeClientsUseCase } from './use-cases/list-drawee-clients.use-case';
+import { DrizzleVaduDraweeRepository } from './infra/drizzle/drizzle-vadu-drawee.repository';
+import { DrizzleSerasaDraweeReportRepository } from './infra/drizzle/drizzle-serasa-drawee-report.repository';
+import { DrizzleCguDraweeCheckRepository } from './infra/drizzle/drizzle-cgu-drawee-check.repository';
+import { DrizzlePepDraweeCheckRepository } from './infra/drizzle/drizzle-pep-drawee-check.repository';
+import { DrizzlePgfnDraweeCheckRepository } from './infra/drizzle/drizzle-pgfn-drawee-check.repository';
+import { DrizzleCndtDraweeCheckRepository } from './infra/drizzle/drizzle-cndt-drawee-check.repository';
+import { DrizzleAddressValidationDraweeResultRepository } from './infra/drizzle/drizzle-address-validation-drawee-result.repository';
+import { DrizzleSanctionsDraweeCheckRepository } from './infra/drizzle/drizzle-sanctions-drawee-check.repository';
+import { DrizzleSlaveLaborDraweeCheckRepository } from './infra/drizzle/drizzle-slave-labor-drawee-check.repository';
+import { DrizzleNegativeMediaDraweeResultRepository } from './infra/drizzle/drizzle-negative-media-drawee-result.repository';
+import { DrizzleDigitalPresenceDraweeResultRepository } from './infra/drizzle/drizzle-digital-presence-drawee-result.repository';
+import { SyncVaduDraweeUseCase } from './use-cases/sync-vadu-drawee.use-case';
+import { RequestSerasaReportDraweeUseCase } from './use-cases/request-serasa-report-drawee.use-case';
+import { SyncSerasaDraweeUseCase } from './use-cases/sync-serasa-drawee.use-case';
+import { SyncComplianceChecksDraweeUseCase } from './use-cases/sync-compliance-checks-drawee.use-case';
+import { GetVaduResultsDraweeUseCase } from './use-cases/get-vadu-results-drawee.use-case';
+import { GetSerasaReportDraweeUseCase } from './use-cases/get-serasa-report-drawee.use-case';
+import { GetComplianceResultsDraweeUseCase } from './use-cases/get-compliance-results-drawee.use-case';
+import { TriggerNegativeMediaSearchDraweeUseCase } from './use-cases/trigger-negative-media-search-drawee.use-case';
+import { VADU_DRAWEE_REPOSITORY } from './domain/vadu-drawee.repository';
+import { SERASA_DRAWEE_REPORT_REPOSITORY } from './domain/serasa-drawee-report.repository';
+import { CGU_DRAWEE_CHECK_REPOSITORY } from './domain/cgu-drawee-check.repository';
+import { PEP_DRAWEE_CHECK_REPOSITORY } from './domain/pep-drawee-check.repository';
+import { PGFN_DRAWEE_CHECK_REPOSITORY } from './domain/pgfn-drawee-check.repository';
+import { CNDT_DRAWEE_CHECK_REPOSITORY } from './domain/cndt-drawee-check.repository';
+import { ADDRESS_VALIDATION_DRAWEE_RESULT_REPOSITORY } from './domain/address-validation-drawee-result.repository';
+import { SANCTIONS_DRAWEE_CHECK_REPOSITORY } from './domain/sanctions-drawee-check.repository';
+import { SLAVE_LABOR_DRAWEE_CHECK_REPOSITORY } from './domain/slave-labor-drawee-check.repository';
+import { NEGATIVE_MEDIA_DRAWEE_RESULT_REPOSITORY } from './domain/negative-media-drawee-result.repository';
+import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-presence-drawee-result.repository';
 
 @Module({
-  imports: [DatabaseModule, ClientsModule],
+  imports: [DatabaseModule, ClientsModule, DraweesModule],
   controllers: [CreditController],
   providers: [
     // Adapters
@@ -83,6 +118,18 @@ import { ClientsModule } from '../clients/clients.module';
     { provide: SLAVE_LABOR_CHECK_REPOSITORY, useClass: DrizzleSlaveLaborCheckRepository },
     { provide: NEGATIVE_MEDIA_REPOSITORY, useClass: DrizzleNegativeMediaRepository },
     { provide: DIGITAL_PRESENCE_REPOSITORY, useClass: DrizzleDigitalPresenceRepository },
+    // Drawee repositories
+    { provide: VADU_DRAWEE_REPOSITORY, useClass: DrizzleVaduDraweeRepository },
+    { provide: SERASA_DRAWEE_REPORT_REPOSITORY, useClass: DrizzleSerasaDraweeReportRepository },
+    { provide: CGU_DRAWEE_CHECK_REPOSITORY, useClass: DrizzleCguDraweeCheckRepository },
+    { provide: PEP_DRAWEE_CHECK_REPOSITORY, useClass: DrizzlePepDraweeCheckRepository },
+    { provide: PGFN_DRAWEE_CHECK_REPOSITORY, useClass: DrizzlePgfnDraweeCheckRepository },
+    { provide: CNDT_DRAWEE_CHECK_REPOSITORY, useClass: DrizzleCndtDraweeCheckRepository },
+    { provide: ADDRESS_VALIDATION_DRAWEE_RESULT_REPOSITORY, useClass: DrizzleAddressValidationDraweeResultRepository },
+    { provide: SANCTIONS_DRAWEE_CHECK_REPOSITORY, useClass: DrizzleSanctionsDraweeCheckRepository },
+    { provide: SLAVE_LABOR_DRAWEE_CHECK_REPOSITORY, useClass: DrizzleSlaveLaborDraweeCheckRepository },
+    { provide: NEGATIVE_MEDIA_DRAWEE_RESULT_REPOSITORY, useClass: DrizzleNegativeMediaDraweeResultRepository },
+    { provide: DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY, useClass: DrizzleDigitalPresenceDraweeResultRepository },
 
     // Use Cases
     SyncVaduClientUseCase,
@@ -96,10 +143,21 @@ import { ClientsModule } from '../clients/clients.module';
     SyncComplianceChecksUseCase,
     GetComplianceResultsUseCase,
     TriggerNegativeMediaSearchUseCase,
+    // Drawee use cases
+    ListDraweeClientsUseCase,
+    SyncVaduDraweeUseCase,
+    RequestSerasaReportDraweeUseCase,
+    SyncSerasaDraweeUseCase,
+    SyncComplianceChecksDraweeUseCase,
+    GetVaduResultsDraweeUseCase,
+    GetSerasaReportDraweeUseCase,
+    GetComplianceResultsDraweeUseCase,
+    TriggerNegativeMediaSearchDraweeUseCase,
 
     // Event Listeners
     VaduClientListener,
     ComplianceCheckListener,
+    DraweeBureauListener,
   ],
   exports: [
     VaduAdapter,
