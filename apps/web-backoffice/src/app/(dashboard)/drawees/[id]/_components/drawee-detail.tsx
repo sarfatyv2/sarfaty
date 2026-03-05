@@ -13,6 +13,7 @@ import {
   Badge,
 } from '@nexus/ui';
 import type { Drawee } from '@nexus/types';
+import { FadeIn, AnimatedTabContent } from '@/app/(dashboard)/clients/[id]/_components/motion-wrapper';
 import { DraweeStatusBadge } from '../../_components/drawee-status-badge';
 import { DraweeContactsTab } from './tabs/drawee-contacts-tab';
 import { DraweeAddressesTab } from './tabs/drawee-addresses-tab';
@@ -41,8 +42,8 @@ function formatDocument(drawee: Drawee): string {
 function InfoField({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <div className="space-y-1">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="text-sm">{value || '—'}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">{label}</p>
+      <p className="text-sm font-medium leading-snug">{value || '—'}</p>
     </div>
   );
 }
@@ -51,37 +52,46 @@ export function DraweeDetail({ drawee }: DraweeDetailProps) {
   const [activeTab, setActiveTab] = useState('dados');
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <div className="flex-1">
-          <h2 className="text-xl font-bold">{drawee.companyName}</h2>
-          {drawee.tradeName && (
-            <p className="text-sm text-muted-foreground">{drawee.tradeName}</p>
-          )}
-          <p className="text-sm text-muted-foreground">{formatDocument(drawee)}</p>
+    <div className="space-y-8">
+      <FadeIn yOffset={6}>
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Sacado</p>
+          <div>
+            <h1 className="text-3xl font-normal tracking-tight leading-tight">
+              {drawee.companyName}
+            </h1>
+            {drawee.tradeName && (
+              <p className="text-sm text-muted-foreground mt-0.5">{drawee.tradeName}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-muted-foreground font-mono bg-muted/60 rounded-md px-2 py-0.5">
+              {formatDocument(drawee)}
+            </span>
+            {drawee.isPep && (
+              <Badge variant="outline" className="border-yellow-500 text-yellow-700 dark:text-yellow-400">PEP</Badge>
+            )}
+            {drawee.isOfacListed && (
+              <Badge variant="destructive">OFAC</Badge>
+            )}
+            <DraweeStatusBadge status={drawee.status} />
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          {drawee.isPep && (
-            <Badge variant="outline" className="border-yellow-500 text-yellow-700 dark:text-yellow-400">PEP</Badge>
-          )}
-          {drawee.isOfacListed && (
-            <Badge variant="destructive">OFAC</Badge>
-          )}
-          <DraweeStatusBadge status={drawee.status} />
-        </div>
-      </div>
+      </FadeIn>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="dados">Dados</TabsTrigger>
-          <TabsTrigger value="clientes">Clientes</TabsTrigger>
-          <TabsTrigger value="bureau">Análise de Crédito</TabsTrigger>
-          <TabsTrigger value="contatos">Contatos</TabsTrigger>
-          <TabsTrigger value="enderecos">Endereços</TabsTrigger>
-          <TabsTrigger value="contas">Contas Bancárias</TabsTrigger>
-        </TabsList>
+      <FadeIn delay={0.2} yOffset={4}>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="bg-muted/50 p-1 rounded-lg h-auto flex-wrap gap-0.5">
+            <TabsTrigger value="dados" className="rounded-md text-xs">Dados</TabsTrigger>
+            <TabsTrigger value="clientes" className="rounded-md text-xs">Clientes</TabsTrigger>
+            <TabsTrigger value="bureau" className="rounded-md text-xs">Análise de Crédito</TabsTrigger>
+            <TabsTrigger value="contatos" className="rounded-md text-xs">Contatos</TabsTrigger>
+            <TabsTrigger value="enderecos" className="rounded-md text-xs">Endereços</TabsTrigger>
+            <TabsTrigger value="contas" className="rounded-md text-xs">Contas Bancárias</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="dados" className="space-y-6 mt-4">
+          <TabsContent value="dados" className="mt-5">
+          <AnimatedTabContent key="dados" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Informações Gerais</CardTitle>
@@ -128,28 +138,40 @@ export function DraweeDetail({ drawee }: DraweeDetailProps) {
               </CardContent>
             </Card>
           )}
+          </AnimatedTabContent>
         </TabsContent>
 
-        <TabsContent value="clientes" className="mt-4">
-          <DraweeClientsTab draweeId={drawee.id} />
+        <TabsContent value="clientes" className="mt-5">
+          <AnimatedTabContent key="clientes">
+            <DraweeClientsTab draweeId={drawee.id} />
+          </AnimatedTabContent>
         </TabsContent>
 
-        <TabsContent value="bureau" className="mt-4">
-          <DraweeCreditAnalysisTab draweeId={drawee.id} />
+        <TabsContent value="bureau" className="mt-5">
+          <AnimatedTabContent key="bureau">
+            <DraweeCreditAnalysisTab draweeId={drawee.id} />
+          </AnimatedTabContent>
         </TabsContent>
 
-        <TabsContent value="contatos" className="mt-4">
-          <DraweeContactsTab draweeId={drawee.id} />
+        <TabsContent value="contatos" className="mt-5">
+          <AnimatedTabContent key="contatos">
+            <DraweeContactsTab draweeId={drawee.id} />
+          </AnimatedTabContent>
         </TabsContent>
 
-        <TabsContent value="enderecos" className="mt-4">
-          <DraweeAddressesTab draweeId={drawee.id} />
+        <TabsContent value="enderecos" className="mt-5">
+          <AnimatedTabContent key="enderecos">
+            <DraweeAddressesTab draweeId={drawee.id} />
+          </AnimatedTabContent>
         </TabsContent>
 
-        <TabsContent value="contas" className="mt-4">
-          <DraweeBankAccountsTab draweeId={drawee.id} />
+        <TabsContent value="contas" className="mt-5">
+          <AnimatedTabContent key="contas">
+            <DraweeBankAccountsTab draweeId={drawee.id} />
+          </AnimatedTabContent>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </FadeIn>
     </div>
   );
 }
