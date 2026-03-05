@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Skeleton, Badge, Button, ScrollArea } from '@nexus/ui';
-import { FileText, XCircle, Code2, Building2, MapPin, Activity, Leaf, Users, Landmark, Scale, Globe, AlertTriangle, CheckCircle2, Search, Monitor, Mail, ExternalLink, RefreshCw, Loader2 } from 'lucide-react';
+import { FileText, XCircle, Code2, Building2, MapPin, Activity, Leaf, Users, Landmark, Scale, Globe, AlertTriangle, CheckCircle2, Search, Monitor, Mail, ExternalLink, RefreshCw, Loader2, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
 import { ExpandableContent, RotatingChevron } from '@/app/(dashboard)/clients/[id]/_components/motion-wrapper';
@@ -323,10 +323,10 @@ export function DraweeCreditAnalysisTab({ draweeId }: DraweeCreditAnalysisTabPro
         </ExpandableContent>
       </Card>
 
-      {/* Vadu */}
+      {/* VADU */}
       <Card className="overflow-hidden">
         <ExpandableHeader
-          icon={<Building2 size={15} className="text-primary" />}
+          icon={<Shield size={15} className="text-primary" />}
           title="VADU"
           subtitle="Bureau de Crédito"
           isOpen={vaduExpanded}
