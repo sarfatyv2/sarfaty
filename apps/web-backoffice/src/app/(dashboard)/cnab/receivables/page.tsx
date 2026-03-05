@@ -18,6 +18,7 @@ interface PageProps {
 
 interface Receivable {
   id: string;
+  clientName?: string | null;
   documentNumber: string | null;
   draweeName: string | null;
   draweeDoc: string | null;

@@ -6,6 +6,7 @@ import { TradeReceivableEntity } from '../domain/trade-receivable.entity';
 
 export interface GetCnabOperationResult {
   operation: CnabOperationEntity;
+  clientName: string | null;
   receivables: TradeReceivableEntity[];
 }
 
@@ -19,11 +20,11 @@ export class GetCnabOperationUseCase {
   ) {}
 
   async executeById(id: string): Promise<GetCnabOperationResult | null> {
-    const operation = await this.operationRepo.findById(id);
-    if (!operation) return null;
+    const result = await this.operationRepo.findByIdWithClientName(id);
+    if (!result) return null;
 
-    const receivables = await this.receivableRepo.findByCnabFileId(operation.cnabFileId);
-    return { operation, receivables };
+    const receivables = await this.receivableRepo.findByCnabFileId(result.operation.cnabFileId);
+    return { operation: result.operation, clientName: result.clientName, receivables };
   }
 
   async executeByCnabFileId(cnabFileId: string): Promise<GetCnabOperationResult | null> {
@@ -31,6 +32,11 @@ export class GetCnabOperationUseCase {
     if (!operation) return null;
 
     const receivables = await this.receivableRepo.findByCnabFileId(cnabFileId);
-    return { operation, receivables };
+    const withClient = await this.operationRepo.findByIdWithClientName(operation.id);
+    return {
+      operation,
+      clientName: withClient?.clientName ?? null,
+      receivables,
+    };
   }
 }
