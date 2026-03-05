@@ -2,7 +2,7 @@
 node_modules/
 .pnpm-store/
 docs/teste irpf
-
+docs/
 # Build outputs
 dist/
 .next/

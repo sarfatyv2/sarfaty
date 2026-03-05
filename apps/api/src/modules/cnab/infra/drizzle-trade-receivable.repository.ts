@@ -1,0 +1,82 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { eq, and, gte, lte, count, desc } from 'drizzle-orm';
+import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
+import { tradeReceivables } from '../../../database/schema';
+import type {
+  TradeReceivableRepository,
+  TradeReceivableFilters,
+  PaginatedTradeReceivables,
+} from '../domain/trade-receivable.repository';
+import { TradeReceivableEntity } from '../domain/trade-receivable.entity';
+import { TradeReceivableMapper } from './mappers/trade-receivable.mapper';
+
+@Injectable()
+export class DrizzleTradeReceivableRepository implements TradeReceivableRepository {
+  constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
+
+  async saveMany(items: TradeReceivableEntity[]): Promise<TradeReceivableEntity[]> {
+    if (items.length === 0) return [];
+
+    const data = items.map((item) => TradeReceivableMapper.toPersistence(item));
+    const rows = await this.db
+      .insert(tradeReceivables)
+      .values(data as (typeof tradeReceivables.$inferInsert)[])
+      .returning();
+    return rows.map(TradeReceivableMapper.toDomain);
+  }
+
+  async findById(id: string): Promise<TradeReceivableEntity | null> {
+    const [row] = await this.db
+      .select()
+      .from(tradeReceivables)
+      .where(eq(tradeReceivables.id, id))
+      .limit(1);
+    return row ? TradeReceivableMapper.toDomain(row) : null;
+  }
+
+  async findByCnabFileId(cnabFileId: string): Promise<TradeReceivableEntity[]> {
+    const rows = await this.db
+      .select()
+      .from(tradeReceivables)
+      .where(eq(tradeReceivables.cnabFileId, cnabFileId))
+      .orderBy(tradeReceivables.cnabRecordSequence);
+    return rows.map(TradeReceivableMapper.toDomain);
+  }
+
+  async findByFilters(filters: TradeReceivableFilters): Promise<PaginatedTradeReceivables> {
+    const conditions = [];
+
+    if (filters.clientId) conditions.push(eq(tradeReceivables.clientId, filters.clientId));
+    if (filters.draweeId) conditions.push(eq(tradeReceivables.draweeId, filters.draweeId));
+    if (filters.cnabFileId) conditions.push(eq(tradeReceivables.cnabFileId, filters.cnabFileId));
+    if (filters.status) conditions.push(eq(tradeReceivables.status, filters.status));
+    if (filters.dueDateFrom) conditions.push(gte(tradeReceivables.dueDate, filters.dueDateFrom));
+    if (filters.dueDateTo) conditions.push(lte(tradeReceivables.dueDate, filters.dueDateTo));
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const offset = (filters.page - 1) * filters.pageSize;
+
+    const [rows, [totalRow]] = await Promise.all([
+      this.db
+        .select()
+        .from(tradeReceivables)
+        .where(whereClause)
+        .orderBy(desc(tradeReceivables.dueDate))
+        .limit(filters.pageSize)
+        .offset(offset),
+      this.db.select({ count: count() }).from(tradeReceivables).where(whereClause),
+    ]);
+
+    const total = totalRow?.count ?? 0;
+
+    return {
+      receivables: rows.map(TradeReceivableMapper.toDomain),
+      pagination: {
+        total,
+        page: filters.page,
+        pageSize: filters.pageSize,
+        totalPages: Math.ceil(total / filters.pageSize),
+      },
+    };
+  }
+}

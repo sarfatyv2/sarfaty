@@ -89,6 +89,11 @@ export { irRates } from './ir-rates';
 // Portfolio
 export { portfolioPositions } from './portfolio-positions';
 
+// CNAB / Trade Receivables
+export { cnabRemittanceFiles } from './cnab-remittance-files';
+export { tradeReceivables } from './trade-receivables';
+export { clientDrawees } from './client-drawees';
+
 // Goals
 export { salesGoals } from './sales-goals';
 

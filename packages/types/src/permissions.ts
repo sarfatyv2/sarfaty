@@ -41,6 +41,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Dashboard', icon: 'LayoutDashboard', route: '/dashboard' },
           { label: 'Meus Clientes', icon: 'Users', route: '/clients' },
           { label: 'Sacados', icon: 'Building2', route: '/drawees' },
+          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
           { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
           { label: 'Atividades', icon: 'Calendar', route: '/activities' },
           { label: 'Minha Meta', icon: 'Target', route: '/goals' },
@@ -103,6 +104,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Dashboard', icon: 'LayoutDashboard', route: '/dashboard' },
           { label: 'Clientes', icon: 'Users', route: '/clients' },
           { label: 'Sacados', icon: 'Building2', route: '/drawees' },
+          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
           { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
           { label: 'Atividades', icon: 'Calendar', route: '/activities' },
         ],
@@ -172,6 +174,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Dashboard', icon: 'LayoutDashboard', route: '/dashboard' },
           { label: 'Clientes', icon: 'Users', route: '/clients' },
           { label: 'Sacados', icon: 'Building2', route: '/drawees' },
+          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
           { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
         ],
       },
@@ -240,6 +243,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
           { label: 'Clientes', icon: 'Users', route: '/clients' },
           { label: 'Sacados', icon: 'Building2', route: '/drawees' },
+          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
         ],
       },
       {
@@ -299,6 +303,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Fila de Análise', icon: 'ClipboardList', route: '/credit/queue' },
           { label: 'Sacados', icon: 'Building2', route: '/drawees' },
+          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
           { label: 'Relatórios', icon: 'FileText', route: '/credit/reports' },
           { label: 'Histórico', icon: 'History', route: '/credit/history' },
         ],
@@ -446,6 +451,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         section: 'Aprovação',
         items: [
           { label: 'Fila de Aprovação', icon: 'CheckCircle', route: '/approval/queue' },
+          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
           { label: 'Histórico', icon: 'History', route: '/approval/history' },
           { label: 'Métricas', icon: 'BarChart3', route: '/approval/metrics' },
         ],
@@ -511,6 +517,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Operações Ativas', icon: 'Layers', route: '/backoffice/operations' },
           { label: 'Homologação', icon: 'BadgeCheck', route: '/backoffice/homologation' },
+          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
           { label: 'Divergências', icon: 'AlertTriangle', route: '/backoffice/divergences' },
         ],
       },
@@ -673,6 +680,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
       {
         section: 'Análise',
         items: [
+          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
           { label: 'Régua de Cobrança', icon: 'GitBranch', route: '/risk/collection-rules' },
           { label: 'Métricas', icon: 'BarChart3', route: '/risk/metrics' },
           { label: 'Aging', icon: 'Clock', route: '/risk/aging' },
@@ -744,6 +752,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         section: 'Recuperação',
         items: [
           { label: 'Fila de Recuperação', icon: 'PhoneCall', route: '/risk/recovery' },
+          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
           { label: 'Métricas', icon: 'BarChart3', route: '/risk/metrics' },
         ],
       },
@@ -783,6 +792,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         section: 'Contencioso',
         items: [
           { label: 'Ações Judiciais', icon: 'Scale', route: '/risk/litigation' },
+          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
           { label: 'Métricas', icon: 'BarChart3', route: '/risk/metrics' },
         ],
       },
@@ -1068,6 +1078,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Usuários', icon: 'Users', route: '/admin/users' },
           { label: 'Clientes', icon: 'Users', route: '/clients' },
           { label: 'Sacados', icon: 'Building2', route: '/drawees' },
+          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
           { label: 'Regiões', icon: 'Globe', route: '/admin/regions' },
           { label: 'Equipes', icon: 'UsersRound', route: '/admin/teams' },
         ],
