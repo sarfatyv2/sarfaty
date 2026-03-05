@@ -33,6 +33,23 @@ export class DrizzleCnabOperationRepository implements CnabOperationRepository {
     return row ? CnabOperationMapper.toDomain(row) : null;
   }
 
+  async findByIdWithClientName(id: string): Promise<{ operation: CnabOperationEntity; clientName: string | null } | null> {
+    const [row] = await this.db
+      .select({
+        operation: cnabOperations,
+        clientName: clients.companyName,
+      })
+      .from(cnabOperations)
+      .leftJoin(clients, eq(cnabOperations.clientId, clients.id))
+      .where(eq(cnabOperations.id, id))
+      .limit(1);
+    if (!row) return null;
+    return {
+      operation: CnabOperationMapper.toDomain(row.operation),
+      clientName: row.clientName ?? null,
+    };
+  }
+
   async findByCnabFileId(cnabFileId: string): Promise<CnabOperationEntity | null> {
     const [row] = await this.db
       .select()

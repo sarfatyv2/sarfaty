@@ -18,6 +18,7 @@ import { ReceivableExpandedRow } from './receivable-expanded-row';
 
 interface Receivable {
   id: string;
+  clientName?: string | null;
   documentNumber: string | null;
   draweeName: string | null;
   evaluationStatus?: string;
@@ -83,7 +84,7 @@ function formatDoc(doc: string | null, type: string | null): string {
   return doc;
 }
 
-const COL_COUNT = 8;
+const COL_COUNT = 9;
 
 export function ReceivablesTable({ receivables, pagination }: ReceivablesTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -124,6 +125,7 @@ export function ReceivablesTable({ receivables, pagination }: ReceivablesTablePr
             <TableRow>
               <TableHead className="w-10" />
               <TableHead>Documento</TableHead>
+              <TableHead>Cliente</TableHead>
               <TableHead>Sacado</TableHead>
               <TableHead>Vencimento</TableHead>
               <TableHead className="text-right">Valor</TableHead>
@@ -151,6 +153,9 @@ export function ReceivablesTable({ receivables, pagination }: ReceivablesTablePr
                     </TableCell>
                     <TableCell className="font-medium text-sm">
                       {r.documentNumber || '—'}
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-sm font-semibold text-primary">{r.clientName || '—'}</p>
                     </TableCell>
                     <TableCell>
                       <div>

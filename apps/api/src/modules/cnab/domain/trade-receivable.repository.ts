@@ -15,8 +15,13 @@ export interface TradeReceivableFilters {
   pageSize: number;
 }
 
+export interface TradeReceivableWithClientName {
+  entity: TradeReceivableEntity;
+  clientName: string | null;
+}
+
 export interface PaginatedTradeReceivables {
-  receivables: TradeReceivableEntity[];
+  receivables: TradeReceivableWithClientName[];
   pagination: { total: number; page: number; pageSize: number; totalPages: number };
 }
 

@@ -157,7 +157,10 @@ export class CnabController {
       pageSize: query.pageSize ?? 20,
     });
     return {
-      data: result.receivables.map((r) => r.toPlainObject()),
+      data: result.receivables.map(({ entity, clientName }) => ({
+        ...entity.toPlainObject(),
+        clientName,
+      })),
       pagination: result.pagination,
     };
   }
@@ -189,7 +192,10 @@ export class CnabController {
     return {
       data: {
         operation: result.operation.toPlainObject(),
-        receivables: result.receivables.map((r) => r.toPlainObject()),
+        receivables: result.receivables.map((r) => ({
+          ...r.toPlainObject(),
+          clientName: result.clientName,
+        })),
       },
     };
   }
@@ -202,7 +208,10 @@ export class CnabController {
     return {
       data: {
         operation: result.operation.toPlainObject(),
-        receivables: result.receivables.map((r) => r.toPlainObject()),
+        receivables: result.receivables.map((r) => ({
+          ...r.toPlainObject(),
+          clientName: result.clientName,
+        })),
       },
     };
   }

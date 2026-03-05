@@ -24,9 +24,15 @@ export interface PaginatedCnabOperationsWithDetails {
   pagination: { total: number; page: number; pageSize: number; totalPages: number };
 }
 
+export interface OperationWithClientName {
+  operation: CnabOperationEntity;
+  clientName: string | null;
+}
+
 export interface CnabOperationRepository {
   save(operation: CnabOperationEntity): Promise<CnabOperationEntity>;
   findById(id: string): Promise<CnabOperationEntity | null>;
+  findByIdWithClientName(id: string): Promise<OperationWithClientName | null>;
   findByCnabFileId(cnabFileId: string): Promise<CnabOperationEntity | null>;
   findByFilters(filters: CnabOperationFilters): Promise<PaginatedCnabOperations>;
   findByFiltersWithDetails(filters: CnabOperationFilters): Promise<PaginatedCnabOperationsWithDetails>;

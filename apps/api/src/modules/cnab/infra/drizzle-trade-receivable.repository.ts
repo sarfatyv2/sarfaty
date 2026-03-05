@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { eq, and, gte, lte, count, desc, inArray, sql } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
-import { tradeReceivables } from '../../../database/schema';
+import { tradeReceivables, clients } from '../../../database/schema';
 import type {
   TradeReceivableRepository,
   TradeReceivableFilters,
@@ -60,8 +60,12 @@ export class DrizzleTradeReceivableRepository implements TradeReceivableReposito
 
     const [rows, [totalRow]] = await Promise.all([
       this.db
-        .select()
+        .select({
+          receivable: tradeReceivables,
+          clientName: clients.companyName,
+        })
         .from(tradeReceivables)
+        .leftJoin(clients, eq(tradeReceivables.clientId, clients.id))
         .where(whereClause)
         .orderBy(desc(tradeReceivables.dueDate))
         .limit(filters.pageSize)
@@ -72,7 +76,10 @@ export class DrizzleTradeReceivableRepository implements TradeReceivableReposito
     const total = totalRow?.count ?? 0;
 
     return {
-      receivables: rows.map(TradeReceivableMapper.toDomain),
+      receivables: rows.map((row) => ({
+        entity: TradeReceivableMapper.toDomain(row.receivable),
+        clientName: row.clientName ? String(row.clientName) : null,
+      })),
       pagination: {
         total,
         page: filters.page,
