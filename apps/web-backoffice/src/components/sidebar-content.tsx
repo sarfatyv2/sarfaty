@@ -15,7 +15,7 @@ const USER_MENU_SECTION = 'Meu Espaço';
 
 export function SidebarContent({ role, onNavigate }: SidebarContentProps) {
   const pathname = usePathname();
-  const config = ROLE_PERMISSIONS[role];
+  const config = ROLE_PERMISSIONS[role] ?? ROLE_PERMISSIONS.employee;
 
   const sidebarSections = config.sidebar.filter(
     (section) => section.section !== USER_MENU_SECTION,
