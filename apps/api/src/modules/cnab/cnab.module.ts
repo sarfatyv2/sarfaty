@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { MulterModule } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 import { ClientsModule } from '../clients/clients.module';
 import { DraweesModule } from '../drawees/drawees.module';
 
@@ -26,7 +24,6 @@ import { DrizzleClientDraweeRepository } from './infra/drizzle-client-drawee.rep
 
 @Module({
   imports: [
-    MulterModule.register({ storage: memoryStorage() }),
     ClientsModule,
     DraweesModule,
   ],

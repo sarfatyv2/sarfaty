@@ -1,5 +1,5 @@
 import {
-  Body,
+  BadRequestException,
   Controller,
   Get,
   HttpCode,
@@ -7,11 +7,9 @@ import {
   Param,
   Post,
   Query,
-  UploadedFile,
+  Req,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../../common/guards/roles.guard';
@@ -50,19 +48,45 @@ export class CnabController {
   @Roles(...CNAB_ROLES)
   @HttpCode(HttpStatus.CREATED)
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
   async upload(
-    @UploadedFile() file: Express.Multer.File,
-    @Body(new ZodValidationPipe(uploadCnabFileSchema)) dto: UploadCnabFileDto,
+    @Req() req: { body: Record<string, { value?: string; toBuffer?: () => Promise<Buffer>; filename?: string }> },
   ) {
-    const fileContent = file.buffer.toString('latin1');
-    const bankCode = this.parserRegistry.detectBankCode(fileContent) ?? dto.bankCode;
+    const body = req.body;
+    if (!body) {
+      throw new BadRequestException('Request body is required');
+    }
+
+    const filePart = body.file;
+    if (!filePart?.toBuffer) {
+      throw new BadRequestException('File is required');
+    }
+
+    const buffer = await filePart.toBuffer();
+    const clientId = String(
+      (body.clientId as { value?: string } | undefined)?.value ?? (body.clientId as string | undefined) ?? '',
+    ).trim();
+    const bankCode = String(
+      (body.bankCode as { value?: string } | undefined)?.value ?? (body.bankCode as string | undefined) ?? '',
+    ).trim();
+
+    const parsed = uploadCnabFileSchema.safeParse({
+      clientId,
+      bankCode: bankCode && bankCode !== 'auto' ? bankCode : '237',
+    });
+    if (!parsed.success) {
+      throw new BadRequestException({ message: 'Validation failed', errors: parsed.error.flatten().fieldErrors });
+    }
+
+    const dto = parsed.data as UploadCnabFileDto;
+    const originalFilename = filePart.filename ?? 'cnab.rem';
+    const fileContent = buffer.toString('latin1');
+    const detectedBankCode = this.parserRegistry.detectBankCode(fileContent) ?? dto.bankCode;
 
     const cnabFile = await this.uploadUseCase.execute({
       clientId: dto.clientId,
-      storagePath: `cnab/${dto.clientId}/${Date.now()}_${file.originalname}`,
-      originalFilename: file.originalname,
-      bankCode,
+      storagePath: `cnab/${dto.clientId}/${Date.now()}_${originalFilename}`,
+      originalFilename,
+      bankCode: detectedBankCode,
     });
 
     const result = await this.parseUseCase.execute(cnabFile.id, fileContent);
