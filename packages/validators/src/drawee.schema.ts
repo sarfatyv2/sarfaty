@@ -119,3 +119,20 @@ export const updateDraweeBankAccountSchema = createDraweeBankAccountSchema.parti
 
 export type CreateDraweeBankAccountDto = z.infer<typeof createDraweeBankAccountSchema>;
 export type UpdateDraweeBankAccountDto = z.infer<typeof updateDraweeBankAccountSchema>;
+
+// --- Drawee Authorized Persons (Sócios) ---
+export const createDraweeAuthorizedPersonSchema = z.object({
+  authorizationType: z.enum(['partner', 'administrator', 'attorney', 'legal_representative', 'authorized']).optional(),
+  fullName: z.string().min(2),
+  cpf: cpfSchema.optional(),
+  phone: z.string().max(20).optional(),
+  email: z.string().email().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export const updateDraweeAuthorizedPersonSchema = createDraweeAuthorizedPersonSchema.partial().extend({
+  fullName: z.string().min(2).optional(),
+});
+
+export type CreateDraweeAuthorizedPersonDto = z.infer<typeof createDraweeAuthorizedPersonSchema>;
+export type UpdateDraweeAuthorizedPersonDto = z.infer<typeof updateDraweeAuthorizedPersonSchema>;

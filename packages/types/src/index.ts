@@ -41,6 +41,7 @@ export {
 export {
   type PersonType,
   type Drawee,
+  type DraweeAuthorizedPerson,
   type DraweeContact,
   type DraweeAddress,
   type DraweeBankAccount,
