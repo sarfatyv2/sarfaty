@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useState, useCallback, Fragment } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -13,12 +13,15 @@ import {
   Badge,
   Button,
 } from '@nexus/ui';
-import { ChevronLeft, ChevronRight, Briefcase, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronLeft, Briefcase, ExternalLink } from 'lucide-react';
+import { OperationExpandedRow } from './operation-expanded-row';
 
 interface CnabOperation {
   id: string;
   clientId: string;
   cnabFileId: string;
+  clientName?: string | null;
+  originalFilename?: string | null;
   status: string;
   totalSubmittedAmount: string;
   totalApprovedAmount: string;
@@ -54,10 +57,22 @@ function formatCurrency(value: string | null): string {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+const COL_COUNT = 8;
+
 export function OperationsTable({ operations, pagination }: OperationsTableProps) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const toggleRow = useCallback((id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   const goToPage = useCallback(
     (page: number) => {
@@ -84,6 +99,7 @@ export function OperationsTable({ operations, pagination }: OperationsTableProps
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10" />
               <TableHead>Cliente</TableHead>
               <TableHead>Arquivo</TableHead>
               <TableHead className="text-right">Valor Submetido</TableHead>
@@ -95,25 +111,50 @@ export function OperationsTable({ operations, pagination }: OperationsTableProps
           </TableHeader>
           <TableBody>
             {operations.map((op) => {
+              const isOpen = expanded.has(op.id);
               const statusConfig = STATUS_CONFIG[op.status] ?? { label: op.status, variant: 'outline' as const };
               return (
-                <TableRow key={op.id}>
-                  <TableCell className="text-sm font-medium">{op.clientId.slice(0, 8)}...</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{op.cnabFileId.slice(0, 8)}...</TableCell>
-                  <TableCell className="text-right text-sm font-medium">{formatCurrency(op.totalSubmittedAmount)}</TableCell>
-                  <TableCell className="text-right text-sm font-medium">{formatCurrency(op.totalApprovedAmount)}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right text-sm">{formatDate(op.createdAt)}</TableCell>
-                  <TableCell>
-                    <Link href={`/cnab/operations/${op.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <ExternalLink size={14} />
-                      </Button>
-                    </Link>
-                  </TableCell>
-                </TableRow>
+                <Fragment key={op.id}>
+                  <TableRow
+                    key={op.id}
+                    className="cursor-pointer"
+                    onClick={() => toggleRow(op.id)}
+                  >
+                    <TableCell className="w-10 px-2">
+                      {isOpen ? (
+                        <ChevronDown size={16} className="text-muted-foreground" />
+                      ) : (
+                        <ChevronRight size={16} className="text-muted-foreground" />
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm font-medium">
+                      {op.clientName ?? op.clientId.slice(0, 8) + '...'}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {op.originalFilename ?? op.cnabFileId.slice(0, 8) + '...'}
+                    </TableCell>
+                    <TableCell className="text-right text-sm font-medium">
+                      {formatCurrency(op.totalSubmittedAmount)}
+                    </TableCell>
+                    <TableCell className="text-right text-sm font-medium">
+                      {formatCurrency(op.totalApprovedAmount)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right text-sm">{formatDate(op.createdAt)}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Link href={`/cnab/operations/${op.id}`}>
+                        <Button variant="ghost" size="sm" title="Ver página completa">
+                          <ExternalLink size={14} />
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                  {isOpen && (
+                    <OperationExpandedRow operationId={op.id} colSpan={COL_COUNT} />
+                  )}
+                </Fragment>
               );
             })}
           </TableBody>

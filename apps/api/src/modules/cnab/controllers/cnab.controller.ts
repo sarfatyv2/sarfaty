@@ -172,7 +172,11 @@ export class CnabController {
       pageSize: query.pageSize ?? 20,
     });
     return {
-      data: result.operations.map((o) => o.toPlainObject()),
+      data: result.operations.map((o) => ({
+        ...o.toPlainObject(),
+        clientName: (o as { clientName?: string }).clientName ?? null,
+        originalFilename: (o as { originalFilename?: string }).originalFilename ?? null,
+      })),
       pagination: result.pagination,
     };
   }

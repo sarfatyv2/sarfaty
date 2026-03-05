@@ -9,8 +9,18 @@ export interface CnabOperationFilters {
   pageSize: number;
 }
 
+export interface CnabOperationListItem extends CnabOperationEntity {
+  clientName: string | null;
+  originalFilename: string | null;
+}
+
 export interface PaginatedCnabOperations {
   operations: CnabOperationEntity[];
+  pagination: { total: number; page: number; pageSize: number; totalPages: number };
+}
+
+export interface PaginatedCnabOperationsWithDetails {
+  operations: CnabOperationListItem[];
   pagination: { total: number; page: number; pageSize: number; totalPages: number };
 }
 
@@ -19,6 +29,7 @@ export interface CnabOperationRepository {
   findById(id: string): Promise<CnabOperationEntity | null>;
   findByCnabFileId(cnabFileId: string): Promise<CnabOperationEntity | null>;
   findByFilters(filters: CnabOperationFilters): Promise<PaginatedCnabOperations>;
+  findByFiltersWithDetails(filters: CnabOperationFilters): Promise<PaginatedCnabOperationsWithDetails>;
   updateTotalApprovedAmount(id: string, amount: string): Promise<CnabOperationEntity | null>;
   updateStatus(id: string, status: string): Promise<CnabOperationEntity | null>;
 }

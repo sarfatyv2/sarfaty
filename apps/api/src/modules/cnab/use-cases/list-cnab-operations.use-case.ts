@@ -19,7 +19,7 @@ export class ListCnabOperationsUseCase {
     const page = input.page ?? 1;
     const pageSize = input.pageSize ?? 20;
 
-    return this.operationRepo.findByFilters({
+    return this.operationRepo.findByFiltersWithDetails({
       clientId: input.clientId,
       status: input.status,
       page,
