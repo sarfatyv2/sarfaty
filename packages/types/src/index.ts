@@ -153,6 +153,13 @@ export {
   type SupportedBankCode,
 } from './cnab';
 export {
+  CNAB_OPERATION_STATUSES,
+  type CnabOperationStatus,
+  EVALUATION_STATUSES,
+  type EvaluationStatus,
+  type CnabOperation,
+} from './cnab-operation';
+export {
   TRADE_RECEIVABLE_STATUSES,
   type TradeReceivableStatus,
   DOCUMENT_TYPES,

@@ -1,4 +1,4 @@
-import type { TradeReceivableStatus } from '@nexus/types';
+import type { TradeReceivableStatus, EvaluationStatus } from '@nexus/types';
 
 export interface TradeReceivableProps {
   id: string;
@@ -33,6 +33,9 @@ export interface TradeReceivableProps {
   branch: string | null;
   portfolioCode: string | null;
   status: TradeReceivableStatus;
+  operationId: string | null;
+  evaluationStatus: EvaluationStatus;
+  rejectionReason: string | null;
   portfolioPositionId: string | null;
   cnabRecordSequence: number | null;
   rawLine: string | null;
@@ -73,6 +76,9 @@ export class TradeReceivableEntity {
   readonly branch: string | null;
   readonly portfolioCode: string | null;
   readonly status: TradeReceivableStatus;
+  readonly operationId: string | null;
+  readonly evaluationStatus: EvaluationStatus;
+  readonly rejectionReason: string | null;
   readonly portfolioPositionId: string | null;
   readonly cnabRecordSequence: number | null;
   readonly rawLine: string | null;
@@ -113,6 +119,9 @@ export class TradeReceivableEntity {
     this.branch = props.branch;
     this.portfolioCode = props.portfolioCode;
     this.status = props.status;
+    this.operationId = props.operationId;
+    this.evaluationStatus = props.evaluationStatus;
+    this.rejectionReason = props.rejectionReason;
     this.portfolioPositionId = props.portfolioPositionId;
     this.cnabRecordSequence = props.cnabRecordSequence;
     this.rawLine = props.rawLine;
@@ -162,6 +171,9 @@ export class TradeReceivableEntity {
       branch: this.branch,
       portfolioCode: this.portfolioCode,
       status: this.status,
+      operationId: this.operationId,
+      evaluationStatus: this.evaluationStatus,
+      rejectionReason: this.rejectionReason,
       portfolioPositionId: this.portfolioPositionId,
       cnabRecordSequence: this.cnabRecordSequence,
       createdAt: this.createdAt?.toISOString() ?? null,

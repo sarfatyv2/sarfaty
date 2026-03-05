@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq, and, gte, lte, count, desc } from 'drizzle-orm';
+import { eq, and, gte, lte, count, desc, inArray, sql } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
 import { tradeReceivables } from '../../../database/schema';
 import type {
@@ -49,7 +49,9 @@ export class DrizzleTradeReceivableRepository implements TradeReceivableReposito
     if (filters.clientId) conditions.push(eq(tradeReceivables.clientId, filters.clientId));
     if (filters.draweeId) conditions.push(eq(tradeReceivables.draweeId, filters.draweeId));
     if (filters.cnabFileId) conditions.push(eq(tradeReceivables.cnabFileId, filters.cnabFileId));
+    if (filters.operationId) conditions.push(eq(tradeReceivables.operationId, filters.operationId));
     if (filters.status) conditions.push(eq(tradeReceivables.status, filters.status));
+    if (filters.evaluationStatus) conditions.push(eq(tradeReceivables.evaluationStatus, filters.evaluationStatus));
     if (filters.dueDateFrom) conditions.push(gte(tradeReceivables.dueDate, filters.dueDateFrom));
     if (filters.dueDateTo) conditions.push(lte(tradeReceivables.dueDate, filters.dueDateTo));
 
@@ -78,5 +80,41 @@ export class DrizzleTradeReceivableRepository implements TradeReceivableReposito
         totalPages: Math.ceil(total / filters.pageSize),
       },
     };
+  }
+
+  async updateEvaluation(
+    id: string,
+    evaluationStatus: 'approved' | 'rejected',
+    rejectionReason?: string | null,
+  ): Promise<TradeReceivableEntity | null> {
+    const [row] = await this.db
+      .update(tradeReceivables)
+      .set({
+        evaluationStatus,
+        rejectionReason: evaluationStatus === 'rejected' ? (rejectionReason ?? null) : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(tradeReceivables.id, id))
+      .returning();
+    return row ? TradeReceivableMapper.toDomain(row) : null;
+  }
+
+  async updateOperationId(ids: string[], operationId: string): Promise<void> {
+    if (ids.length === 0) return;
+    await this.db
+      .update(tradeReceivables)
+      .set({ operationId, updatedAt: new Date() })
+      .where(inArray(tradeReceivables.id, ids));
+  }
+
+  async sumApprovedFaceValueByOperationId(operationId: string): Promise<string> {
+    const rows = await this.db
+      .select({
+        total: sql<string>`COALESCE(SUM(CAST(${tradeReceivables.faceValue} AS NUMERIC)), 0)::text`,
+      })
+      .from(tradeReceivables)
+      .where(and(eq(tradeReceivables.operationId, operationId), eq(tradeReceivables.evaluationStatus, 'approved')));
+
+    return rows[0]?.total ?? '0';
   }
 }

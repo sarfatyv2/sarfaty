@@ -1,5 +1,5 @@
 import { TradeReceivableEntity, type TradeReceivableProps } from '../../domain/trade-receivable.entity';
-import type { TradeReceivableStatus } from '@nexus/types';
+import type { TradeReceivableStatus, EvaluationStatus } from '@nexus/types';
 import type { tradeReceivables } from '../../../../database/schema';
 
 type TradeReceivableRow = typeof tradeReceivables.$inferSelect;
@@ -39,6 +39,9 @@ export class TradeReceivableMapper {
       branch: row.branch,
       portfolioCode: row.portfolioCode,
       status: (row.status ?? 'pending') as TradeReceivableStatus,
+      operationId: row.operationId,
+      evaluationStatus: (row.evaluationStatus ?? 'pending') as EvaluationStatus,
+      rejectionReason: row.rejectionReason,
       portfolioPositionId: row.portfolioPositionId,
       cnabRecordSequence: row.cnabRecordSequence,
       rawLine: row.rawLine,
@@ -81,6 +84,9 @@ export class TradeReceivableMapper {
       branch: entity.branch,
       portfolioCode: entity.portfolioCode,
       status: entity.status,
+      operationId: entity.operationId,
+      evaluationStatus: entity.evaluationStatus,
+      rejectionReason: entity.rejectionReason,
       portfolioPositionId: entity.portfolioPositionId,
       cnabRecordSequence: entity.cnabRecordSequence,
       rawLine: entity.rawLine,

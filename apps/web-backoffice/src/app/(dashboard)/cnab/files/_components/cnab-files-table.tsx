@@ -13,7 +13,7 @@ import {
   Badge,
   Button,
 } from '@nexus/ui';
-import { ChevronLeft, ChevronRight, FileSpreadsheet, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileSpreadsheet, Briefcase, FileText } from 'lucide-react';
 
 interface CnabFile {
   id: string;
@@ -112,11 +112,18 @@ export function CnabFilesTable({ files, pagination }: CnabFilesTableProps) {
                     <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Link href={`/cnab/receivables?cnabFileId=${f.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <ExternalLink size={14} />
-                      </Button>
-                    </Link>
+                    <div className="flex gap-1">
+                      <Link href={`/cnab/operations/file/${f.id}`}>
+                        <Button variant="ghost" size="sm" title="Avaliar operação">
+                          <Briefcase size={14} />
+                        </Button>
+                      </Link>
+                      <Link href={`/cnab/receivables?cnabFileId=${f.id}`}>
+                        <Button variant="ghost" size="sm" title="Ver duplicatas">
+                          <FileText size={14} />
+                        </Button>
+                      </Link>
+                    </div>
                   </TableCell>
                 </TableRow>
               );

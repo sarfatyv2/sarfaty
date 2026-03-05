@@ -13,12 +13,15 @@ import {
 } from '@nexus/ui';
 import { ChevronDown, ChevronRight, ChevronLeft, FileSpreadsheet } from 'lucide-react';
 import { ReceivableStatusBadge } from './receivable-status-badge';
+import { EvaluationStatusBadge } from './evaluation-status-badge';
 import { ReceivableExpandedRow } from './receivable-expanded-row';
 
 interface Receivable {
   id: string;
   documentNumber: string | null;
   draweeName: string | null;
+  evaluationStatus?: string;
+  rejectionReason?: string | null;
   draweeDoc: string | null;
   draweeDocType: string | null;
   draweeAddress: string | null;
@@ -80,7 +83,7 @@ function formatDoc(doc: string | null, type: string | null): string {
   return doc;
 }
 
-const COL_COUNT = 7;
+const COL_COUNT = 8;
 
 export function ReceivablesTable({ receivables, pagination }: ReceivablesTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -125,6 +128,7 @@ export function ReceivablesTable({ receivables, pagination }: ReceivablesTablePr
               <TableHead>Vencimento</TableHead>
               <TableHead className="text-right">Valor</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Avaliação</TableHead>
               <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
@@ -158,6 +162,13 @@ export function ReceivablesTable({ receivables, pagination }: ReceivablesTablePr
                     <TableCell className="text-sm text-right font-medium">{formatCurrency(r.faceValue)}</TableCell>
                     <TableCell>
                       <ReceivableStatusBadge status={r.status} />
+                    </TableCell>
+                    <TableCell>
+                      {r.evaluationStatus ? (
+                        <EvaluationStatusBadge status={r.evaluationStatus} />
+                      ) : (
+                        '—'
+                      )}
                     </TableCell>
                     <TableCell className="w-10" />
                   </TableRow>

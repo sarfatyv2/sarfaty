@@ -2,6 +2,7 @@ import { pgTable, uuid, text, numeric, integer, date, timestamp, index } from 'd
 import { clients } from './clients';
 import { drawees } from './drawees';
 import { cnabRemittanceFiles } from './cnab-remittance-files';
+import { cnabOperations } from './cnab-operations';
 import { portfolioPositions } from './portfolio-positions';
 
 export const tradeReceivables = pgTable('trade_receivables', {
@@ -45,6 +46,9 @@ export const tradeReceivables = pgTable('trade_receivables', {
   portfolioCode: text('portfolio_code'),
 
   status: text('status').notNull().default('pending'),
+  operationId: uuid('operation_id').references(() => cnabOperations.id, { onDelete: 'set null' }),
+  evaluationStatus: text('evaluation_status').notNull().default('pending'),
+  rejectionReason: text('rejection_reason'),
   portfolioPositionId: uuid('portfolio_position_id').references(() => portfolioPositions.id, { onDelete: 'set null' }),
   cnabRecordSequence: integer('cnab_record_sequence'),
   rawLine: text('raw_line'),
@@ -55,6 +59,7 @@ export const tradeReceivables = pgTable('trade_receivables', {
   clientDueDateIdx: index('idx_trade_receivables_client_due').on(table.clientId, table.dueDate),
   draweeStatusIdx: index('idx_trade_receivables_drawee_status').on(table.draweeId, table.status),
   cnabFileIdx: index('idx_trade_receivables_cnab_file').on(table.cnabFileId),
+  operationIdx: index('idx_trade_receivables_operation').on(table.operationId),
   draweeDocIdx: index('idx_trade_receivables_drawee_doc').on(table.draweeDoc),
   docNumberClientIdx: index('idx_trade_receivables_doc_client').on(table.documentNumber, table.clientId),
 }));

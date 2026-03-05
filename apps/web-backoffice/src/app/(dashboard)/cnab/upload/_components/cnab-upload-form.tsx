@@ -25,6 +25,7 @@ interface UploadResult {
     totalParsed: number;
     errors: number;
   };
+  operationId?: string | null;
 }
 
 const BANKS = [
@@ -56,7 +57,7 @@ export function CnabUploadForm({ clientId }: { readonly clientId?: string }) {
 
       const response = await api.postFormData<UploadResult>('/cnab/upload', formData);
       const data = response as unknown as UploadResult;
-      setResult(data);
+      setResult(data as UploadResult);
       toast.success(`Arquivo processado: ${data.parsed.totalParsed} títulos`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao processar arquivo CNAB');
@@ -147,6 +148,7 @@ export function CnabUploadForm({ clientId }: { readonly clientId?: string }) {
       {result && (
         <CnabUploadResult
           fileId={result.data.id}
+          operationId={result.operationId}
           totalParsed={result.parsed.totalParsed}
           errors={result.parsed.errors}
           status={result.data.status}

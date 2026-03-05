@@ -66,6 +66,7 @@ async function ReceivablesList({ searchParams }: { searchParams: Record<string, 
   if (searchParams.draweeId) params.draweeId = searchParams.draweeId;
   if (searchParams.cnabFileId) params.cnabFileId = searchParams.cnabFileId;
   if (searchParams.status) params.status = searchParams.status;
+  if (searchParams.evaluationStatus) params.evaluationStatus = searchParams.evaluationStatus;
   if (searchParams.dueDateFrom) params.dueDateFrom = searchParams.dueDateFrom;
   if (searchParams.dueDateTo) params.dueDateTo = searchParams.dueDateTo;
 
