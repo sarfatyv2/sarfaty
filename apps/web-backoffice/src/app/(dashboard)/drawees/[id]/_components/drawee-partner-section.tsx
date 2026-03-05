@@ -295,12 +295,12 @@ export function DraweePartnerSection({ draweeId, personType }: DraweePartnerSect
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm flex items-center gap-2">
               <Users size={15} className="text-primary" />
-              Sócios e Administradores
+              Sócios
               {!loading && <span className="text-sm font-normal text-muted-foreground">({partners.length})</span>}
             </CardTitle>
             <Button variant="outline" size="sm" onClick={openCreate} className="gap-1.5">
               <Plus size={14} />
-              Adicionar
+              Adicionar Sócio
             </Button>
           </div>
         </CardHeader>

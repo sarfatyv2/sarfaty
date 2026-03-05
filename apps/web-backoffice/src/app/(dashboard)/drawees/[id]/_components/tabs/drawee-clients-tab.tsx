@@ -69,10 +69,10 @@ export function DraweeClientsTab({ draweeId }: DraweeClientsTabProps) {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Users size={16} className="text-primary" />
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-transparent">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Users size={15} className="text-primary" />
             Clientes Vinculados
           </CardTitle>
         </CardHeader>
@@ -85,10 +85,10 @@ export function DraweeClientsTab({ draweeId }: DraweeClientsTabProps) {
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Users size={16} className="text-primary" />
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-transparent">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Users size={15} className="text-primary" />
             Clientes Vinculados
           </CardTitle>
         </CardHeader>
@@ -100,21 +100,25 @@ export function DraweeClientsTab({ draweeId }: DraweeClientsTabProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <Users size={16} className="text-primary" />
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-transparent">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Users size={15} className="text-primary" />
           Clientes Vinculados
-          <span className="text-xs font-normal text-muted-foreground">
+          <span className="text-sm font-normal text-muted-foreground">
             ({clients.length} {clients.length === 1 ? 'cliente' : 'clientes'})
           </span>
         </CardTitle>
       </CardHeader>
       <CardContent>
         {clients.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">
-            Nenhum cliente vinculado a este sacado.
-          </p>
+          <div className="rounded-xl border border-dashed bg-muted/20 flex flex-col items-center justify-center py-12 text-center space-y-2">
+            <Users size={28} className="text-muted-foreground/30" />
+            <p className="text-sm text-muted-foreground font-medium">Nenhum cliente vinculado.</p>
+            <p className="text-xs text-muted-foreground">
+              Os clientes que operam com este sacado aparecerão aqui.
+            </p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
