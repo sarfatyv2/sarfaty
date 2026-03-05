@@ -23,7 +23,7 @@ export class CreateCnabOperationUseCase {
     const operation = CnabOperationEntity.create({
       clientId: input.clientId,
       cnabFileId: input.cnabFileId,
-      status: 'draft',
+      status: 'under_evaluation',
       totalSubmittedAmount: input.totalSubmittedAmount,
       totalApprovedAmount: '0',
     });

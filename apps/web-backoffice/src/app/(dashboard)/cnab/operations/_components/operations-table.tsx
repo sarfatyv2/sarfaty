@@ -41,7 +41,7 @@ interface OperationsTableProps {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  draft: { label: 'Rascunho', variant: 'outline' },
+  draft: { label: 'Rascunho', variant: 'outline' }, // legado
   under_evaluation: { label: 'Em avaliação', variant: 'secondary' },
   evaluated: { label: 'Avaliada', variant: 'default' },
   active: { label: 'Ativa', variant: 'default' },
