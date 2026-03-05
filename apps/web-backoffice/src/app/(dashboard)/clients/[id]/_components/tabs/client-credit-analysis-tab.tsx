@@ -199,7 +199,7 @@ interface ComplianceResults {
   } | null;
 }
 
-function RiskBadge({ level }: Readonly<{ level: ComplianceResults['overallRisk'] }>) {
+export function RiskBadge({ level }: Readonly<{ level: ComplianceResults['overallRisk'] }>) {
   const config: Record<string, { label: string; type: BadgeType }> = {
     CRITICAL: { label: 'Risco Crítico', type: 'danger' },
     HIGH: { label: 'Risco Alto', type: 'danger' },
@@ -332,7 +332,7 @@ function CndtStatusContent({ cndt }: Readonly<{ cndt: NonNullable<ComplianceResu
   );
 }
 
-function ExpandableHeader({ icon, title, subtitle, badge, isOpen, onToggle }: Readonly<{
+export function ExpandableHeader({ icon, title, subtitle, badge, isOpen, onToggle }: Readonly<{
   icon: React.ReactNode;
   title: string;
   subtitle?: string;
@@ -357,7 +357,7 @@ function ExpandableHeader({ icon, title, subtitle, badge, isOpen, onToggle }: Re
   );
 }
 
-function SerasaSection({ report, isRequesting, onRequest, viewRaw, toggleRaw }: Readonly<{
+export function SerasaSection({ report, isRequesting, onRequest, viewRaw, toggleRaw }: Readonly<{
   report: SerasaReportData | null;
   isRequesting: boolean;
   onRequest: () => void;
@@ -483,7 +483,7 @@ function SerasaScoreCards({ raw }: Readonly<{ raw: any }>) {
   );
 }
 
-function SerasaScoreBadge({ score }: Readonly<{ score: number }>) {
+export function SerasaScoreBadge({ score }: Readonly<{ score: number }>) {
   let label: string;
   let type: BadgeType;
   if (score >= 700) { label = 'Baixo Risco'; type = 'success'; }
@@ -1191,8 +1191,9 @@ function SlaveLaborCard({ check, viewRaw, toggleRaw }: Readonly<{
   );
 }
 
-function ComplianceSection({ clientId, compliance, viewRaw, toggleRaw, pendingChecks }: Readonly<{
-  clientId: string;
+export function ComplianceSection({ clientId, draweeId, compliance, viewRaw, toggleRaw, pendingChecks }: Readonly<{
+  clientId?: string;
+  draweeId?: string;
   compliance: ComplianceResults;
   viewRaw: Record<string, boolean>;
   toggleRaw: (id: string) => void;
@@ -1254,16 +1255,22 @@ function ComplianceSection({ clientId, compliance, viewRaw, toggleRaw, pendingCh
         {compliance.slaveLaborCheck && <SlaveLaborCard check={compliance.slaveLaborCheck} viewRaw={viewRaw} toggleRaw={toggleRaw} />}
       </ComplianceCheckOrPending>
 
-      <ComplianceCheckOrPending name="negativeMedia" hasData={compliance.negativeMedia.length > 0} pendingChecks={pendingChecks}>
+      {pendingChecks.includes('negativeMedia') ? (
+        <PendingCheckCard {...PENDING_CHECK_LABELS.negativeMedia} />
+      ) : (
         <ComplianceSubCard
           icon={<Search size={15} className="text-primary" />}
           title="Mídia Negativa — OSINT"
           badge={compliance.negativeMedia.length > 0 ? <MediaRiskBadge level={compliance.negativeMedia[0]?.riskLevel ?? 'CLEAR'} /> : undefined}
           defaultOpen={compliance.negativeMedia[0]?.riskLevel === 'HIGH' || compliance.negativeMedia[0]?.riskLevel === 'MEDIUM'}
         >
-          <NegativeMediaSection clientId={clientId} initialSearches={compliance.negativeMedia} />
+          <NegativeMediaSection
+            initialSearches={compliance.negativeMedia}
+            clientId={clientId}
+            draweeId={draweeId}
+          />
         </ComplianceSubCard>
-      </ComplianceCheckOrPending>
+      )}
 
       <ComplianceCheckOrPending name="digitalPresence" hasData={!!compliance.digitalPresence} pendingChecks={pendingChecks}>
         {compliance.digitalPresence && (
@@ -1647,7 +1654,17 @@ function FindingCategoryBadge({ category }: Readonly<{ category: string }>) {
 
 type NegativeMediaSearch = ComplianceResults['negativeMedia'][number];
 
-function NegativeMediaSection({ clientId, initialSearches }: Readonly<{ clientId: string; initialSearches: ComplianceResults['negativeMedia'] }>) {
+function NegativeMediaSection({
+  initialSearches,
+  onNewSearch: onNewSearchProp,
+  clientId: clientIdProp,
+  draweeId,
+}: Readonly<{
+  initialSearches: ComplianceResults['negativeMedia'];
+  onNewSearch?: () => Promise<NegativeMediaSearch | null>;
+  clientId?: string;
+  draweeId?: string;
+}>) {
   const [searches, setSearches] = useState<NegativeMediaSearch[]>(initialSearches);
   const [searching, setSearching] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(() => {
@@ -1671,10 +1688,19 @@ function NegativeMediaSection({ clientId, initialSearches }: Readonly<{ clientId
   const handleNewSearch = async () => {
     setSearching(true);
     try {
-      const res = await api.post<NegativeMediaSearch>(`/clients/${clientId}/credit-analysis/negative-media/search`);
-      if (res.data) {
-        setSearches((prev) => [res.data!, ...prev]);
-        setExpanded((prev) => new Set([res.data!.id, ...prev]));
+      let data: NegativeMediaSearch | null = null;
+      if (onNewSearchProp) {
+        data = await onNewSearchProp();
+      } else if (draweeId) {
+        const res = await api.post<NegativeMediaSearch>(`/drawees/${draweeId}/credit-analysis/negative-media/search`);
+        data = res.data ?? null;
+      } else if (clientIdProp) {
+        const res = await api.post<NegativeMediaSearch>(`/clients/${clientIdProp}/credit-analysis/negative-media/search`);
+        data = res.data ?? null;
+      }
+      if (data) {
+        setSearches((prev) => [data!, ...prev]);
+        setExpanded((prev) => new Set([data!.id, ...prev]));
         toast.success('Busca de mídia negativa concluída.');
       }
     } catch (err) {

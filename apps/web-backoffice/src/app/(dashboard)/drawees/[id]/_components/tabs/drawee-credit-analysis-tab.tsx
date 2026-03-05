@@ -1,11 +1,25 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Skeleton, Badge, Button, ScrollArea } from '@nexus/ui';
-import { FileText, XCircle, Code2, Building2, MapPin, Activity, Leaf, Users, Landmark, Scale, Globe, AlertTriangle, CheckCircle2, Search, Monitor, Mail, ExternalLink, RefreshCw, Loader2, Shield } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, Skeleton, Badge, Button } from '@nexus/ui';
+import { FileText, XCircle, MapPin, Users, Shield, Scale, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
-import { ExpandableContent, RotatingChevron } from '@/app/(dashboard)/clients/[id]/_components/motion-wrapper';
+import { ExpandableContent } from '@/app/(dashboard)/clients/[id]/_components/motion-wrapper';
+import {
+  SerasaSection,
+  SerasaScoreBadge,
+  ComplianceSection,
+  RiskBadge,
+  ExpandableHeader,
+} from '@/app/(dashboard)/clients/[id]/_components/tabs/client-credit-analysis-tab';
+
+function AddressValidationBadge({ addressValidation }: { addressValidation: { isValid: boolean; matchesRegistered: boolean | null } }) {
+  if (!addressValidation.isValid) return <Badge className="bg-red-100 text-red-700 font-semibold px-2.5 py-0.5">CEP Inválido</Badge>;
+  if (addressValidation.matchesRegistered === true) return <Badge className="bg-emerald-100 text-emerald-700 font-semibold px-2.5 py-0.5">Consistente</Badge>;
+  if (addressValidation.matchesRegistered === false) return <Badge className="bg-amber-100 text-amber-700 font-semibold px-2.5 py-0.5">Inconsistente</Badge>;
+  return null;
+}
 
 type BadgeType = 'success' | 'danger' | 'warning' | 'neutral';
 
@@ -115,30 +129,6 @@ function StatusBadge({ value, type }: { value: string | null | undefined; type: 
   return <Badge className={`${colors[type]} font-semibold`}>{value}</Badge>;
 }
 
-function RiskBadge({ level }: { level: ComplianceDraweeResults['overallRisk'] }) {
-  const config: Record<string, { label: string; type: BadgeType }> = {
-    CRITICAL: { label: 'Risco Crítico', type: 'danger' }, HIGH: { label: 'Risco Alto', type: 'danger' },
-    MEDIUM: { label: 'Risco Médio', type: 'warning' }, LOW: { label: 'Risco Baixo', type: 'success' },
-    CLEAR: { label: 'Sem Restrições', type: 'success' }, PENDING: { label: 'Pendente', type: 'neutral' },
-  };
-  const c = config[level] ?? { label: level, type: 'neutral' as BadgeType };
-  return <StatusBadge value={c.label} type={c.type} />;
-}
-
-function ExpandableHeader({ icon, title, subtitle, badge, isOpen, onToggle }: { icon: React.ReactNode; title: string; subtitle?: string; badge?: React.ReactNode; isOpen: boolean; onToggle: () => void }) {
-  return (
-    <button type="button" className="flex w-full items-center justify-between px-8 py-5 cursor-pointer text-left" onClick={onToggle}>
-      <div className="flex items-center gap-3">
-        {icon}
-        <span className="text-sm font-medium">{title}</span>
-        {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
-        {badge}
-      </div>
-      <RotatingChevron isOpen={isOpen} className="text-muted-foreground" />
-    </button>
-  );
-}
-
 interface DraweeCreditAnalysisTabProps {
   draweeId: string;
 }
@@ -154,6 +144,7 @@ export function DraweeCreditAnalysisTab({ draweeId }: DraweeCreditAnalysisTabPro
   const [vaduExpanded, setVaduExpanded] = useState(false);
   const [serasaExpanded, setSerasaExpanded] = useState(false);
   const [complianceExpanded, setComplianceExpanded] = useState(false);
+  const [addressExpanded, setAddressExpanded] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -220,18 +211,6 @@ export function DraweeCreditAnalysisTab({ draweeId }: DraweeCreditAnalysisTabPro
     }
   };
 
-  const handleNegativeMediaSearch = async () => {
-    try {
-      const res = await api.post<ComplianceDraweeResults['negativeMedia'][number]>(`/drawees/${draweeId}/credit-analysis/negative-media/search`);
-      if (res.data && compliance) {
-        setCompliance({ ...compliance, negativeMedia: [res.data, ...compliance.negativeMedia] });
-        toast.success('Busca de mídia negativa concluída.');
-      }
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Erro ao buscar mídia negativa');
-    }
-  };
-
   const toggleRaw = (id: string) => setViewRaw((p) => ({ ...p, [id]: !p[id] }));
 
   if (loading) {
@@ -273,53 +252,19 @@ export function DraweeCreditAnalysisTab({ draweeId }: DraweeCreditAnalysisTabPro
           title="Serasa Experian"
           subtitle="Relatório Avançado PJ"
           badge={serasa?.rawResponse?.optionalFeatures?.score?.score != null ? (
-            <StatusBadge value={serasa.rawResponse.optionalFeatures.score.score >= 700 ? 'Baixo Risco' : serasa.rawResponse.optionalFeatures.score.score >= 400 ? 'Médio Risco' : 'Alto Risco'} type={serasa.rawResponse.optionalFeatures.score.score >= 700 ? 'success' : serasa.rawResponse.optionalFeatures.score.score >= 400 ? 'warning' : 'danger'} />
+            <SerasaScoreBadge score={Number(serasa.rawResponse.optionalFeatures.score.score)} />
           ) : undefined}
           isOpen={serasaExpanded}
           onToggle={() => setSerasaExpanded((v) => !v)}
         />
         <ExpandableContent isOpen={serasaExpanded}>
-          <div className="px-8 pb-8">
-            {!serasa ? (
-              <div className="flex flex-col items-center py-8 space-y-3">
-                <Search className="h-8 w-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Nenhuma consulta Serasa realizada.</p>
-                <Button onClick={handleRequestSerasa} disabled={isRequestingSerasa} size="sm" className="gap-1.5">
-                  {isRequestingSerasa ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
-                  Consultar Serasa
-                </Button>
-              </div>
-            ) : serasa.statusCode >= 400 ? (
-              <div className="flex flex-col items-center py-6 space-y-2">
-                <XCircle className="h-6 w-6 text-destructive/60" />
-                <p className="text-sm text-destructive">{serasa.errorMessage || `Erro HTTP ${serasa.statusCode}`}</p>
-                <Button variant="outline" size="sm" onClick={handleRequestSerasa} disabled={isRequestingSerasa}>
-                  {isRequestingSerasa ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
-                  Tentar Novamente
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Consultado em {formatDate(serasa.createdAt)}</span>
-                  <Button onClick={handleRequestSerasa} disabled={isRequestingSerasa} variant="outline" size="sm">
-                    {isRequestingSerasa ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
-                    Nova Consulta
-                  </Button>
-                </div>
-                {serasa.rawResponse && (
-                  <div className="grid grid-cols-2 gap-4">
-                    {serasa.rawResponse?.optionalFeatures?.score?.score != null && (
-                      <Card><CardContent className="pt-4"><InfoField label="Score" value={String(serasa.rawResponse.optionalFeatures.score.score)} /></CardContent></Card>
-                    )}
-                    {serasa.rawResponse?.optionalFeatures?.scores?.scoreResponse?.[0]?.score != null && (
-                      <Card><CardContent className="pt-4"><InfoField label="Limite Crédito" value={formatCurrency(serasa.rawResponse.optionalFeatures.scores.scoreResponse[0].score)} /></CardContent></Card>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <SerasaSection
+            report={serasa as Parameters<typeof SerasaSection>[0]['report']}
+            isRequesting={isRequestingSerasa}
+            onRequest={handleRequestSerasa}
+            viewRaw={viewRaw}
+            toggleRaw={toggleRaw}
+          />
         </ExpandableContent>
       </Card>
 
@@ -373,56 +318,43 @@ export function DraweeCreditAnalysisTab({ draweeId }: DraweeCreditAnalysisTabPro
             icon={<Scale size={15} className="text-primary" />}
             title="Compliance"
             subtitle="Consultas Gratuitas"
-            badge={isPolling ? <Badge className="bg-blue-100 text-blue-700 animate-pulse">Processando...</Badge> : <RiskBadge level={compliance.overallRisk} />}
+            badge={isPolling ? <Badge className="bg-blue-100 text-blue-700 border-blue-200 font-semibold px-2.5 py-0.5 animate-pulse">Processando...</Badge> : <RiskBadge level={compliance.overallRisk} />}
             isOpen={complianceExpanded}
             onToggle={() => setComplianceExpanded((v) => !v)}
           />
           <ExpandableContent isOpen={complianceExpanded}>
-            <div className="px-8 pb-8 space-y-4">
-              {compliance.cgu && (
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm">CGU</CardTitle></CardHeader>
-                  <CardContent>
-                    <div className="flex gap-4">
-                      <InfoField label="CEIS" value={compliance.cgu.ceis?.hasMatch ? 'Encontrado' : 'Nada consta'} />
-                      <InfoField label="CNEP" value={compliance.cgu.cnep?.hasMatch ? 'Encontrado' : 'Nada consta'} />
-                      <InfoField label="CEPIM" value={compliance.cgu.cepim?.hasMatch ? 'Encontrado' : 'Nada consta'} />
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-              {compliance.pgfn && (
-                <Card>
-                  <CardContent className="pt-4">
-                    <InfoField label="PGFN" value={compliance.pgfn.hasDebt ? `Devedor (${compliance.pgfn.debtCount} dívidas)` : 'Nada consta'} />
-                  </CardContent>
-                </Card>
-              )}
-              {compliance.sanctions?.length > 0 && (
-                <Card>
-                  <CardContent className="pt-4">
-                    {compliance.sanctions.some((s) => s.hasMatch) ? <StatusBadge value="Encontrado" type="danger" /> : <StatusBadge value="Nada consta" type="success" />}
-                  </CardContent>
-                </Card>
-              )}
-              {compliance.negativeMedia.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                    <CardTitle className="text-sm">Mídia Negativa</CardTitle>
-                    <Button size="sm" variant="outline" onClick={handleNegativeMediaSearch} className="gap-1">
-                      <RefreshCw size={12} /> Nova Busca
-                    </Button>
-                  </CardHeader>
-                  <CardContent>
-                    {compliance.negativeMedia.slice(0, 3).map((m) => (
-                      <div key={m.id} className="flex items-center gap-2 py-1">
-                        <span className="text-xs">{formatDate(m.queriedAt)}</span>
-                        <StatusBadge value={m.riskLevel} type={m.riskLevel === 'HIGH' ? 'danger' : m.riskLevel === 'MEDIUM' ? 'warning' : 'success'} />
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
+            <ComplianceSection
+              draweeId={draweeId}
+              compliance={compliance as Parameters<typeof ComplianceSection>[0]['compliance']}
+              viewRaw={viewRaw}
+              toggleRaw={toggleRaw}
+              pendingChecks={compliance.pendingChecks as Parameters<typeof ComplianceSection>[0]['pendingChecks']}
+            />
+          </ExpandableContent>
+        </Card>
+      )}
+
+      {/* Address Validation */}
+      {compliance?.addressValidation && (
+        <Card className="overflow-hidden">
+          <ExpandableHeader
+            icon={<MapPin size={15} className="text-primary" />}
+            title="Validação de Endereço"
+            subtitle="ViaCEP"
+            badge={<AddressValidationBadge addressValidation={compliance.addressValidation} />}
+            isOpen={addressExpanded}
+            onToggle={() => setAddressExpanded((v) => !v)}
+          />
+          <ExpandableContent isOpen={addressExpanded}>
+            <div className="px-8 pb-8">
+              <div className="grid grid-cols-2 gap-6">
+                <InfoField label="CEP" value={compliance.addressValidation.cep} />
+                <InfoField label="Logradouro" value={compliance.addressValidation.street} />
+                <InfoField label="Bairro" value={compliance.addressValidation.neighborhood} />
+                <InfoField label="Cidade" value={compliance.addressValidation.city} />
+                <InfoField label="UF" value={compliance.addressValidation.state} />
+                <InfoField label="Consultado em" value={compliance.addressValidation.queriedAt ? formatDate(compliance.addressValidation.queriedAt) : undefined} />
+              </div>
             </div>
           </ExpandableContent>
         </Card>
