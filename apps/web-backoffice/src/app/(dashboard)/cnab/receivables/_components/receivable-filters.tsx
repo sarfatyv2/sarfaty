@@ -13,6 +13,12 @@ import {
 } from '@nexus/ui';
 import { Search, X } from 'lucide-react';
 
+const EVALUATION_OPTIONS = [
+  { value: 'pending', label: 'Pendente avaliação' },
+  { value: 'approved', label: 'Aprovada' },
+  { value: 'rejected', label: 'Rejeitada' },
+];
+
 const STATUS_OPTIONS = [
   { value: 'pending', label: 'Pendente' },
   { value: 'registered', label: 'Registrado' },
@@ -30,6 +36,7 @@ export function ReceivableFilters() {
 
   const search = searchParams.get('search') ?? '';
   const status = searchParams.get('status') ?? '';
+  const evaluationStatus = searchParams.get('evaluationStatus') ?? '';
   const dueDateFrom = searchParams.get('dueDateFrom') ?? '';
   const dueDateTo = searchParams.get('dueDateTo') ?? '';
 
@@ -48,7 +55,7 @@ export function ReceivableFilters() {
     router.push(pathname);
   }, [router, pathname]);
 
-  const hasFilters = search || status || dueDateFrom || dueDateTo;
+  const hasFilters = search || status || evaluationStatus || dueDateFrom || dueDateTo;
 
   return (
     <div className="flex flex-wrap items-end gap-3">
@@ -73,6 +80,20 @@ export function ReceivableFilters() {
         <SelectContent>
           <SelectItem value="all">Todos</SelectItem>
           {STATUS_OPTIONS.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={evaluationStatus} onValueChange={(v) => updateParams('evaluationStatus', v === 'all' ? '' : v)}>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Avaliação" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todas</SelectItem>
+          {EVALUATION_OPTIONS.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>
               {opt.label}
             </SelectItem>

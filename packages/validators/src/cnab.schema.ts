@@ -34,6 +34,7 @@ export const listTradeReceivablesQuerySchema = paginationQuerySchema.extend({
   clientId: uuidSchema.optional(),
   draweeId: uuidSchema.optional(),
   cnabFileId: uuidSchema.optional(),
+  operationId: uuidSchema.optional(),
   status: z.enum([
     'pending',
     'registered',
@@ -43,8 +44,45 @@ export const listTradeReceivablesQuerySchema = paginationQuerySchema.extend({
     'cancelled',
     'written_off',
   ]).optional(),
+  evaluationStatus: z.enum(['pending', 'approved', 'rejected']).optional(),
   dueDateFrom: optionalDate,
   dueDateTo: optionalDate,
 });
 
 export type ListTradeReceivablesQueryDto = z.infer<typeof listTradeReceivablesQuerySchema>;
+
+export const listCnabOperationsQuerySchema = paginationQuerySchema.extend({
+  clientId: uuidSchema.optional(),
+  status: z.enum(['draft', 'under_evaluation', 'evaluated', 'active']).optional(),
+});
+
+export type ListCnabOperationsQueryDto = z.infer<typeof listCnabOperationsQuerySchema>;
+
+export const evaluateReceivableSchema = z
+  .object({
+    evaluationStatus: z.enum(['approved', 'rejected']),
+    rejectionReason: z.string().max(500).optional(),
+  })
+  .refine((data) => data.evaluationStatus !== 'rejected' || (data.rejectionReason && data.rejectionReason.trim().length > 0), {
+    message: 'Motivo da rejeição é obrigatório quando a duplicata é rejeitada',
+    path: ['rejectionReason'],
+  });
+
+export type EvaluateReceivableDto = z.infer<typeof evaluateReceivableSchema>;
+
+export const evaluateReceivableItemSchema = z
+  .object({
+    receivableId: uuidSchema,
+    evaluationStatus: z.enum(['approved', 'rejected']),
+    rejectionReason: z.string().max(500).optional(),
+  })
+  .refine((data) => data.evaluationStatus !== 'rejected' || (data.rejectionReason && data.rejectionReason.trim().length > 0), {
+    message: 'Motivo da rejeição é obrigatório quando a duplicata é rejeitada',
+    path: ['rejectionReason'],
+  });
+
+export const batchEvaluateReceivablesSchema = z.object({
+  items: z.array(evaluateReceivableItemSchema).min(1).max(200),
+});
+
+export type BatchEvaluateReceivablesDto = z.infer<typeof batchEvaluateReceivablesSchema>;

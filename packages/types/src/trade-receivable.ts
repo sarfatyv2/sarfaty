@@ -66,6 +66,9 @@ export interface TradeReceivable {
   branch: string | null;
   portfolioCode: string | null;
   status: TradeReceivableStatus;
+  operationId: string | null;
+  evaluationStatus: 'pending' | 'approved' | 'rejected';
+  rejectionReason: string | null;
   portfolioPositionId: string | null;
   cnabRecordSequence: number | null;
   rawLine: string | null;

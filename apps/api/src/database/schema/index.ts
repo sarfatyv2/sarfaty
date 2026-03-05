@@ -92,6 +92,7 @@ export { portfolioPositions } from './portfolio-positions';
 
 // CNAB / Trade Receivables
 export { cnabRemittanceFiles } from './cnab-remittance-files';
+export { cnabOperations } from './cnab-operations';
 export { tradeReceivables } from './trade-receivables';
 export { clientDrawees } from './client-drawees';
 

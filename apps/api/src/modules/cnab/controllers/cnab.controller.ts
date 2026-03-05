@@ -4,8 +4,11 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
+  Patch,
   Post,
+  Body,
   Query,
   Req,
   UseGuards,
@@ -17,11 +20,22 @@ import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import { uploadCnabFileSchema, type UploadCnabFileDto } from '../dto/upload-cnab-file.dto';
 import { listCnabFilesQuerySchema, type ListCnabFilesQueryDto } from '../dto/list-cnab-files-query.dto';
 import { listTradeReceivablesQuerySchema, type ListTradeReceivablesQueryDto } from '../dto/list-trade-receivables-query.dto';
+import { listCnabOperationsQuerySchema, type ListCnabOperationsQueryDto } from '../dto/list-cnab-operations-query.dto';
+import {
+  evaluateReceivableSchema,
+  batchEvaluateReceivablesSchema,
+  type EvaluateReceivableDto,
+  type BatchEvaluateReceivablesDto,
+} from '@nexus/validators';
 import { UploadCnabFileUseCase } from '../use-cases/upload-cnab-file.use-case';
 import { ParseCnabFileUseCase } from '../use-cases/parse-cnab-file.use-case';
 import { GetCnabFileUseCase } from '../use-cases/get-cnab-file.use-case';
 import { ListCnabFilesUseCase } from '../use-cases/list-cnab-files.use-case';
 import { ListTradeReceivablesUseCase } from '../use-cases/list-trade-receivables.use-case';
+import { GetCnabOperationUseCase } from '../use-cases/get-cnab-operation.use-case';
+import { ListCnabOperationsUseCase } from '../use-cases/list-cnab-operations.use-case';
+import { EvaluateReceivableUseCase } from '../use-cases/evaluate-receivable.use-case';
+import { BatchEvaluateReceivablesUseCase } from '../use-cases/batch-evaluate-receivables.use-case';
 import { CnabParserRegistry } from '../parser/cnab-parser.registry';
 
 const CNAB_ROLES = [
@@ -41,6 +55,10 @@ export class CnabController {
     private readonly getFileUseCase: GetCnabFileUseCase,
     private readonly listFilesUseCase: ListCnabFilesUseCase,
     private readonly listReceivablesUseCase: ListTradeReceivablesUseCase,
+    private readonly getCnabOperationUseCase: GetCnabOperationUseCase,
+    private readonly listCnabOperationsUseCase: ListCnabOperationsUseCase,
+    private readonly evaluateReceivableUseCase: EvaluateReceivableUseCase,
+    private readonly batchEvaluateReceivablesUseCase: BatchEvaluateReceivablesUseCase,
     private readonly parserRegistry: CnabParserRegistry,
   ) {}
 
@@ -93,9 +111,11 @@ export class CnabController {
     const result = await this.parseUseCase.execute(cnabFile.id, fileContent);
 
     const updated = await this.getFileUseCase.execute(cnabFile.id);
+    const operationResult = await this.getCnabOperationUseCase.executeByCnabFileId(cnabFile.id);
     return {
       data: updated.toPlainObject(),
       parsed: result,
+      operationId: operationResult?.operation.id ?? null,
     };
   }
 
@@ -128,7 +148,9 @@ export class CnabController {
       clientId: query.clientId,
       draweeId: query.draweeId,
       cnabFileId: query.cnabFileId,
+      operationId: query.operationId,
       status: query.status,
+      evaluationStatus: query.evaluationStatus,
       dueDateFrom: query.dueDateFrom,
       dueDateTo: query.dueDateTo,
       page: query.page ?? 1,
@@ -137,6 +159,80 @@ export class CnabController {
     return {
       data: result.receivables.map((r) => r.toPlainObject()),
       pagination: result.pagination,
+    };
+  }
+
+  @Get('operations')
+  @Roles(...CNAB_ROLES)
+  async listOperations(@Query(new ZodValidationPipe(listCnabOperationsQuerySchema)) query: ListCnabOperationsQueryDto) {
+    const result = await this.listCnabOperationsUseCase.execute({
+      clientId: query.clientId,
+      status: query.status,
+      page: query.page ?? 1,
+      pageSize: query.pageSize ?? 20,
+    });
+    return {
+      data: result.operations.map((o) => o.toPlainObject()),
+      pagination: result.pagination,
+    };
+  }
+
+  @Get('operations/by-file/:cnabFileId')
+  @Roles(...CNAB_ROLES)
+  async getOperationByFile(@Param('cnabFileId') cnabFileId: string) {
+    const result = await this.getCnabOperationUseCase.executeByCnabFileId(cnabFileId);
+    if (!result) throw new NotFoundException(`Operação não encontrada para o arquivo ${cnabFileId}`);
+    return {
+      data: {
+        operation: result.operation.toPlainObject(),
+        receivables: result.receivables.map((r) => r.toPlainObject()),
+      },
+    };
+  }
+
+  @Get('operations/:id')
+  @Roles(...CNAB_ROLES)
+  async getOperation(@Param('id') id: string) {
+    const result = await this.getCnabOperationUseCase.executeById(id);
+    if (!result) throw new NotFoundException(`Operação não encontrada: ${id}`);
+    return {
+      data: {
+        operation: result.operation.toPlainObject(),
+        receivables: result.receivables.map((r) => r.toPlainObject()),
+      },
+    };
+  }
+
+  @Patch('receivables/:id/evaluate')
+  @Roles(...CNAB_ROLES)
+  async evaluateReceivable(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(evaluateReceivableSchema)) body: EvaluateReceivableDto,
+  ) {
+    const updated = await this.evaluateReceivableUseCase.execute({
+      receivableId: id,
+      evaluationStatus: body.evaluationStatus,
+      rejectionReason: body.rejectionReason ?? null,
+    });
+    if (!updated) throw new NotFoundException(`Duplicata não encontrada ou sem operação vinculada: ${id}`);
+    return { data: updated.toPlainObject() };
+  }
+
+  @Patch('operations/:id/evaluate-batch')
+  @Roles(...CNAB_ROLES)
+  async batchEvaluateReceivables(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(batchEvaluateReceivablesSchema)) body: BatchEvaluateReceivablesDto,
+  ) {
+    const result = await this.batchEvaluateReceivablesUseCase.execute({
+      operationId: id,
+      items: body.items,
+    });
+    return {
+      data: {
+        updated: result.updated.map((r) => r.toPlainObject()),
+        failed: result.failed,
+      },
     };
   }
 }

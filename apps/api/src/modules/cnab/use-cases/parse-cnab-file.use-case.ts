@@ -5,6 +5,7 @@ import type { CnabParsedDetail, CnabParseResult } from '@nexus/types';
 import { CNAB_FILE_REPOSITORY, type CnabFileRepository } from '../domain/cnab-file.repository';
 import { TRADE_RECEIVABLE_REPOSITORY, type TradeReceivableRepository } from '../domain/trade-receivable.repository';
 import { CLIENT_DRAWEE_REPOSITORY, type ClientDraweeRepository } from '../domain/client-drawee.repository';
+import { CreateCnabOperationUseCase } from './create-cnab-operation.use-case';
 import { CnabFileNotFoundException } from '../domain/exceptions/cnab-file-not-found.exception';
 import { UnsupportedBankException } from '../domain/exceptions/unsupported-bank.exception';
 import { ClientNotMatchedException } from '../domain/exceptions/client-not-matched.exception';
@@ -36,6 +37,7 @@ export class ParseCnabFileUseCase {
     private readonly draweeRepo: DraweeRepository,
     private readonly parserRegistry: CnabParserRegistry,
     private readonly eventEmitter: EventEmitter2,
+    private readonly createCnabOperationUseCase: CreateCnabOperationUseCase,
   ) {}
 
   async execute(cnabFileId: string, fileContent: string): Promise<{ totalParsed: number; errors: number }> {
@@ -58,7 +60,14 @@ export class ParseCnabFileUseCase {
       }
 
       const { receivables, totalAmount } = await this.buildReceivables(result, client.id, cnabFileId);
-      await this.tradeReceivableRepo.saveMany(receivables);
+      const savedReceivables = await this.tradeReceivableRepo.saveMany(receivables);
+
+      await this.createCnabOperationUseCase.execute({
+        clientId: client.id,
+        cnabFileId,
+        totalSubmittedAmount: String(totalAmount),
+        receivableIds: savedReceivables.map((r) => r.id),
+      });
 
       const finalStatus = result.errors.length > 0 ? 'partially_processed' : 'processed';
       await this.cnabFileRepo.updateStatus(cnabFileId, finalStatus, {
@@ -151,6 +160,9 @@ export class ParseCnabFileUseCase {
       branch: detail.branch || null,
       portfolioCode: detail.portfolioCode || null,
       status: 'pending',
+      operationId: null,
+      evaluationStatus: 'pending',
+      rejectionReason: null,
       portfolioPositionId: null,
       cnabRecordSequence: detail.recordSequence,
       rawLine: detail.rawLine || null,

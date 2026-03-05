@@ -6,6 +6,7 @@ import { CheckCircle, AlertTriangle, ExternalLink } from 'lucide-react';
 
 interface CnabUploadResultProps {
   readonly fileId: string;
+  readonly operationId?: string | null;
   readonly totalParsed: number;
   readonly errors: number;
   readonly status: string;
@@ -24,7 +25,7 @@ function getResultBadgeLabel(status: string): string {
   return 'Erro';
 }
 
-export function CnabUploadResult({ fileId, totalParsed, errors, status, originalFilename }: CnabUploadResultProps) {
+export function CnabUploadResult({ fileId, operationId, totalParsed, errors, status, originalFilename }: CnabUploadResultProps) {
   const isSuccess = status === 'processed';
 
   return (
@@ -61,8 +62,16 @@ export function CnabUploadResult({ fileId, totalParsed, errors, status, original
       </div>
 
       <div className="flex gap-3 pt-2">
+        {operationId && (
+          <Link href={`/cnab/operations/${operationId}`}>
+            <Button variant="default" size="sm">
+              <ExternalLink size={14} />
+              Avaliar operação
+            </Button>
+          </Link>
+        )}
         <Link href={`/cnab/receivables?cnabFileId=${fileId}`}>
-          <Button variant="default" size="sm">
+          <Button variant={operationId ? 'outline' : 'default'} size="sm">
             <ExternalLink size={14} />
             Ver duplicatas deste arquivo
           </Button>

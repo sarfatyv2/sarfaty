@@ -219,10 +219,16 @@ export {
   parseCnabFileSchema,
   listCnabFilesQuerySchema,
   listTradeReceivablesQuerySchema,
+  listCnabOperationsQuerySchema,
+  evaluateReceivableSchema,
+  batchEvaluateReceivablesSchema,
   type UploadCnabFileDto,
   type ParseCnabFileDto,
   type ListCnabFilesQueryDto,
   type ListTradeReceivablesQueryDto,
+  type ListCnabOperationsQueryDto,
+  type EvaluateReceivableDto,
+  type BatchEvaluateReceivablesDto,
 } from './cnab.schema';
 
 // Communication schemas
