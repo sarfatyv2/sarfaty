@@ -3,13 +3,13 @@
 import { useState, useRef } from 'react';
 import {
   Button,
-  Input,
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
 } from '@nexus/ui';
+import { ClientPicker } from '@/components/client-picker';
 import { Upload, FileUp, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
@@ -69,17 +69,16 @@ export function CnabUploadForm({ clientId }: { readonly clientId?: string }) {
     <div className="space-y-6">
       <div className="rounded-lg border p-6 space-y-5">
         <div className="space-y-2">
-          <label htmlFor="cnab-client-id" className="text-sm font-medium">
-            ID do Cliente (cedente)
+          <label className="text-sm font-medium">
+            Cliente (cedente)
           </label>
-          <Input
-            id="cnab-client-id"
-            placeholder="UUID do cliente..."
-            value={selectedClientId}
-            onChange={(e) => setSelectedClientId(e.target.value)}
+          <ClientPicker
+            value={selectedClientId || undefined}
+            onChange={(v) => setSelectedClientId(v ?? '')}
+            placeholder="Selecionar cliente..."
           />
           <p className="text-xs text-muted-foreground">
-            Informe o ID do cliente que está enviando o arquivo CNAB
+            Selecione o cliente que está enviando o arquivo CNAB
           </p>
         </div>
 
