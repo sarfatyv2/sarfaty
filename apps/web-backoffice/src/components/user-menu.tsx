@@ -31,7 +31,7 @@ interface UserMenuProps {
 export function UserMenu({ fullName, role, email, avatarUrl }: Readonly<UserMenuProps>) {
   const router = useRouter();
   const supabase = createClient();
-  const config = ROLE_PERMISSIONS[role];
+  const config = ROLE_PERMISSIONS[role] ?? ROLE_PERMISSIONS.employee;
 
   const initials = fullName
     .split(' ')
