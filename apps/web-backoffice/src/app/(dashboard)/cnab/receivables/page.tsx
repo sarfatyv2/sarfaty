@@ -47,6 +47,16 @@ interface Receivable {
   issueDate: string | null;
 }
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    if (err.message.includes('401')) return 'Faça login para visualizar duplicatas.';
+    if (err.message.includes('403')) return 'Você não tem permissão para acessar duplicatas.';
+    if (err.message.includes('404')) return 'Endpoint não encontrado.';
+    return err.message;
+  }
+  return 'Erro ao carregar duplicatas. Tente novamente.';
+}
+
 async function ReceivablesList({ searchParams }: { searchParams: Record<string, string | undefined> }) {
   const params: Record<string, string | number | undefined> = {
     page: searchParams.page ?? '1',
@@ -59,21 +69,30 @@ async function ReceivablesList({ searchParams }: { searchParams: Record<string, 
   if (searchParams.dueDateFrom) params.dueDateFrom = searchParams.dueDateFrom;
   if (searchParams.dueDateTo) params.dueDateTo = searchParams.dueDateTo;
 
-  const result = await serverFetch<Receivable[]>('/cnab/receivables', params);
+  try {
+    const result = await serverFetch<Receivable[]>('/cnab/receivables', params);
 
-  const receivables = result?.data ?? [];
-  const pagination = result?.pagination ?? { total: 0, page: 1, pageSize: 20, totalPages: 0 };
+    const receivables = result?.data ?? [];
+    const pagination = result?.pagination ?? { total: 0, page: 1, pageSize: 20, totalPages: 0 };
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {pagination.total} duplicata(s) encontrada(s)
-        </p>
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {pagination.total} duplicata(s) encontrada(s)
+          </p>
+        </div>
+        <ReceivablesTable receivables={receivables} pagination={pagination} />
       </div>
-      <ReceivablesTable receivables={receivables} pagination={pagination} />
-    </div>
-  );
+    );
+  } catch (err) {
+    return (
+      <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4">
+        <p className="text-sm font-medium text-destructive">Erro ao carregar duplicatas</p>
+        <p className="mt-1 text-sm text-muted-foreground">{getErrorMessage(err)}</p>
+      </div>
+    );
+  }
 }
 
 export default async function ReceivablesPage({ searchParams }: PageProps) {
