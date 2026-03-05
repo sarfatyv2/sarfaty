@@ -209,6 +209,18 @@ export {
   type ListAuditLogsQueryDto,
 } from './audit.schema';
 
+// CNAB schemas
+export {
+  uploadCnabFileSchema,
+  parseCnabFileSchema,
+  listCnabFilesQuerySchema,
+  listTradeReceivablesQuerySchema,
+  type UploadCnabFileDto,
+  type ParseCnabFileDto,
+  type ListCnabFilesQueryDto,
+  type ListTradeReceivablesQueryDto,
+} from './cnab.schema';
+
 // Communication schemas
 export {
   createAnnouncementSchema,

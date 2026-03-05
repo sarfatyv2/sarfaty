@@ -136,3 +136,29 @@ export {
   type FaturamentoMonthlyRevenues,
   type FaturamentoExtractionSummary,
 } from './faturamento';
+export {
+  CNAB_FILE_TYPES,
+  type CnabFileType,
+  CNAB_LAYOUT_VERSIONS,
+  type CnabLayoutVersion,
+  CNAB_FILE_STATUSES,
+  type CnabFileStatus,
+  type CnabRemittanceFile,
+  type CnabParsedHeader,
+  type CnabParsedDetail,
+  type CnabParseResult,
+  type CnabParseError,
+  SUPPORTED_BANK_CODES,
+  type SupportedBankCode,
+} from './cnab';
+export {
+  TRADE_RECEIVABLE_STATUSES,
+  type TradeReceivableStatus,
+  DOCUMENT_TYPES,
+  type DocumentType,
+  SPECIES_CODE_MAP,
+  type TradeReceivable,
+  CLIENT_DRAWEE_STATUSES,
+  type ClientDraweeStatus,
+  type ClientDrawee,
+} from './trade-receivable';
