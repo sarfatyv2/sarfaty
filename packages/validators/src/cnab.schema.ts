@@ -28,6 +28,8 @@ export const listCnabFilesQuerySchema = paginationQuerySchema.extend({
 
 export type ListCnabFilesQueryDto = z.infer<typeof listCnabFilesQuerySchema>;
 
+const optionalDate = z.preprocess((v) => (v === '' ? undefined : v), z.string().date().optional());
+
 export const listTradeReceivablesQuerySchema = paginationQuerySchema.extend({
   clientId: uuidSchema.optional(),
   draweeId: uuidSchema.optional(),
@@ -41,8 +43,8 @@ export const listTradeReceivablesQuerySchema = paginationQuerySchema.extend({
     'cancelled',
     'written_off',
   ]).optional(),
-  dueDateFrom: z.string().date().optional(),
-  dueDateTo: z.string().date().optional(),
+  dueDateFrom: optionalDate,
+  dueDateTo: optionalDate,
 });
 
 export type ListTradeReceivablesQueryDto = z.infer<typeof listTradeReceivablesQuerySchema>;
