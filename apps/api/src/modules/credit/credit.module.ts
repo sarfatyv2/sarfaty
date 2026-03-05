@@ -88,8 +88,8 @@ import { NEGATIVE_MEDIA_DRAWEE_RESULT_REPOSITORY } from './domain/negative-media
 import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-presence-drawee-result.repository';
 
 @Module({
-  imports: [DatabaseModule, ClientsModule, DraweesModule],
-  controllers: [CreditController],
+  imports: [DatabaseModule, ClientsModule, DraweesModule, CnabModule],
+  controllers: [CreditController, DraweeCreditController],
   providers: [
     // Adapters
     VaduAdapter,
