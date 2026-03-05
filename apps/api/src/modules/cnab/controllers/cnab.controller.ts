@@ -44,6 +44,7 @@ export class CnabController {
     private readonly parserRegistry: CnabParserRegistry,
   ) {}
 
+  // Upload CNAB 400 file (uses Fastify multipart, not Multer)
   @Post('upload')
   @Roles(...CNAB_ROLES)
   @HttpCode(HttpStatus.CREATED)
