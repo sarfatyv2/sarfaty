@@ -1,11 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { eq, and, count, desc } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
-import { cnabOperations } from '../../../database/schema';
+import { cnabOperations, clients, cnabRemittanceFiles } from '../../../database/schema';
 import type {
   CnabOperationRepository,
   CnabOperationFilters,
   PaginatedCnabOperations,
+  PaginatedCnabOperationsWithDetails,
 } from '../domain/cnab-operation.repository';
 import { CnabOperationEntity } from '../domain/cnab-operation.entity';
 import { CnabOperationMapper } from './mappers/cnab-operation.mapper';
@@ -42,6 +43,14 @@ export class DrizzleCnabOperationRepository implements CnabOperationRepository {
   }
 
   async findByFilters(filters: CnabOperationFilters): Promise<PaginatedCnabOperations> {
+    const result = await this.findByFiltersWithDetails(filters);
+    return {
+      operations: result.operations,
+      pagination: result.pagination,
+    };
+  }
+
+  async findByFiltersWithDetails(filters: CnabOperationFilters): Promise<PaginatedCnabOperationsWithDetails> {
     const conditions = [];
 
     if (filters.clientId) conditions.push(eq(cnabOperations.clientId, filters.clientId));
@@ -52,8 +61,14 @@ export class DrizzleCnabOperationRepository implements CnabOperationRepository {
 
     const [rows, [totalRow]] = await Promise.all([
       this.db
-        .select()
+        .select({
+          operation: cnabOperations,
+          clientName: clients.companyName,
+          originalFilename: cnabRemittanceFiles.originalFilename,
+        })
         .from(cnabOperations)
+        .leftJoin(clients, eq(cnabOperations.clientId, clients.id))
+        .leftJoin(cnabRemittanceFiles, eq(cnabOperations.cnabFileId, cnabRemittanceFiles.id))
         .where(whereClause)
         .orderBy(desc(cnabOperations.createdAt))
         .limit(filters.pageSize)
@@ -64,7 +79,13 @@ export class DrizzleCnabOperationRepository implements CnabOperationRepository {
     const total = totalRow?.count ?? 0;
 
     return {
-      operations: rows.map(CnabOperationMapper.toDomain),
+      operations: rows.map((r) => {
+        const entity = CnabOperationMapper.toDomain(r.operation);
+        return Object.assign(entity, {
+          clientName: r.clientName ?? null,
+          originalFilename: r.originalFilename ?? null,
+        });
+      }),
       pagination: {
         total,
         page: filters.page,

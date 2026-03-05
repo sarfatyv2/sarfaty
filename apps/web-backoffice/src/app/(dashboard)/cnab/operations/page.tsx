@@ -20,6 +20,8 @@ interface CnabOperation {
   id: string;
   clientId: string;
   cnabFileId: string;
+  clientName?: string | null;
+  originalFilename?: string | null;
   status: string;
   totalSubmittedAmount: string;
   totalApprovedAmount: string;
