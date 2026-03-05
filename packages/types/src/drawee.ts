@@ -30,6 +30,21 @@ export interface Drawee {
   updatedAt: string | null;
 }
 
+export interface DraweeAuthorizedPerson {
+  id: string;
+  draweeId: string;
+  authorizationType: string | null;
+  fullName: string;
+  cpf: string | null;
+  phone: string | null;
+  email: string | null;
+  source: string | null;
+  sourceQueriedAt: string | null;
+  isActive: boolean;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
 export interface DraweeContact {
   id: string;
   draweeId: string;

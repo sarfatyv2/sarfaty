@@ -53,6 +53,7 @@ export { drawees } from './drawees';
 export { draweeDocuments } from './drawee-documents';
 export { draweeContacts } from './drawee-contacts';
 export { draweeAddresses } from './drawee-addresses';
+export { draweeAuthorizedPersons } from './drawee-authorized-persons';
 export { draweeBankAccounts } from './drawee-bank-accounts';
 export { draweeGroups } from './drawee-groups';
 export { draweeEnabledProducts } from './drawee-enabled-products';

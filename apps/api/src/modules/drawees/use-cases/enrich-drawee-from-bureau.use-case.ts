@@ -1,7 +1,17 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { DRAWEE_ADDRESS_REPOSITORY, type DraweeAddressRepository } from '../infra/drizzle-drawee-address.repository';
 import { DRAWEE_CONTACT_REPOSITORY, type DraweeContactRepository } from '../infra/drizzle-drawee-contact.repository';
+import { DRAWEE_AUTHORIZED_PERSON_REPOSITORY, type DraweeAuthorizedPersonRepository } from '../domain/drawee-authorized-person.repository';
+import { DraweeAuthorizedPerson } from '../domain/drawee-authorized-person.entity';
 import { draweeAddresses, draweeContacts } from '../../../database/schema';
+
+export interface BureauPartnerData {
+  fullName: string;
+  cpf: string | null;
+  authorizationType: string;
+  phone: string | null;
+  email: string | null;
+}
 
 export interface BureauEnrichmentData {
   address?: {
@@ -17,6 +27,7 @@ export interface BureauEnrichmentData {
     phone: string | null;
     email: string | null;
   };
+  partners?: BureauPartnerData[];
 }
 
 export interface EnrichDraweeFromBureauInput {
@@ -34,14 +45,18 @@ export class EnrichDraweeFromBureauUseCase {
     private readonly addressRepository: DraweeAddressRepository,
     @Inject(DRAWEE_CONTACT_REPOSITORY)
     private readonly contactRepository: DraweeContactRepository,
+    @Inject(DRAWEE_AUTHORIZED_PERSON_REPOSITORY)
+    private readonly authorizedPersonRepository: DraweeAuthorizedPersonRepository,
   ) {}
 
   async execute(input: EnrichDraweeFromBureauInput): Promise<void> {
     const { draweeId, source, data } = input;
+    const now = new Date();
 
     await Promise.allSettled([
       data.address ? this.upsertAddress(draweeId, source, data.address) : Promise.resolve(),
       data.contact ? this.upsertContact(draweeId, source, data.contact) : Promise.resolve(),
+      data.partners?.length ? this.upsertPartners(draweeId, source, data.partners, now) : Promise.resolve(),
     ]);
   }
 
@@ -128,6 +143,69 @@ export class EnrichDraweeFromBureauUseCase {
       }
     } catch (error) {
       this.logger.error(`Failed to upsert contact for drawee ${draweeId}: ${(error as Error).message}`);
+    }
+  }
+
+  private async upsertPartners(
+    draweeId: string,
+    source: string,
+    partners: BureauPartnerData[],
+    queriedAt: Date,
+  ): Promise<void> {
+    try {
+      const existingPersons = await this.authorizedPersonRepository.findByDraweeAndSource(draweeId, source);
+      const incomingCpfs = new Set(
+        partners.filter((p) => p.cpf).map((p) => p.cpf!.replaceAll(/\D/g, '')),
+      );
+
+      for (const partner of partners) {
+        const cleanCpf = partner.cpf?.replaceAll(/\D/g, '') || null;
+        const match = cleanCpf
+          ? existingPersons.find((e) => e.cpf?.replaceAll(/\D/g, '') === cleanCpf)
+          : existingPersons.find((e) => e.fullName === partner.fullName);
+
+        if (match) {
+          await this.authorizedPersonRepository.update(match.id, {
+            fullName: partner.fullName,
+            authorizationType: partner.authorizationType,
+            phone: partner.phone,
+            email: partner.email,
+            sourceQueriedAt: queriedAt,
+            isActive: true,
+          });
+          this.logger.debug(`Updated ${source} partner ${partner.fullName} for drawee ${draweeId}`);
+        } else {
+          const person = DraweeAuthorizedPerson.create({
+            draweeId,
+            authorizationType: partner.authorizationType,
+            fullName: partner.fullName,
+            cpf: cleanCpf,
+            phone: partner.phone,
+            email: partner.email,
+            source,
+            sourceQueriedAt: queriedAt,
+            isActive: true,
+          });
+          await this.authorizedPersonRepository.save(person);
+          this.logger.debug(`Created ${source} partner ${partner.fullName} for drawee ${draweeId}`);
+        }
+      }
+
+      for (const existing of existingPersons) {
+        if (!existing.isActive) continue;
+        const existingCleanCpf = existing.cpf?.replaceAll(/\D/g, '') || null;
+        const stillPresent = existingCleanCpf
+          ? incomingCpfs.has(existingCleanCpf)
+          : partners.some((p) => p.fullName === existing.fullName);
+        if (!stillPresent) {
+          await this.authorizedPersonRepository.update(existing.id, { isActive: false });
+          this.logger.debug(`Deactivated ${source} partner ${existing.fullName} for drawee ${draweeId}`);
+        }
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to upsert ${source} partners for drawee ${draweeId}: ${(error as Error).message}`,
+      );
     }
   }
 }

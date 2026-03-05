@@ -133,6 +133,8 @@ export {
   updateDraweeAddressSchema,
   createDraweeBankAccountSchema,
   updateDraweeBankAccountSchema,
+  createDraweeAuthorizedPersonSchema,
+  updateDraweeAuthorizedPersonSchema,
   type CreateDraweeDto,
   type UpdateDraweeDto,
   type ListDraweesQueryDto,
@@ -142,6 +144,8 @@ export {
   type UpdateDraweeAddressDto,
   type CreateDraweeBankAccountDto,
   type UpdateDraweeBankAccountDto,
+  type CreateDraweeAuthorizedPersonDto,
+  type UpdateDraweeAuthorizedPersonDto,
 } from './drawee.schema';
 
 // Governance schemas

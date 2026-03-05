@@ -15,6 +15,7 @@ import {
 import type { Drawee } from '@nexus/types';
 import { FadeIn, AnimatedTabContent } from '@/app/(dashboard)/clients/[id]/_components/motion-wrapper';
 import { DraweeStatusBadge } from '../../_components/drawee-status-badge';
+import { DraweePartnerSection } from './drawee-partner-section';
 import { DraweeContactsTab } from './tabs/drawee-contacts-tab';
 import { DraweeAddressesTab } from './tabs/drawee-addresses-tab';
 import { DraweeBankAccountsTab } from './tabs/drawee-bank-accounts-tab';
@@ -85,8 +86,6 @@ export function DraweeDetail({ drawee }: DraweeDetailProps) {
             <TabsTrigger value="dados" className="rounded-md text-xs">Dados</TabsTrigger>
             <TabsTrigger value="clientes" className="rounded-md text-xs">Clientes</TabsTrigger>
             <TabsTrigger value="bureau" className="rounded-md text-xs">Análise de Crédito</TabsTrigger>
-            <TabsTrigger value="contatos" className="rounded-md text-xs">Contatos</TabsTrigger>
-            <TabsTrigger value="enderecos" className="rounded-md text-xs">Endereços</TabsTrigger>
             <TabsTrigger value="contas" className="rounded-md text-xs">Contas Bancárias</TabsTrigger>
           </TabsList>
 
@@ -138,6 +137,12 @@ export function DraweeDetail({ drawee }: DraweeDetailProps) {
               </CardContent>
             </Card>
           )}
+
+          <DraweePartnerSection draweeId={drawee.id} personType={drawee.personType} />
+
+          <DraweeContactsTab draweeId={drawee.id} />
+
+          <DraweeAddressesTab draweeId={drawee.id} />
           </AnimatedTabContent>
         </TabsContent>
 
@@ -150,18 +155,6 @@ export function DraweeDetail({ drawee }: DraweeDetailProps) {
         <TabsContent value="bureau" className="mt-5">
           <AnimatedTabContent key="bureau">
             <DraweeCreditAnalysisTab draweeId={drawee.id} />
-          </AnimatedTabContent>
-        </TabsContent>
-
-        <TabsContent value="contatos" className="mt-5">
-          <AnimatedTabContent key="contatos">
-            <DraweeContactsTab draweeId={drawee.id} />
-          </AnimatedTabContent>
-        </TabsContent>
-
-        <TabsContent value="enderecos" className="mt-5">
-          <AnimatedTabContent key="enderecos">
-            <DraweeAddressesTab draweeId={drawee.id} />
           </AnimatedTabContent>
         </TabsContent>
 
