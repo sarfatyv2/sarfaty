@@ -1,3 +1,4 @@
+// API bootstrap entrypoint
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
