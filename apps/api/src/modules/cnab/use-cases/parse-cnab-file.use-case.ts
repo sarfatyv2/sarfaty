@@ -48,8 +48,11 @@ export class ParseCnabFileUseCase {
 
       const result = parser.parse(fileContent);
 
-      const client = await this.clientRepo.findByCnpj(stripNonDigits(result.header.cedentCode));
-      if (!client) throw new ClientNotMatchedException(result.header.cedentCode);
+      let client = await this.clientRepo.findByCnpj(stripNonDigits(result.header.cedentCode));
+      if (!client) {
+        client = await this.clientRepo.findById(cnabFile.clientId);
+        if (!client) throw new ClientNotMatchedException(result.header.cedentCode);
+      }
 
       const { receivables, totalAmount } = await this.buildReceivables(result, client.id, cnabFileId);
       await this.tradeReceivableRepo.saveMany(receivables);
