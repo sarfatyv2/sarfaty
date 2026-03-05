@@ -7,6 +7,7 @@ import { CreateDraweeUseCase } from './use-cases/create-drawee.use-case';
 import { GetDraweeUseCase } from './use-cases/get-drawee.use-case';
 import { ListDraweesUseCase } from './use-cases/list-drawees.use-case';
 import { UpdateDraweeUseCase } from './use-cases/update-drawee.use-case';
+import { EnrichDraweeFromBureauUseCase } from './use-cases/enrich-drawee-from-bureau.use-case';
 import { DrizzleDraweeRepository } from './infra/drizzle-drawee.repository';
 import { DrizzleDraweeContactRepository, DRAWEE_CONTACT_REPOSITORY } from './infra/drizzle-drawee-contact.repository';
 import { DrizzleDraweeAddressRepository, DRAWEE_ADDRESS_REPOSITORY } from './infra/drizzle-drawee-address.repository';
@@ -26,12 +27,13 @@ import { DRAWEE_REPOSITORY } from './domain/drawee.repository';
     GetDraweeUseCase,
     ListDraweesUseCase,
     UpdateDraweeUseCase,
+    EnrichDraweeFromBureauUseCase,
     // Repositories
     { provide: DRAWEE_REPOSITORY, useClass: DrizzleDraweeRepository },
     { provide: DRAWEE_CONTACT_REPOSITORY, useClass: DrizzleDraweeContactRepository },
     { provide: DRAWEE_ADDRESS_REPOSITORY, useClass: DrizzleDraweeAddressRepository },
     { provide: DRAWEE_BANK_ACCOUNT_REPOSITORY, useClass: DrizzleDraweeBankAccountRepository },
   ],
-  exports: [DRAWEE_REPOSITORY],
+  exports: [DRAWEE_REPOSITORY, EnrichDraweeFromBureauUseCase],
 })
 export class DraweesModule {}

@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SPECIES_CODE_MAP } from '@nexus/types';
 import type { CnabParsedDetail, CnabParseResult } from '@nexus/types';
 import { CNAB_FILE_REPOSITORY, type CnabFileRepository } from '../domain/cnab-file.repository';
@@ -12,6 +13,7 @@ import { CnabParserRegistry } from '../parser/cnab-parser.registry';
 import { CLIENT_REPOSITORY, type ClientRepository } from '../../clients/domain/client.repository';
 import { DRAWEE_REPOSITORY, type DraweeRepository } from '../../drawees/domain/drawee.repository';
 import { Drawee } from '../../drawees/domain/drawee.entity';
+import { DraweeCreatedEvent } from '../../drawees/domain/events/drawee-created.event';
 
 function stripNonDigits(value: string): string {
   return value.replaceAll(/\D/g, '');
@@ -33,6 +35,7 @@ export class ParseCnabFileUseCase {
     @Inject(DRAWEE_REPOSITORY)
     private readonly draweeRepo: DraweeRepository,
     private readonly parserRegistry: CnabParserRegistry,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(cnabFileId: string, fileContent: string): Promise<{ totalParsed: number; errors: number }> {
@@ -201,6 +204,9 @@ export class ParseCnabFileUseCase {
     const saved = await this.draweeRepo.save(newDrawee);
     cache.set(doc, saved.id);
     this.logger.log(`Auto-created drawee ${doc} (${detail.draweeName})`);
+
+    this.eventEmitter.emit(DraweeCreatedEvent.EVENT_NAME, new DraweeCreatedEvent(saved.id));
+
     return saved.id;
   }
 }

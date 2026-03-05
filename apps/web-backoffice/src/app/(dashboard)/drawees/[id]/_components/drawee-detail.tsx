@@ -17,6 +17,8 @@ import { DraweeStatusBadge } from '../../_components/drawee-status-badge';
 import { DraweeContactsTab } from './tabs/drawee-contacts-tab';
 import { DraweeAddressesTab } from './tabs/drawee-addresses-tab';
 import { DraweeBankAccountsTab } from './tabs/drawee-bank-accounts-tab';
+import { DraweeClientsTab } from './tabs/drawee-clients-tab';
+import { DraweeCreditAnalysisTab } from './tabs/drawee-credit-analysis-tab';
 
 interface DraweeDetailProps {
   drawee: Drawee;
@@ -72,6 +74,8 @@ export function DraweeDetail({ drawee }: DraweeDetailProps) {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="dados">Dados</TabsTrigger>
+          <TabsTrigger value="clientes">Clientes</TabsTrigger>
+          <TabsTrigger value="bureau">Análise de Crédito</TabsTrigger>
           <TabsTrigger value="contatos">Contatos</TabsTrigger>
           <TabsTrigger value="enderecos">Endereços</TabsTrigger>
           <TabsTrigger value="contas">Contas Bancárias</TabsTrigger>
@@ -124,6 +128,14 @@ export function DraweeDetail({ drawee }: DraweeDetailProps) {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="clientes" className="mt-4">
+          <DraweeClientsTab draweeId={drawee.id} />
+        </TabsContent>
+
+        <TabsContent value="bureau" className="mt-4">
+          <DraweeCreditAnalysisTab draweeId={drawee.id} />
         </TabsContent>
 
         <TabsContent value="contatos" className="mt-4">
