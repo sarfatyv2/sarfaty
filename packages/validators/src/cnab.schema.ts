@@ -53,7 +53,7 @@ export type ListTradeReceivablesQueryDto = z.infer<typeof listTradeReceivablesQu
 
 export const listCnabOperationsQuerySchema = paginationQuerySchema.extend({
   clientId: uuidSchema.optional(),
-  status: z.enum(['draft', 'under_evaluation', 'evaluated', 'active']).optional(),
+  status: z.enum(['under_evaluation', 'evaluated', 'active']).optional(),
 });
 
 export type ListCnabOperationsQueryDto = z.infer<typeof listCnabOperationsQuerySchema>;

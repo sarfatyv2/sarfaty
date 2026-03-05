@@ -14,7 +14,6 @@ import { X } from 'lucide-react';
 import { ClientPicker } from '@/components/client-picker';
 
 const STATUS_OPTIONS = [
-  { value: 'draft', label: 'Rascunho' },
   { value: 'under_evaluation', label: 'Em avaliação' },
   { value: 'evaluated', label: 'Avaliada' },
   { value: 'active', label: 'Ativa' },
