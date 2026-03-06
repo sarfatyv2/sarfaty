@@ -23,9 +23,9 @@ import { DraweeBankAccountsTab } from './tabs/drawee-bank-accounts-tab';
 import { DraweeClientsTab } from './tabs/drawee-clients-tab';
 import { DraweeCreditAnalysisTab } from './tabs/drawee-credit-analysis-tab';
 
-interface DraweeDetailProps {
+type DraweeDetailProps = Readonly<{
   drawee: Drawee;
-}
+}>;
 
 function formatDocument(drawee: Drawee): string {
   if (drawee.cnpj) {
@@ -41,7 +41,7 @@ function formatDocument(drawee: Drawee): string {
   return '—';
 }
 
-function InfoField({ label, value }: { label: string; value: string | null | undefined }) {
+function InfoField({ label, value }: Readonly<{ label: string; value: string | null | undefined }>) {
   return (
     <div className="space-y-1">
       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
@@ -104,7 +104,7 @@ export function DraweeDetail({ drawee }: DraweeDetailProps) {
           <TabsContent value="dados" className="mt-5">
             <AnimatedTabContent key="dados">
               <div className="space-y-6">
-                <DraweePartnerSection draweeId={drawee.id} personType={drawee.personType} />
+                <DraweePartnerSection draweeId={drawee.id} personType={drawee.personType} foundedAt={drawee.foundedAt ?? null} />
 
                 <Card className="overflow-hidden">
                   <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-transparent">

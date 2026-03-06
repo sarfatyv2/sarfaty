@@ -30,6 +30,8 @@ interface ClientData {
   approvedAmount: string | null;
   hasGuarantees: boolean;
   isJudicialRecovery: boolean;
+  foundedAt: string | null;
+  establishedAt: string | null;
   status: string;
   assignedTo: string;
   createdAt: string | null;
@@ -48,11 +50,11 @@ interface CreditProduct {
   name: string;
 }
 
-interface PageProps {
+type PageProps = Readonly<{
   params: Promise<{ id: string }>;
-}
+}>;
 
-async function ClientDetailLoader({ clientId }: { clientId: string }) {
+async function ClientDetailLoader({ clientId }: Readonly<{ clientId: string }>) {
   try {
     const [clientRes, segmentsRes, productsRes] = await Promise.all([
       serverFetch<ClientData>(`/clients/${clientId}`),

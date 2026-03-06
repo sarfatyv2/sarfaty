@@ -9,6 +9,7 @@ export interface Drawee {
   tradeName: string | null;
   companyName: string;
   legalName: string | null;
+  foundedAt: string | null;
   rg: string | null;
   birthDate: string | null;
   gender: string | null;
@@ -40,6 +41,12 @@ export interface DraweeAuthorizedPerson {
   email: string | null;
   source: string | null;
   sourceQueriedAt: string | null;
+  joinedAt: string | null;
+  mandateEndAt: string | null;
+  role: string | null;
+  participationPercentage: string | null;
+  capitalTotalValue: string | null;
+  restrictionSign: string | null;
   isActive: boolean;
   createdAt: string | null;
   updatedAt: string | null;

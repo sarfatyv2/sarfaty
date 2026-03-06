@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
+  Badge,
   Button,
   Card,
   CardHeader,
@@ -22,15 +23,24 @@ import {
   Skeleton,
   Switch,
 } from '@nexus/ui';
-import { Plus, Users, Mail, Phone, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { AlertTriangle, Plus, Users, Mail, Phone, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
 import type { DraweeAuthorizedPerson } from '@nexus/types';
 import { FadeIn, StaggerChildren, StaggerItem } from '@/app/(dashboard)/clients/[id]/_components/motion-wrapper';
+import { computePartnerAlerts, computeCompanyAlerts } from '@/lib/partner-alert-rules';
+import { PartnerAlerts } from '@/components/partner-alerts';
 
-interface DraweePartnerSectionProps {
+type DraweePartnerSectionProps = Readonly<{
   draweeId: string;
   personType: 'individual' | 'company';
+  foundedAt?: string | null;
+}>;
+
+function formatDate(dateStr: string | null | undefined): string | null {
+  if (!dateStr?.trim()) return null;
+  const d = new Date(dateStr);
+  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 type FormData = {
@@ -68,7 +78,7 @@ function formatCpf(cpf: string): string {
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return (parts[0]?.slice(0, 2) ?? '').toUpperCase();
-  return ((parts[0]?.[0] ?? '') + (parts[parts.length - 1]?.[0] ?? '')).toUpperCase();
+  return ((parts[0]?.[0] ?? '') + (parts.at(-1)?.[0] ?? '')).toUpperCase();
 }
 
 const AVATAR_PALETTE = [
@@ -86,7 +96,7 @@ function getAvatarColor(name: string): string {
   return AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length]!;
 }
 
-export function DraweePartnerSection({ draweeId, personType }: DraweePartnerSectionProps) {
+export function DraweePartnerSection({ draweeId, personType, foundedAt }: DraweePartnerSectionProps) {
   const [partners, setPartners] = useState<DraweeAuthorizedPerson[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -166,7 +176,7 @@ export function DraweePartnerSection({ draweeId, personType }: DraweePartnerSect
       loadData();
     } catch (err) {
       if (err instanceof ApiError) {
-        const firstError = err.errors && Object.values(err.errors).flat()[0];
+        const firstError = err.errors && Object.values(err.errors).flat().at(0);
         toast.error(firstError ?? err.message);
       } else {
         toast.error('Erro ao salvar sócio');
@@ -220,7 +230,9 @@ export function DraweePartnerSection({ draweeId, personType }: DraweePartnerSect
 
     return (
       <StaggerChildren className="space-y-2" staggerDelay={0.06}>
-        {partners.map((partner) => (
+        {partners.map((partner) => {
+          const alerts = computePartnerAlerts(partner, foundedAt ?? null);
+          return (
           <StaggerItem key={partner.id}>
             <div className="rounded-xl border bg-card overflow-hidden flex items-center gap-4 px-5 py-4">
               <div
@@ -244,6 +256,17 @@ export function DraweePartnerSection({ draweeId, personType }: DraweePartnerSect
                   {partner.cpf && (
                     <span className="text-xs text-muted-foreground font-mono">{formatCpf(partner.cpf)}</span>
                   )}
+                  {formatDate(partner.joinedAt ?? null) && (
+                    <span className="text-xs text-muted-foreground">
+                      Entrou em {formatDate(partner.joinedAt ?? null)}
+                    </span>
+                  )}
+                  {partner.role && (
+                    <span className="text-xs text-muted-foreground">{partner.role}</span>
+                  )}
+                  {partner.participationPercentage != null && partner.participationPercentage !== '' && (
+                    <span className="text-xs text-muted-foreground">{partner.participationPercentage}%</span>
+                  )}
                   {partner.email && (
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Mail size={10} />
@@ -257,6 +280,11 @@ export function DraweePartnerSection({ draweeId, personType }: DraweePartnerSect
                     </span>
                   )}
                 </div>
+                {alerts.length > 0 && (
+                  <div className="mt-2">
+                    <PartnerAlerts alerts={alerts} />
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <Button
@@ -283,7 +311,8 @@ export function DraweePartnerSection({ draweeId, personType }: DraweePartnerSect
               </div>
             </div>
           </StaggerItem>
-        ))}
+          );
+        })}
       </StaggerChildren>
     );
   }
@@ -297,6 +326,17 @@ export function DraweePartnerSection({ draweeId, personType }: DraweePartnerSect
               <Users size={15} className="text-primary" />
               Sócios
               {!loading && <span className="text-sm font-normal text-muted-foreground">({partners.length})</span>}
+              {!loading && partners.length > 0 && (() => {
+                const companyAlerts = computeCompanyAlerts(foundedAt ?? null);
+                const allPartnerAlerts = partners.flatMap((p) => computePartnerAlerts(p, foundedAt ?? null));
+                const totalAlerts = companyAlerts.length + allPartnerAlerts.length;
+                return totalAlerts > 0 ? (
+                  <Badge variant="outline" className="text-xs gap-1 border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                    <AlertTriangle size={11} />
+                    {totalAlerts} {totalAlerts === 1 ? 'alerta' : 'alertas'}
+                  </Badge>
+                ) : null;
+              })()}
             </CardTitle>
             <Button variant="outline" size="sm" onClick={openCreate} className="gap-1.5">
               <Plus size={14} />

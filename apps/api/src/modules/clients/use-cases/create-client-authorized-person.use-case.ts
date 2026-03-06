@@ -20,6 +20,12 @@ export class CreateClientAuthorizedPersonUseCase {
       email: dto.email ?? null,
       source: 'manual',
       sourceQueriedAt: null,
+      joinedAt: null,
+      mandateEndAt: null,
+      role: null,
+      participationPercentage: null,
+      capitalTotalValue: null,
+      restrictionSign: null,
       isActive: dto.isActive,
     });
     const saved = await this.personRepository.save(person);

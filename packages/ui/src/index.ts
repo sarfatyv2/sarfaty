@@ -83,3 +83,6 @@ export {
 } from './command';
 export { cn } from './lib/utils';
 export { RichTextEditor } from './rich-text-editor';
+export { ChatContainer, type ChatContainerProps, type ChatMessageData } from './chat-container';
+export { ChatMessage, type ChatMessageProps } from './chat-message';
+export { ChatInput, type ChatInputProps } from './chat-input';

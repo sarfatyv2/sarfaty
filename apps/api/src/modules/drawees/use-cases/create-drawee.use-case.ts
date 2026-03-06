@@ -25,6 +25,7 @@ export class CreateDraweeUseCase {
       companyName: dto.companyName,
       tradeName: dto.tradeName ?? null,
       legalName: dto.legalName ?? null,
+      foundedAt: null,
       cnpj: dto.cnpj ?? null,
       cnpjRoot: null,
       cpf: dto.cpf ?? null,

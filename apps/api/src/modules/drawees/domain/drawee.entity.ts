@@ -9,6 +9,7 @@ export interface DraweeProps {
   tradeName: string | null;
   companyName: string;
   legalName: string | null;
+  foundedAt: string | null;
   rg: string | null;
   birthDate: string | null;
   gender: string | null;
@@ -39,6 +40,7 @@ export class Drawee {
   readonly tradeName: string | null;
   readonly companyName: string;
   readonly legalName: string | null;
+  readonly foundedAt: string | null;
   readonly rg: string | null;
   readonly birthDate: string | null;
   readonly gender: string | null;
@@ -68,6 +70,7 @@ export class Drawee {
     this.tradeName = props.tradeName;
     this.companyName = props.companyName;
     this.legalName = props.legalName;
+    this.foundedAt = props.foundedAt;
     this.rg = props.rg;
     this.birthDate = props.birthDate;
     this.gender = props.gender;
@@ -114,6 +117,7 @@ export class Drawee {
       tradeName: this.tradeName,
       companyName: this.companyName,
       legalName: this.legalName,
+      foundedAt: this.foundedAt,
       rg: this.rg,
       birthDate: this.birthDate,
       gender: this.gender,

@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   EnrichDraweeFromBureauUseCase,
   type BureauPartnerData,
 } from '../../drawees/use-cases/enrich-drawee-from-bureau.use-case';
+import { DRAWEE_REPOSITORY, type DraweeRepository } from '../../drawees/domain/drawee.repository';
 
 @Injectable()
 export class SyncSerasaDraweeUseCase {
@@ -10,6 +11,8 @@ export class SyncSerasaDraweeUseCase {
 
   constructor(
     private readonly enrichDraweeUseCase: EnrichDraweeFromBureauUseCase,
+    @Inject(DRAWEE_REPOSITORY)
+    private readonly draweeRepository: DraweeRepository,
   ) {}
 
   async execute(draweeId: string, rawResponse: unknown): Promise<void> {
@@ -23,6 +26,7 @@ export class SyncSerasaDraweeUseCase {
       identificationReport?: {
         address?: { addressLine?: string; zipCode?: string; district?: string; city?: string; state?: string };
         phone?: { phoneNumber?: string; areaCode?: string };
+        companyFoundation?: string;
       };
     };
     const optional = (resp.optionalFeatures ?? (report as Record<string, unknown>).optionalFeatures) as Record<
@@ -49,8 +53,20 @@ export class SyncSerasaDraweeUseCase {
     const zipCode = addr?.zipCode ? this.formatZipCode(addr.zipCode) : null;
     const partners = this.extractPartners(optional ?? {});
 
+    const companyFoundation = report.identificationReport?.companyFoundation;
+    const foundedAt = companyFoundation ? this.parseFoundationDate(companyFoundation) : null;
+
+    if (foundedAt) {
+      try {
+        await this.draweeRepository.update(draweeId, { foundedAt });
+        this.logger.debug(`Updated foundedAt for drawee ${draweeId}`);
+      } catch (err) {
+        this.logger.warn(`Failed to update foundedAt for drawee ${draweeId}: ${(err as Error).message}`);
+      }
+    }
+
     this.logger.log(
-      `Enriching drawee ${draweeId} from Serasa: address=${!!addr}, contact=${!!contactPhone}, partners=${partners.length}`,
+      `Enriching drawee ${draweeId} from Serasa: address=${!!addr}, contact=${!!contactPhone}, partners=${partners.length}${foundedAt ? ', foundedAt=yes' : ''}`,
     );
 
     await this.enrichDraweeUseCase.execute({
@@ -76,8 +92,27 @@ export class SyncSerasaDraweeUseCase {
 
   private extractPartners(optionalFeatures: Record<string, unknown>): BureauPartnerData[] {
     const qsa = optionalFeatures?.QSAReport as {
-      partnerCompleteReport?: { partnersList?: Array<{ name?: string; documentType?: string; documentId?: string }> };
-      directorCompleteReport?: { directorsList?: Array<{ name?: string; documentType?: string; documentId?: string }> };
+      partnerCompleteReport?: {
+        partnersList?: Array<{
+          name?: string;
+          documentType?: string;
+          documentId?: string;
+          sinceDate?: unknown;
+          participationPercentage?: unknown;
+          capitalTotalValue?: unknown;
+          restrictionSign?: string;
+        }>;
+      };
+      directorCompleteReport?: {
+        directorsList?: Array<{
+          name?: string;
+          documentType?: string;
+          documentId?: string;
+          role?: string;
+          mandateStart?: unknown;
+          mandateEnd?: unknown;
+        }>;
+      };
     } | undefined;
     if (!qsa) return [];
 
@@ -88,10 +123,16 @@ export class SyncSerasaDraweeUseCase {
       if (!p.name) continue;
       partners.push({
         fullName: p.name,
-        cpf: p.documentType === 'CPF' ? p.documentId ?? null : null,
+        cpf: p.documentType === 'CPF' ? (p.documentId ?? null) : null,
         authorizationType: 'partner',
         phone: null,
         email: null,
+        joinedAt: this.parseDate(p.sinceDate),
+        mandateEndAt: null,
+        role: null,
+        participationPercentage: this.parseNumeric(p.participationPercentage),
+        capitalTotalValue: this.parseNumeric(p.capitalTotalValue),
+        restrictionSign: p.restrictionSign ?? null,
       });
     }
 
@@ -104,19 +145,64 @@ export class SyncSerasaDraweeUseCase {
       if (alreadyAdded) continue;
       partners.push({
         fullName: d.name,
-        cpf: d.documentType === 'CPF' ? d.documentId ?? null : null,
+        cpf: d.documentType === 'CPF' ? (d.documentId ?? null) : null,
         authorizationType: 'administrator',
         phone: null,
         email: null,
+        joinedAt: this.parseDate(d.mandateStart),
+        mandateEndAt: this.parseDate(d.mandateEnd),
+        role: d.role ?? null,
+        participationPercentage: null,
+        capitalTotalValue: null,
+        restrictionSign: null,
       });
     }
 
     return partners;
   }
 
+  private parseFoundationDate(value: unknown): string | null {
+    if (value == null) return null;
+    if (typeof value === 'string' && value.trim()) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return null;
+      return date.toISOString().slice(0, 10);
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
+    }
+    return null;
+  }
+
+  private parseDate(value: unknown): Date | null {
+    if (value == null) return null;
+    if (value instanceof Date) return value;
+    if (typeof value === 'string' && value.trim()) {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }
+
+  private parseNumeric(value: unknown): string | null {
+    if (value == null) return null;
+    if (typeof value === 'number') return String(value);
+    if (typeof value === 'string') {
+      const str = value.trim();
+      return str || null;
+    }
+    return null;
+  }
+
   private parseAddressLine(line: string): { street: string | null; number: string | null } {
     if (!line) return { street: null, number: null };
-    const match = line.match(/^(.+?)\s+(\d+[A-Za-z]?)$/);
+    const regex = /^(.+?)\s+(\d+[A-Za-z]?)$/;
+    const match = regex.exec(line);
     if (match?.[1] && match[2]) {
       return { street: match[1].trim(), number: match[2] };
     }

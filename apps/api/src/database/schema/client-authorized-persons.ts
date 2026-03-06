@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, boolean, timestamp, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, boolean, timestamp, index, numeric } from 'drizzle-orm/pg-core';
 import { clients } from './clients';
 
 export const clientAuthorizedPersons = pgTable('client_authorized_persons', {
@@ -11,6 +11,13 @@ export const clientAuthorizedPersons = pgTable('client_authorized_persons', {
   email: text('email'),
   source: text('source'),  // 'manual' | 'vadu' | 'serasa' | 'brasilapi' | 'creditbox'
   sourceQueriedAt: timestamp('source_queried_at', { withTimezone: true }),
+  // Serasa QSA fields
+  joinedAt: timestamp('joined_at', { withTimezone: true }),      // sinceDate (partners) | mandateStart (directors)
+  mandateEndAt: timestamp('mandate_end_at', { withTimezone: true }),
+  role: text('role'),
+  participationPercentage: numeric('participation_percentage', { precision: 6, scale: 2 }),
+  capitalTotalValue: numeric('capital_total_value', { precision: 20, scale: 2 }),
+  restrictionSign: text('restriction_sign'),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),

@@ -43,6 +43,7 @@ import {
   getStatusLabel,
   getStatusColor,
   getStatusMessage,
+  canAccessTab,
 } from '@nexus/utils';
 import type { DocumentChecklistItem, CanSubmitResult } from '@nexus/types';
 import { DocumentChecklist } from '../../new/_components/document-checklist';
@@ -52,7 +53,9 @@ import { ClientBankAccountsTab } from './tabs/client-bank-accounts-tab';
 import { ClientCreditAnalysisTab } from './tabs/client-credit-analysis-tab';
 import { PartnerSection } from './partner-section';
 import { FaturamentoSection } from './faturamento-section';
+import { ClientChatTab } from './tabs/client-chat-tab';
 import { FadeIn, AnimatedTabContent } from './motion-wrapper';
+import { useRole } from '@/contexts/role-context';
 
 interface ClientData {
   id: string;
@@ -74,6 +77,8 @@ interface ClientData {
   approvedAmount: string | null;
   hasGuarantees: boolean;
   isJudicialRecovery: boolean;
+  foundedAt: string | null;
+  establishedAt: string | null;
   status: string;
   assignedTo: string;
   createdAt: string | null;
@@ -92,13 +97,13 @@ interface CreditProduct {
   name: string;
 }
 
-interface ClientDetailProps {
+type ClientDetailProps = Readonly<{
   client: ClientData;
   segmentName: string;
   productName: string;
   segments: Segment[];
   products: CreditProduct[];
-}
+}>;
 
 const PULSING_STATUSES = new Set([
   'pending_documents',
@@ -131,7 +136,7 @@ function formatDate(dateStr: string | null): string {
   });
 }
 
-function InfoField({ label, value }: { label: string; value: string | null | undefined }) {
+function InfoField({ label, value }: Readonly<{ label: string; value: string | null | undefined }>) {
   return (
     <div className="space-y-1">
       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">{label}</p>
@@ -140,7 +145,7 @@ function InfoField({ label, value }: { label: string; value: string | null | und
   );
 }
 
-function SectionDivider({ label }: { label: string }) {
+function SectionDivider({ label }: Readonly<{ label: string }>) {
   return (
     <div className="flex items-center gap-3 py-2">
       <div className="h-px flex-1 bg-border" />
@@ -175,8 +180,10 @@ type CreditForm = {
 
 export function ClientDetail({ client, segmentName, productName, segments, products }: ClientDetailProps) {
   const router = useRouter();
+  const role = useRole();
+  const canShowChat = canAccessTab(role, 'chat');
   const [submitting, setSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState('dados');
+  const [activeTab, setActiveTab] = useState(canShowChat ? 'chat' : 'dados');
 
   const [companyDialogOpen, setCompanyDialogOpen] = useState(false);
   const [creditDialogOpen, setCreditDialogOpen] = useState(false);
@@ -471,6 +478,9 @@ export function ClientDetail({ client, segmentName, productName, segments, produ
       <FadeIn delay={0.2} yOffset={4}>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-muted/50 p-1 rounded-lg h-auto flex-wrap gap-0.5">
+            {canShowChat && (
+              <TabsTrigger value="chat" className="rounded-md text-xs">Chat</TabsTrigger>
+            )}
             <TabsTrigger value="dados" className="rounded-md text-xs">Dados</TabsTrigger>
             <TabsTrigger value="financeiro" className="rounded-md text-xs">Financeiro</TabsTrigger>
             <TabsTrigger value="bureau" className="rounded-md text-xs">Bureau</TabsTrigger>
@@ -478,12 +488,21 @@ export function ClientDetail({ client, segmentName, productName, segments, produ
             <TabsTrigger value="contas" className="rounded-md text-xs">Contas Bancárias</TabsTrigger>
           </TabsList>
 
+          {/* Chat */}
+          {canShowChat && (
+            <TabsContent value="chat" className="mt-5">
+              <AnimatedTabContent key="chat">
+                <ClientChatTab clientId={client.id} />
+              </AnimatedTabContent>
+            </TabsContent>
+          )}
+
           {/* Dados */}
           <TabsContent value="dados" className="space-y-6 mt-5">
             <AnimatedTabContent key="dados">
               <div className="space-y-6">
                 {/* Sócios */}
-                <PartnerSection clientId={client.id} />
+                <PartnerSection clientId={client.id} foundedAt={client.foundedAt ?? client.establishedAt ?? null} />
 
                 <Card className="overflow-hidden">
                   <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-transparent">
@@ -766,7 +785,7 @@ export function ClientDetail({ client, segmentName, productName, segments, produ
 }
 
 // Thin wrapper to avoid naming collision with the section label divider
-function FatureamentoSectionWrapper({ clientId }: { clientId: string }) {
+function FatureamentoSectionWrapper({ clientId }: Readonly<{ clientId: string }>) {
   return <FaturamentoSection clientId={clientId} />;
 }
 
