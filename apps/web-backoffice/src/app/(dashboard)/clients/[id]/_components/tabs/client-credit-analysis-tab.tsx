@@ -57,6 +57,14 @@ function formatCnpj(cnpj: string): string {
   return digits.replaceAll(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/g, '$1.$2.$3/$4-$5');
 }
 
+function formatDocument(docId: string | null | undefined, docType?: string | null): string {
+  if (!docId) return '';
+  const digits = String(docId).replaceAll(/\D/g, '');
+  if (docType === 'CPF' || digits.length === 11) return formatCpf(docId);
+  if (docType === 'CNPJ' || docType === 'PJ' || digits.length === 14) return formatCnpj(docId);
+  return docId;
+}
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('pt-BR', {
@@ -492,17 +500,33 @@ export function SerasaScoreBadge({ score }: Readonly<{ score: number }>) {
   return <StatusBadge value={label} type={type} />;
 }
 
+function getAnnotationSummary(obj: unknown, ...keys: string[]): { count?: number; balance?: number } | null {
+  if (!obj || typeof obj !== 'object') return null;
+  const o = obj as Record<string, unknown>;
+  for (const key of keys) {
+    const v = o[key];
+    if (v && typeof v === 'object' && 'summary' in (v as object)) {
+      const s = (v as { summary?: { count?: number; balance?: number } }).summary;
+      if (s) return s;
+    }
+  }
+  if (o.summary) return o.summary as { count?: number; balance?: number };
+  return null;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SerasaNegativeData({ raw }: Readonly<{ raw: any }>) {
-  const neg = raw?.reports?.[0]?.negativeData;
-  if (!neg) return null;
+  const report = raw?.reports?.[0];
+  const neg = report?.negativeData ?? report;
+  const opt = raw?.optionalFeatures ?? {};
 
-  const pefin = neg.pefin?.summary;
-  const refin = neg.refin?.summary;
-  const notary = neg.notary?.summary;
-  const check = neg.check?.summary;
+  const pefin = getAnnotationSummary(neg, 'pefin', 'pefinResponse', 'spefinResponse') ?? getAnnotationSummary(opt, 'pefin', 'pefinResponse', 'spefinResponse');
+  const refin = getAnnotationSummary(neg, 'refin', 'refinResponse') ?? getAnnotationSummary(opt, 'refin', 'refinResponse');
+  const notary = getAnnotationSummary(neg, 'notary', 'notaryResponse') ?? getAnnotationSummary(opt, 'notary', 'notaryResponse');
+  const check = getAnnotationSummary(neg, 'check', 'checkResponse') ?? getAnnotationSummary(opt, 'check', 'checkResponse');
+  const collectionRecords = getAnnotationSummary(neg, 'collectionRecords', 'collectionRecordsResponse') ?? getAnnotationSummary(opt, 'collectionRecords', 'collectionRecordsResponse');
 
-  const hasAny = pefin || refin || notary || check;
+  const hasAny = pefin || refin || notary || check || collectionRecords;
   if (!hasAny) return null;
 
   return (
@@ -512,11 +536,12 @@ function SerasaNegativeData({ raw }: Readonly<{ raw: any }>) {
           <AlertTriangle size={15} className="text-destructive" />
           <span className="text-sm font-medium">Anotações Negativas</span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {pefin && <NegativeSummaryItem label="PEFIN" count={pefin.count} balance={pefin.balance} />}
           {refin && <NegativeSummaryItem label="REFIN" count={refin.count} balance={refin.balance} />}
           {notary && <NegativeSummaryItem label="Protestos" count={notary.count} balance={notary.balance} />}
           {check && <NegativeSummaryItem label="Cheques" count={check.count} balance={check.balance} />}
+          {collectionRecords && <NegativeSummaryItem label="Dívidas Vencidas" count={collectionRecords.count} balance={collectionRecords.balance} />}
         </div>
       </CardContent>
     </Card>
@@ -540,11 +565,11 @@ function NegativeSummaryItem({ label, count, balance }: Readonly<{ label: string
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SerasaJudicial({ raw }: Readonly<{ raw: any }>) {
-  const facts = raw?.reports?.[0]?.facts;
-  if (!facts) return null;
+  const report = raw?.reports?.[0];
+  const facts = report?.facts ?? report;
 
-  const judgements = facts.judgementFilings?.summary;
-  const bankrupts = facts.bankrupts?.summary;
+  const judgements = getAnnotationSummary(facts, 'judgementFilings', 'judgementFilingsResponse');
+  const bankrupts = getAnnotationSummary(facts, 'bankrupts', 'bankruptsResponse');
 
   if (!judgements && !bankrupts) return null;
 
@@ -612,24 +637,28 @@ function SerasaQsa({ raw }: Readonly<{ raw: any }>) {
             <p className="text-xs font-medium text-muted-foreground">Sócios ({partners.length})</p>
             <div className="grid gap-2">
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {partners.map((p: any, i: number) => (
-                <div key={`partner-${p.documentNumber || i}`} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Users size={13} className="text-muted-foreground" />
-                    <span className="font-medium">{p.name || 'N/I'}</span>
-                    {p.restrictionSign && (
-                      <Badge variant="destructive" className="text-[10px]">Restrição</Badge>
-                    )}
+              {partners.map((p: any, i: number) => {
+                const doc = p.documentId ?? p.documentNumber ?? p.participatedDocumentId ?? p.companyDocumentId;
+                const docFormatted = formatDocument(doc, p.documentType);
+                return (
+                  <div key={`partner-${p.documentId ?? p.documentNumber ?? i}`} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Users size={13} className="text-muted-foreground" />
+                      <span className="font-medium">{p.name || 'N/I'}</span>
+                      {p.restrictionSign && (
+                        <Badge variant="destructive" className="text-[10px]">Restrição</Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      {p.sinceDate && (
+                        <span>Entrou em {formatDate(String(p.sinceDate))}</span>
+                      )}
+                      {p.participationPercentage != null && <span>{p.participationPercentage}%</span>}
+                      {docFormatted && <span>{docFormatted}</span>}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    {p.sinceDate && (
-                      <span>Entrou em {formatDate(String(p.sinceDate))}</span>
-                    )}
-                    {p.participationPercentage != null && <span>{p.participationPercentage}%</span>}
-                    {p.documentNumber && <span>{p.documentNumber}</span>}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -639,23 +668,28 @@ function SerasaQsa({ raw }: Readonly<{ raw: any }>) {
             <p className="text-xs font-medium text-muted-foreground">Diretores ({directors.length})</p>
             <div className="grid gap-2">
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {directors.map((d: any, i: number) => (
-                <div key={`director-${d.documentNumber || i}`} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <UserCheck size={13} className="text-muted-foreground" />
-                    <span className="font-medium">{d.name || 'N/I'}</span>
+              {directors.map((d: any, i: number) => {
+                const doc = d.documentId ?? d.documentNumber ?? d.participatedDocumentId;
+                const docFormatted = formatDocument(doc, d.documentType);
+                return (
+                  <div key={`director-${d.documentId ?? d.documentNumber ?? i}`} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <UserCheck size={13} className="text-muted-foreground" />
+                      <span className="font-medium">{d.name || 'N/I'}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      {d.mandateStart && (
+                        <span>Desde {formatDate(String(d.mandateStart))}</span>
+                      )}
+                      {d.mandateEnd && (
+                        <span>até {formatDate(String(d.mandateEnd))}</span>
+                      )}
+                      {d.role && <span>{d.role}</span>}
+                      {docFormatted && <span>{docFormatted}</span>}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    {d.mandateStart && (
-                      <span>Desde {formatDate(String(d.mandateStart))}</span>
-                    )}
-                    {d.mandateEnd && (
-                      <span>até {formatDate(String(d.mandateEnd))}</span>
-                    )}
-                    {d.role && <span>{d.role}</span>}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
