@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
+  Badge,
   Button,
   Card,
   CardHeader,
@@ -17,17 +18,19 @@ import {
   Skeleton,
   Switch,
 } from '@nexus/ui';
-import { Plus, Users } from 'lucide-react';
+import { AlertTriangle, Plus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
 import type { ClientAuthorizedPerson } from '@nexus/types';
 import { FadeIn, StaggerChildren, StaggerItem } from './motion-wrapper';
 import { PartnerCard } from './partner-card';
 import type { IrpfExtraction } from './tabs/client-irpf-tab';
+import { computePartnerAlerts, computeCompanyAlerts } from '@/lib/partner-alert-rules';
 
-interface PartnerSectionProps {
+type PartnerSectionProps = Readonly<{
   clientId: string;
-}
+  foundedAt?: string | null;
+}>;
 
 type FormData = {
   fullName: string;
@@ -44,7 +47,7 @@ const emptyForm: FormData = {
 const POLLING_INTERVAL_MS = 5_000;
 const PROCESSING_STATUSES = new Set<IrpfExtraction['extractionStatus']>(['pending', 'processing']);
 
-export function PartnerSection({ clientId }: PartnerSectionProps) {
+export function PartnerSection({ clientId, foundedAt }: PartnerSectionProps) {
   const [partners, setPartners] = useState<ClientAuthorizedPerson[]>([]);
   const [irpfExtractions, setIrpfExtractions] = useState<IrpfExtraction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -135,7 +138,7 @@ export function PartnerSection({ clientId }: PartnerSectionProps) {
       loadData();
     } catch (err) {
       if (err instanceof ApiError) {
-        const firstError = err.errors && Object.values(err.errors).flat()[0];
+        const firstError = err.errors && Object.values(err.errors).flat().at(0);
         toast.error(firstError ?? err.message);
       } else {
         toast.error('Erro ao salvar sócio');
@@ -233,6 +236,7 @@ export function PartnerSection({ clientId }: PartnerSectionProps) {
             <PartnerCard
               person={partner}
               clientId={clientId}
+              foundedAt={foundedAt ?? null}
               irpfExtractions={getPartnerIrpf(partner)}
               reprocessingId={reprocessingId}
               onReprocess={handleReprocess}
@@ -257,6 +261,17 @@ export function PartnerSection({ clientId }: PartnerSectionProps) {
               {!loading && (
                 <span className="text-sm font-normal text-muted-foreground">({partners.length})</span>
               )}
+              {!loading && partners.length > 0 && (() => {
+                const companyAlerts = computeCompanyAlerts(foundedAt ?? null);
+                const allPartnerAlerts = partners.flatMap((p) => computePartnerAlerts(p, foundedAt ?? null));
+                const totalAlerts = companyAlerts.length + allPartnerAlerts.length;
+                return totalAlerts > 0 ? (
+                  <Badge variant="outline" className="text-xs gap-1 border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                    <AlertTriangle size={11} />
+                    {totalAlerts} {totalAlerts === 1 ? 'alerta' : 'alertas'}
+                  </Badge>
+                ) : null;
+              })()}
             </CardTitle>
             <Button variant="outline" size="sm" onClick={openCreate} className="gap-1.5">
               <Plus size={14} />

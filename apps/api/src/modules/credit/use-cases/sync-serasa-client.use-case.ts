@@ -79,10 +79,16 @@ export class SyncSerasaClientUseCase {
       if (!p.name) continue;
       partners.push({
         fullName: p.name,
-        cpf: p.documentType === 'CPF' ? p.documentId : null,
+        cpf: p.documentType === 'CPF' ? (p.documentId ?? null) : null,
         authorizationType: 'partner',
         phone: null,
         email: null,
+        joinedAt: this.parseDate(p.sinceDate),
+        mandateEndAt: null,
+        role: null,
+        participationPercentage: this.parseNumeric(p.participationPercentage),
+        capitalTotalValue: this.parseNumeric(p.capitalTotalValue),
+        restrictionSign: p.restrictionSign ?? null,
       });
     }
 
@@ -96,14 +102,44 @@ export class SyncSerasaClientUseCase {
 
       partners.push({
         fullName: d.name,
-        cpf: d.documentType === 'CPF' ? d.documentId : null,
+        cpf: d.documentType === 'CPF' ? (d.documentId ?? null) : null,
         authorizationType: 'administrator',
         phone: null,
         email: null,
+        joinedAt: this.parseDate(d.mandateStart),
+        mandateEndAt: this.parseDate(d.mandateEnd),
+        role: d.role ?? null,
+        participationPercentage: null,
+        capitalTotalValue: null,
+        restrictionSign: null,
       });
     }
 
     return partners;
+  }
+
+  private parseDate(value: unknown): Date | null {
+    if (value == null) return null;
+    if (value instanceof Date) return value;
+    if (typeof value === 'string' && value.trim()) {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  }
+
+  private parseNumeric(value: unknown): string | null {
+    if (value == null) return null;
+    if (typeof value === 'number') return String(value);
+    if (typeof value === 'string') {
+      const str = value.trim();
+      return str || null;
+    }
+    return null;
   }
 
   /**
@@ -113,7 +149,8 @@ export class SyncSerasaClientUseCase {
   private parseAddressLine(line: string): { street: string | null; number: string | null } {
     if (!line) return { street: null, number: null };
 
-    const match = line.match(/^(.+?)\s+(\d+[A-Za-z]?)$/);
+    const regex = /^(.+?)\s+(\d+[A-Za-z]?)$/;
+    const match = regex.exec(line);
     if (match?.[1] && match[2]) {
       return { street: match[1].trim(), number: match[2] };
     }

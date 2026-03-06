@@ -163,6 +163,12 @@ import { EnrichClientFromBureauUseCase } from './use-cases/enrich-client-from-bu
   ],
   exports: [
     EnrichClientFromBureauUseCase,
+    GetClientUseCase,
+    GetDocumentChecklistUseCase,
+    CanSubmitUseCase,
+    ListClientContactsUseCase,
+    ListClientAddressesUseCase,
+    GetFaturamentoExtractionUseCase,
     CLIENT_REPOSITORY,
     CLIENT_ADDRESS_REPOSITORY,
     CLIENT_CONTACT_REPOSITORY,

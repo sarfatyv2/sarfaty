@@ -62,11 +62,19 @@ export interface ClientBankAccount {
 export interface ClientAuthorizedPerson {
   id: string;
   clientId: string;
-  authorizationType: string | null;  // 'partner' | 'attorney' | 'legal_representative' | 'authorized'
+  authorizationType: string | null;  // 'partner' | 'attorney' | 'legal_representative' | 'authorized' | 'administrator'
   fullName: string;
   cpf: string | null;
   phone: string | null;
   email: string | null;
+  source: string | null;
+  sourceQueriedAt: string | null;
+  joinedAt: string | null;
+  mandateEndAt: string | null;
+  role: string | null;
+  participationPercentage: string | null;
+  capitalTotalValue: string | null;
+  restrictionSign: string | null;
   isActive: boolean;
   createdAt: string | null;
   updatedAt: string | null;

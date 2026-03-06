@@ -27,6 +27,7 @@ import { CreditModule } from './modules/credit/credit.module';
 import { GovernanceModule } from './modules/governance/governance.module';
 import { CommunicationModule } from './modules/communication/communication.module';
 import { CnabModule } from './modules/cnab/cnab.module';
+import { ChatModule } from './modules/chat/chat.module';
 import { AuditTrailModule } from './modules/audit/audit.module';
 
 @Module({
@@ -60,6 +61,7 @@ import { AuditTrailModule } from './modules/audit/audit.module';
     GovernanceModule,
     CommunicationModule,
     CnabModule,
+    ChatModule,
     AuditTrailModule,
   ],
   providers: [

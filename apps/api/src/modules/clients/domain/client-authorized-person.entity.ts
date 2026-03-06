@@ -8,6 +8,12 @@ export interface ClientAuthorizedPersonProps {
   email: string | null;
   source: string | null;
   sourceQueriedAt: Date | null;
+  joinedAt: Date | null;
+  mandateEndAt: Date | null;
+  role: string | null;
+  participationPercentage: string | null;
+  capitalTotalValue: string | null;
+  restrictionSign: string | null;
   isActive: boolean;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -23,6 +29,12 @@ export class ClientAuthorizedPerson {
   readonly email: string | null;
   readonly source: string | null;
   readonly sourceQueriedAt: Date | null;
+  readonly joinedAt: Date | null;
+  readonly mandateEndAt: Date | null;
+  readonly role: string | null;
+  readonly participationPercentage: string | null;
+  readonly capitalTotalValue: string | null;
+  readonly restrictionSign: string | null;
   readonly isActive: boolean;
   readonly createdAt: Date | null;
   readonly updatedAt: Date | null;
@@ -37,6 +49,12 @@ export class ClientAuthorizedPerson {
     this.email = props.email;
     this.source = props.source;
     this.sourceQueriedAt = props.sourceQueriedAt;
+    this.joinedAt = props.joinedAt;
+    this.mandateEndAt = props.mandateEndAt;
+    this.role = props.role;
+    this.participationPercentage = props.participationPercentage;
+    this.capitalTotalValue = props.capitalTotalValue;
+    this.restrictionSign = props.restrictionSign;
     this.isActive = props.isActive;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
@@ -66,6 +84,12 @@ export class ClientAuthorizedPerson {
       email: this.email,
       source: this.source,
       sourceQueriedAt: this.sourceQueriedAt?.toISOString() ?? null,
+      joinedAt: this.joinedAt?.toISOString() ?? null,
+      mandateEndAt: this.mandateEndAt?.toISOString() ?? null,
+      role: this.role,
+      participationPercentage: this.participationPercentage,
+      capitalTotalValue: this.capitalTotalValue,
+      restrictionSign: this.restrictionSign,
       isActive: this.isActive,
       createdAt: this.createdAt?.toISOString() ?? null,
       updatedAt: this.updatedAt?.toISOString() ?? null,

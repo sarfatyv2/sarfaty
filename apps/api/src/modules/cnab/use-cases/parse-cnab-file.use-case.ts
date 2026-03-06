@@ -191,6 +191,7 @@ export class ParseCnabFileUseCase {
       companyName: detail.draweeName || 'DESCONHECIDO',
       tradeName: null,
       legalName: null,
+      foundedAt: null,
       cnpj: isCompany ? doc : null,
       cnpjRoot: isCompany ? doc.substring(0, 8) : null,
       cpf: isCompany ? null : doc,

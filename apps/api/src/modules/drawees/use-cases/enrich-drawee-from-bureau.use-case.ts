@@ -11,6 +11,12 @@ export interface BureauPartnerData {
   authorizationType: string;
   phone: string | null;
   email: string | null;
+  joinedAt: Date | null;
+  mandateEndAt: Date | null;
+  role: string | null;
+  participationPercentage: string | null;
+  capitalTotalValue: string | null;
+  restrictionSign: string | null;
 }
 
 export interface BureauEnrichmentData {
@@ -170,6 +176,12 @@ export class EnrichDraweeFromBureauUseCase {
             authorizationType: partner.authorizationType,
             phone: partner.phone,
             email: partner.email,
+            joinedAt: partner.joinedAt,
+            mandateEndAt: partner.mandateEndAt,
+            role: partner.role,
+            participationPercentage: partner.participationPercentage,
+            capitalTotalValue: partner.capitalTotalValue,
+            restrictionSign: partner.restrictionSign,
             sourceQueriedAt: queriedAt,
             isActive: true,
           });
@@ -182,6 +194,12 @@ export class EnrichDraweeFromBureauUseCase {
             cpf: cleanCpf,
             phone: partner.phone,
             email: partner.email,
+            joinedAt: partner.joinedAt,
+            mandateEndAt: partner.mandateEndAt,
+            role: partner.role,
+            participationPercentage: partner.participationPercentage,
+            capitalTotalValue: partner.capitalTotalValue,
+            restrictionSign: partner.restrictionSign,
             source,
             sourceQueriedAt: queriedAt,
             isActive: true,

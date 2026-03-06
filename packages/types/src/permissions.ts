@@ -67,7 +67,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
       'my-goal-progress',
       'recent-updates',
     ],
-    clientTabs: ['overview', 'documents', 'activities'],
+    clientTabs: ['chat', 'overview', 'documents', 'activities'],
     clientActions: [
       'edit_draft',
       'upload_document',
@@ -139,7 +139,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
       'team-ranking-mini',
       'clients-without-activity',
     ],
-    clientTabs: ['overview', 'documents', 'activities', 'assignment-history'],
+    clientTabs: ['chat', 'overview', 'documents', 'activities', 'assignment-history'],
     clientActions: [
       'edit_draft',
       'upload_document',
@@ -210,7 +210,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
       'region-volume-chart',
       'critical-alerts',
     ],
-    clientTabs: ['overview', 'documents', 'activities', 'assignment-history'],
+    clientTabs: ['chat', 'overview', 'documents', 'activities', 'assignment-history'],
     clientActions: [
       'edit_draft',
       'upload_document',
@@ -280,7 +280,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
       'conversion-funnel',
       'top-operations',
     ],
-    clientTabs: ['overview', 'documents', 'activities', 'assignment-history'],
+    clientTabs: ['chat', 'overview', 'documents', 'activities', 'assignment-history'],
     clientActions: ['reassign_anywhere'],
     globalActions: ['create_client', 'reassign_client', 'manage_regions', 'manage_goals'],
     notifications: [

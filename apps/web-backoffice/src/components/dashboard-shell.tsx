@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle } from '@nexus/ui';
+import { RoleProvider } from '@/contexts/role-context';
 import { Sidebar } from './sidebar';
 import { SidebarContent } from './sidebar-content';
 import { Header } from './header';
@@ -19,6 +20,7 @@ export function DashboardShell({ role, fullName, email, avatarUrl, children }: R
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
+    <RoleProvider role={role}>
     <div className="flex h-screen overflow-hidden">
       <Sidebar role={role} />
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -42,5 +44,6 @@ export function DashboardShell({ role, fullName, email, avatarUrl, children }: R
         </main>
       </div>
     </div>
+    </RoleProvider>
   );
 }

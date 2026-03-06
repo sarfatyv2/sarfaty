@@ -7,18 +7,27 @@ import type { ClientAuthorizedPerson } from '@nexus/types';
 import { ExpandableContent, RotatingChevron } from './motion-wrapper';
 import { IrpfExtractionCard } from './tabs/client-irpf-tab';
 import type { IrpfExtraction } from './tabs/client-irpf-tab';
+import { computePartnerAlerts } from '@/lib/partner-alert-rules';
+import { PartnerAlerts } from '@/components/partner-alerts';
 
 const AUTH_TYPE_LABELS: Record<string, string> = {
   partner: 'Sócio',
   attorney: 'Procurador',
   legal_representative: 'Representante Legal',
   authorized: 'Autorizado',
+  administrator: 'Administrador',
 };
+
+function formatDate(dateStr: string | null | undefined): string | null {
+  if (!dateStr?.trim()) return null;
+  const d = new Date(dateStr);
+  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return (parts[0]?.slice(0, 2) ?? '').toUpperCase();
-  return ((parts[0]?.[0] ?? '') + (parts[parts.length - 1]?.[0] ?? '')).toUpperCase();
+  return ((parts[0]?.[0] ?? '') + (parts.at(-1)?.[0] ?? '')).toUpperCase();
 }
 
 const AVATAR_PALETTE = [
@@ -37,7 +46,8 @@ function getAvatarColor(name: string): string {
   for (let i = 0; i < name.length; i++) {
     hash = (name.codePointAt(i) ?? 0) + ((hash << 5) - hash);
   }
-  return AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length]!;
+  const color = AVATAR_PALETTE.at(Math.abs(hash) % AVATAR_PALETTE.length);
+  return color ?? AVATAR_PALETTE[0] ?? 'bg-[hsl(30,30%,93%)] text-[hsl(150,50%,15%)]';
 }
 
 function irpfLabel(count: number): string {
@@ -50,20 +60,22 @@ function formatCpf(cpf: string): string {
   return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
 }
 
-interface PartnerCardProps {
+type PartnerCardProps = Readonly<{
   person: ClientAuthorizedPerson;
   clientId: string;
+  foundedAt?: string | null;
   irpfExtractions: IrpfExtraction[];
   reprocessingId: string | null;
   onReprocess: (extraction: IrpfExtraction) => Promise<void>;
   onEdit: (person: ClientAuthorizedPerson) => void;
   onDelete: (id: string) => void;
   deleting: string | null;
-}
+}>;
 
 export function PartnerCard({
   person,
   clientId,
+  foundedAt,
   irpfExtractions,
   reprocessingId,
   onReprocess,
@@ -78,6 +90,8 @@ export function PartnerCard({
   const typeLabel = person.authorizationType ? (AUTH_TYPE_LABELS[person.authorizationType] ?? person.authorizationType) : null;
   const irpfCount = irpfExtractions.length;
   const cpfFormatted = person.cpf ? formatCpf(person.cpf) : null;
+  const joinedAtFormatted = formatDate(person.joinedAt ?? null);
+  const alerts = computePartnerAlerts(person, foundedAt ?? null);
 
   return (
     <div className="rounded-xl border bg-card overflow-hidden transition-shadow hover:shadow-sm">
@@ -110,6 +124,15 @@ export function PartnerCard({
               {cpfFormatted && (
                 <span className="text-xs text-muted-foreground font-mono">{cpfFormatted}</span>
               )}
+              {joinedAtFormatted && (
+                <span className="text-xs text-muted-foreground">Entrou em {joinedAtFormatted}</span>
+              )}
+              {person.role && (
+                <span className="text-xs text-muted-foreground">{person.role}</span>
+              )}
+              {person.participationPercentage != null && person.participationPercentage !== '' && (
+                <span className="text-xs text-muted-foreground">{person.participationPercentage}%</span>
+              )}
               {person.email && (
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Mail size={10} />
@@ -123,6 +146,11 @@ export function PartnerCard({
                 </span>
               )}
             </div>
+            {alerts.length > 0 && (
+              <div className="mt-2">
+                <PartnerAlerts alerts={alerts} />
+              </div>
+            )}
           </div>
 
           {/* Right side: IRPF count + actions + chevron */}

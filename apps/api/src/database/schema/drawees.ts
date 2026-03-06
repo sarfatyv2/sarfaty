@@ -14,6 +14,7 @@ export const drawees = pgTable('drawees', {
   tradeName: text('trade_name'),
   companyName: text('company_name').notNull(),
   legalName: text('legal_name'),
+  foundedAt: date('founded_at'),  // data de fundação (enriquecido via Serasa)
 
   // Dados PF (quando PF)
   rg: text('rg'),

@@ -166,6 +166,9 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     CREDITBOX_REPOSITORY,
     SyncVaduClientUseCase,
     GetVaduResultsUseCase,
+    GetSerasaReportUseCase,
+    GetCreditboxReportUseCase,
+    GetComplianceResultsUseCase,
   ],
 })
 export class CreditModule {}
