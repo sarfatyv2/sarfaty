@@ -355,3 +355,41 @@ Mensagens informativas exibidas conforme o tipo de sociedade:
 ## 12. Blocos Base (dados cadastrais)
 
 `identificationReport`, `companyData`, `partnersList`, `directorsList`, `pefinResponse`, `refinResponse`, `score`, `inquiryCompanyResponse`, `optionalFeatures` (bloco que agrupa retornos das features solicitadas)
+
+---
+
+## 13. Estrutura de Retorno — Anotações Negativas PF (Sócios / ANOTACOES_CONSULTAS_SPC_SOCIOS_ADMINISTRADORES)
+
+Possíveis campos de retorno para anotações negativas (Pendência Financeira, Restrição Financeira, Dívida Vencida, Cheque sem Fundo, Protestos, Ações Judiciais e Participações em Falência). Usado em relatórios PF e na feature de análise dos sócios.
+
+### 13.1 PEFIN (Pendências Financeiras)
+`spefinResponse` — items com `occurrenceDate`, `legalNatureId`, `legalNature`, `contractId`, `creditorName`, `amount`, `federalUnit`, `legalSquare`, `principal`  
+`summary` — `firstOcurrence`, `lastOcurrence`, `count`, `balance`
+
+### 13.2 REFIN (Restrições Financeiras)
+`refinResponse` — mesma estrutura do PEFIN  
+`summary` — `firstOcurrence`, `lastOcurrence`, `count`, `balance`
+
+### 13.3 Protestos
+`notaryResponse` — `occurrenceDate`, `amount`, `officeNumber`, `city`, `federalUnit`, `legalSquare`  
+`summary` — `firstOcurrence`, `lastOcurrence`, `count`, `balance`
+
+### 13.4 Cheques Sem Fundo (CCF)
+`checkResponse` — `occurrenceDate`, `alinea`, `bankId`, `bankName`, `bankAgencyId`, `checkNumber`, `checkCount`, `city`, `federalUnit`, `legalSquare`  
+`summary` — `firstOcurrence`, `lastOcurrence`, `count`, `balance`
+
+### 13.5 Dívidas Vencidas
+`collectionRecordsResponse` — `occurrenceDate`, `legalNatureId`, `legalNature`, `contractId`, `creditorName`, `amount`, `city`, `federalUnit`, `legalSquare`, `principal`  
+`summary` — `firstOcurrence`, `lastOcurrence`, `count`, `balance`
+
+### 13.6 Participação em Falência
+`bankruptsResponse` — `occurrenceDate`, `companyDocumentId`, `companyName`, `companyLegalNatureID`, `companyLegalNature`, `legalSquare`  
+`summary` — `firstOcurrence`, `lastOcurrence`, `count`, `balance`
+
+### 13.7 Ações Judiciais
+`judgementFilingsResponse` — `occurrenceDate`, `legalNatureId`, `legalNature`, `amount`, `distributor`, `civilCourt`, `city`, `state`, `legalSquare`  
+`summary` — `firstOcurrence`, `lastOcurrence`, `count`, `balance`
+
+### 13.8 Participação Societária
+`partnershipResponse` — `businessDocument`, `companyName`, `participationInitialDate`, `participationPercentage`, `companyStatus`, `companyStatusCode`, `companyState`, `companyStatusDate`, `updateDate`  
+`summary` — `count` (balance não se aplica)
