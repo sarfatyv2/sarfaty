@@ -617,8 +617,14 @@ function SerasaQsa({ raw }: Readonly<{ raw: any }>) {
                   <div className="flex items-center gap-2">
                     <Users size={13} className="text-muted-foreground" />
                     <span className="font-medium">{p.name || 'N/I'}</span>
+                    {p.restrictionSign && (
+                      <Badge variant="destructive" className="text-[10px]">Restrição</Badge>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    {p.sinceDate && (
+                      <span>Entrou em {formatDate(String(p.sinceDate))}</span>
+                    )}
                     {p.participationPercentage != null && <span>{p.participationPercentage}%</span>}
                     {p.documentNumber && <span>{p.documentNumber}</span>}
                   </div>
@@ -639,7 +645,13 @@ function SerasaQsa({ raw }: Readonly<{ raw: any }>) {
                     <UserCheck size={13} className="text-muted-foreground" />
                     <span className="font-medium">{d.name || 'N/I'}</span>
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    {d.mandateStart && (
+                      <span>Desde {formatDate(String(d.mandateStart))}</span>
+                    )}
+                    {d.mandateEnd && (
+                      <span>até {formatDate(String(d.mandateEnd))}</span>
+                    )}
                     {d.role && <span>{d.role}</span>}
                   </div>
                 </div>
