@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { DRIZZLE, type DrizzleDB } from '../../database/database.module';
-import { debtPositionItems } from '../../database/schema';
+import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
+import { debtPositionItems } from '../../../database/schema';
 import type {
   DebtPositionItemRepository,
   CreateDebtPositionItemData,
@@ -50,7 +50,7 @@ export class DrizzleDebtPositionItemRepository implements DebtPositionItemReposi
       .from(debtPositionItems)
       .where(eq(debtPositionItems.clientId, clientId))
       .orderBy(debtPositionItems.createdAt);
-    return rows.map((row) => DebtPositionItemMapper.toDomain(row as unknown as Record<string, unknown>));
+    return rows.map((row: unknown) => DebtPositionItemMapper.toDomain(row as Record<string, unknown>));
   }
 
   async findByDocumentId(documentId: string): Promise<DebtPositionItemProps[]> {
@@ -58,7 +58,7 @@ export class DrizzleDebtPositionItemRepository implements DebtPositionItemReposi
       .select()
       .from(debtPositionItems)
       .where(eq(debtPositionItems.documentId, documentId));
-    return rows.map((row) => DebtPositionItemMapper.toDomain(row as unknown as Record<string, unknown>));
+    return rows.map((row: unknown) => DebtPositionItemMapper.toDomain(row as Record<string, unknown>));
   }
 
   async update(id: string, data: UpdateDebtPositionItemData): Promise<DebtPositionItemProps> {
