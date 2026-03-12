@@ -8,7 +8,7 @@ import { ClientNotFoundException } from '../domain/exceptions/client-not-found.e
 import { clientDocuments } from '../../../database/schema';
 
 // Document types that support multiple uploads per checklist slot
-const MULTI_UPLOAD_TYPES = ['revenue'];
+const MULTI_UPLOAD_TYPES: string[] = [];
 
 interface ChecklistRow {
   document_type: string;

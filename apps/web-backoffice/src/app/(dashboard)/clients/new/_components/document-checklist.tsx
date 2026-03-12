@@ -59,8 +59,10 @@ function getStatusBadgeClass(status: string): string {
   return '';
 }
 
-// Document types that support multiple uploads (one per company/year/etc.)
-const MULTI_UPLOAD_TYPES = new Set(['revenue']);
+const YEAR_GROUPED_TYPES: Record<string, string> = {
+  revenue: 'Faturamento',
+  balance_sheet_dre: 'Balanços e DRE',
+};
 
 function DocumentUploadItem({
   item,
@@ -69,6 +71,8 @@ function DocumentUploadItem({
   onSilentRefresh,
   onInterceptReport,
   isParsing,
+  compact,
+  compactLabel,
 }: {
   item: DocumentChecklistItem;
   clientId: string;
@@ -76,11 +80,12 @@ function DocumentUploadItem({
   onSilentRefresh: () => void;
   onInterceptReport?: (file: File, item: DocumentChecklistItem) => void;
   isParsing?: boolean;
+  compact?: boolean;
+  compactLabel?: string;
 }) {
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
-  const isMultiUpload = MULTI_UPLOAD_TYPES.has(item.documentType);
 
   const isWorking = uploading || isParsing;
 
@@ -138,34 +143,26 @@ function DocumentUploadItem({
     }
   }, [clientId, item.documentId, onRefresh]);
 
+  const displayLabel = compactLabel ?? item.documentLabel;
+
   return (
-    <div className="flex items-center gap-3 py-3 px-4 rounded-lg border bg-card">
+    <div className={`flex items-center gap-3 py-3 px-4 rounded-lg ${compact ? 'bg-muted/50' : 'border bg-card'}`}>
       {getDocumentStatusIcon(item.status)}
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium truncate">{item.documentLabel}</span>
-          {item.isRequired && (
+          <span className="text-sm font-medium truncate">{displayLabel}</span>
+          {!compact && item.isRequired && (
             <Badge variant="outline" className="text-[10px] px-1.5 py-0">
               Obrigatório
             </Badge>
           )}
         </div>
-        {item.description && (
+        {!compact && item.description && (
           <p className="text-xs text-muted-foreground truncate">{item.description}</p>
         )}
-        {isMultiUpload && item.uploadedDocuments.length > 0 ? (
-          <div className="mt-1 space-y-0.5">
-            {item.uploadedDocuments.map((doc) => (
-              <p key={doc.id} className="text-xs text-muted-foreground truncate">
-                • {doc.fileName}
-              </p>
-            ))}
-          </div>
-        ) : (
-          item.fileName && (
-            <p className="text-xs text-muted-foreground mt-0.5">{item.fileName}</p>
-          )
+        {item.fileName && (
+          <p className="text-xs text-muted-foreground mt-0.5">{item.fileName}</p>
         )}
         {item.status === 'invalid' && item.rejectionReason && (
           <p className="text-xs text-destructive mt-1">{item.rejectionReason}</p>
@@ -201,52 +198,83 @@ function DocumentUploadItem({
 
         {item.status !== 'missing' && item.documentId && (
           <div className="flex items-center gap-1">
-            {isMultiUpload ? (
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.jpg,.jpeg,.png,.webp,.xls,.xlsx"
-                  onChange={handleUpload}
-                  disabled={isWorking}
-                />
-                <Button type="button" variant="outline" size="sm" asChild disabled={isWorking}>
-                  <span>
-                    {isWorking ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                    Adicionar arquivo
-                  </span>
-                </Button>
-              </label>
-            ) : (
-              <>
-                <label className="cursor-pointer">
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept=".pdf,.jpg,.jpeg,.png,.webp,.xls,.xlsx"
-                    onChange={handleUpload}
-                    disabled={isWorking}
-                  />
-                  <Button type="button" variant="outline" size="sm" asChild disabled={isWorking}>
-                    <span>
-                      {isWorking ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                      Reenviar
-                    </span>
-                  </Button>
-                </label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDelete}
-                  disabled={deleting}
-                >
-                  {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                </Button>
-              </>
-            )}
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                className="hidden"
+                accept=".pdf,.jpg,.jpeg,.png,.webp,.xls,.xlsx"
+                onChange={handleUpload}
+                disabled={isWorking}
+              />
+              <Button type="button" variant="outline" size="sm" asChild disabled={isWorking}>
+                <span>
+                  {isWorking ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                  Reenviar
+                </span>
+              </Button>
+            </label>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+            </Button>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function DocumentGroupContainer({
+  groupLabel,
+  items,
+  clientId,
+  onRefresh,
+  onSilentRefresh,
+  onInterceptReport,
+  parsingReport,
+}: {
+  groupLabel: string;
+  items: DocumentChecklistItem[];
+  clientId: string;
+  onRefresh: () => void;
+  onSilentRefresh: () => void;
+  onInterceptReport: (file: File, item: DocumentChecklistItem) => void;
+  parsingReport: boolean;
+}) {
+  const uploaded = items.filter((i) => i.status !== 'missing').length;
+
+  return (
+    <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold">{groupLabel}</span>
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+            Obrigatório
+          </Badge>
+        </div>
+        <Badge variant={uploaded === items.length ? 'default' : 'secondary'} className="text-[10px]">
+          {uploaded} de {items.length} enviados
+        </Badge>
+      </div>
+      <div className="p-2 space-y-1">
+        {items.map((item) => (
+          <DocumentUploadItem
+            key={`${item.documentType}-${item.referenceYear ?? ''}`}
+            item={item}
+            clientId={clientId}
+            onRefresh={onRefresh}
+            onSilentRefresh={onSilentRefresh}
+            onInterceptReport={onInterceptReport}
+            isParsing={item.documentType === 'visit_report' ? parsingReport : false}
+            compact
+            compactLabel={item.referenceYear != null ? String(item.referenceYear) : item.documentLabel}
+          />
+        ))}
       </div>
     </div>
   );
@@ -345,26 +373,50 @@ export function DocumentChecklist({
         </div>
       </div>
 
-      {Object.entries(grouped).map(([category, items]) => (
-        <div key={category} className="space-y-3">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            {DOCUMENT_CATEGORY_LABELS[category] ?? category}
-          </h3>
-          <div className="space-y-2">
-            {items.map((item) => (
-              <DocumentUploadItem
-                key={`${item.documentType}-${item.guaranteeId ?? ''}-${item.partnerCpf ?? ''}-${item.referenceYear ?? ''}`}
-                item={item}
-                clientId={clientId}
-                onRefresh={onRefresh}
-                onSilentRefresh={onSilentRefresh}
-                onInterceptReport={handleInterceptReport}
-                isParsing={item.documentType === 'visit_report' ? parsingReport : false}
-              />
-            ))}
+      {Object.entries(grouped).map(([category, items]) => {
+        const regularItems = items.filter((i) => !YEAR_GROUPED_TYPES[i.documentType]);
+        const yearGrouped = items.filter((i) => !!YEAR_GROUPED_TYPES[i.documentType]);
+
+        const yearGroups = new Map<string, DocumentChecklistItem[]>();
+        for (const item of yearGrouped) {
+          const list = yearGroups.get(item.documentType) ?? [];
+          list.push(item);
+          yearGroups.set(item.documentType, list);
+        }
+
+        return (
+          <div key={category} className="space-y-3">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              {DOCUMENT_CATEGORY_LABELS[category] ?? category}
+            </h3>
+            <div className="space-y-2">
+              {Array.from(yearGroups.entries()).map(([docType, groupItems]) => (
+                <DocumentGroupContainer
+                  key={docType}
+                  groupLabel={YEAR_GROUPED_TYPES[docType]!}
+                  items={groupItems}
+                  clientId={clientId}
+                  onRefresh={onRefresh}
+                  onSilentRefresh={onSilentRefresh}
+                  onInterceptReport={handleInterceptReport}
+                  parsingReport={parsingReport}
+                />
+              ))}
+              {regularItems.map((item) => (
+                <DocumentUploadItem
+                  key={`${item.documentType}-${item.guaranteeId ?? ''}-${item.partnerCpf ?? ''}-${item.referenceYear ?? ''}`}
+                  item={item}
+                  clientId={clientId}
+                  onRefresh={onRefresh}
+                  onSilentRefresh={onSilentRefresh}
+                  onInterceptReport={handleInterceptReport}
+                  isParsing={item.documentType === 'visit_report' ? parsingReport : false}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <div className="pt-4 border-t">
         {canSubmitResult.missingDocuments.length > 0 && (
