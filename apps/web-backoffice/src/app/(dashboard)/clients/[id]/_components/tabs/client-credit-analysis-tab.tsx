@@ -6,6 +6,7 @@ import { FileText, XCircle, Code2, Building2, MapPin, Activity, Leaf, Users, Fil
 import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
 import { ExpandableContent, RotatingChevron } from '../motion-wrapper';
+import { AllcheckSection } from './allcheck-section';
 
 type BadgeType = 'success' | 'danger' | 'warning' | 'neutral';
 
@@ -1668,6 +1669,9 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
         </ExpandableContent>
       </Card>
     )}
+
+    {/* Allcheck Localizador */}
+    <AllcheckSection entityId={clientId} entityType="client" />
 
     </div>
   );

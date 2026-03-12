@@ -10,6 +10,7 @@ export const cnabRemittanceFiles = pgTable('cnab_remittance_files', {
   layoutVersion: text('layout_version').notNull().default('cnab400'),
   bankCode: text('bank_code').notNull(),
   bankName: text('bank_name'),
+  serviceCode: text('service_code'),
   cedentCode: text('cedent_code'),
   cedentName: text('cedent_name'),
   remittanceDate: date('remittance_date'),

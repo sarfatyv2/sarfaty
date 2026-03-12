@@ -57,6 +57,8 @@ interface Receivable {
   acceptance?: string | null;
   instruction1?: string | null;
   instruction2?: string | null;
+  cedentDocType?: string | null;
+  cedentDoc?: string | null;
   interestPerDay?: string | null;
   discountValue?: string | null;
   discountDeadline?: string | null;
@@ -113,6 +115,8 @@ export function OperationDetail({ operation, receivables }: OperationDetailProps
 
   const receivableToExpandedData = (r: Receivable) => ({
     clientName: r.clientName ?? null,
+    cedentDoc: r.cedentDoc ?? null,
+    cedentDocType: r.cedentDocType ?? null,
     draweeDoc: r.draweeDoc,
     draweeDocType: r.draweeDocType,
     draweeName: r.draweeName,

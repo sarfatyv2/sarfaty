@@ -127,6 +127,10 @@ export { sanctionsCheckResults } from './sanctions-check-results';
 export { slaveLaborCheckResults } from './slave-labor-check-results';
 export { negativeMediaResults } from './negative-media-results';
 export { digitalPresenceResults } from './digital-presence-results';
+// Allcheck
+export { allcheckResults } from './allcheck-results';
+export { allcheckDraweeResults } from './allcheck-drawee-results';
+
 // Compliance Checks - Drawees
 export { cguDraweeCheckResults } from './cgu-drawee-check-results';
 export { pepDraweeCheckResults } from './pep-drawee-check-results';

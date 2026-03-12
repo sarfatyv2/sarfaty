@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AllcheckAdapter } from './bureaus/allcheck/allcheck.adapter';
 import { VaduAdapter } from './bureaus/vadu/vadu.adapter';
 import { CreditboxAdapter } from './bureaus/creditbox/creditbox.adapter';
 import { SerasaAdapter } from './bureaus/serasa/serasa.adapter';
@@ -75,6 +76,14 @@ import { GetVaduResultsDraweeUseCase } from './use-cases/get-vadu-results-drawee
 import { GetSerasaReportDraweeUseCase } from './use-cases/get-serasa-report-drawee.use-case';
 import { GetComplianceResultsDraweeUseCase } from './use-cases/get-compliance-results-drawee.use-case';
 import { TriggerNegativeMediaSearchDraweeUseCase } from './use-cases/trigger-negative-media-search-drawee.use-case';
+import { SyncAllcheckClientUseCase } from './use-cases/sync-allcheck-client.use-case';
+import { SyncAllcheckDraweeUseCase } from './use-cases/sync-allcheck-drawee.use-case';
+import { GetAllcheckResultUseCase } from './use-cases/get-allcheck-result.use-case';
+import { GetAllcheckDraweeResultUseCase } from './use-cases/get-allcheck-drawee-result.use-case';
+import { ALLCHECK_RESULT_REPOSITORY } from './domain/allcheck-result.repository';
+import { ALLCHECK_DRAWEE_RESULT_REPOSITORY } from './domain/allcheck-drawee-result.repository';
+import { DrizzleAllcheckResultRepository } from './infra/drizzle/drizzle-allcheck-result.repository';
+import { DrizzleAllcheckDraweeResultRepository } from './infra/drizzle/drizzle-allcheck-drawee-result.repository';
 import { VADU_DRAWEE_REPOSITORY } from './domain/vadu-drawee.repository';
 import { SERASA_DRAWEE_REPORT_REPOSITORY } from './domain/serasa-drawee-report.repository';
 import { CGU_DRAWEE_CHECK_REPOSITORY } from './domain/cgu-drawee-check.repository';
@@ -92,6 +101,7 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
   controllers: [CreditController, DraweeCreditController],
   providers: [
     // Adapters
+    AllcheckAdapter,
     VaduAdapter,
     CreditboxAdapter,
     SerasaAdapter,
@@ -130,6 +140,9 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     { provide: SLAVE_LABOR_DRAWEE_CHECK_REPOSITORY, useClass: DrizzleSlaveLaborDraweeCheckRepository },
     { provide: NEGATIVE_MEDIA_DRAWEE_RESULT_REPOSITORY, useClass: DrizzleNegativeMediaDraweeResultRepository },
     { provide: DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY, useClass: DrizzleDigitalPresenceDraweeResultRepository },
+    // Allcheck repositories
+    { provide: ALLCHECK_RESULT_REPOSITORY, useClass: DrizzleAllcheckResultRepository },
+    { provide: ALLCHECK_DRAWEE_RESULT_REPOSITORY, useClass: DrizzleAllcheckDraweeResultRepository },
 
     // Use Cases
     SyncVaduClientUseCase,
@@ -153,6 +166,10 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     GetSerasaReportDraweeUseCase,
     GetComplianceResultsDraweeUseCase,
     TriggerNegativeMediaSearchDraweeUseCase,
+    SyncAllcheckClientUseCase,
+    SyncAllcheckDraweeUseCase,
+    GetAllcheckResultUseCase,
+    GetAllcheckDraweeResultUseCase,
 
     // Event Listeners
     VaduClientListener,

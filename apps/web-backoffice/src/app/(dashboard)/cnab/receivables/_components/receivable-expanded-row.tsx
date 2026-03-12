@@ -4,6 +4,8 @@ import { TableRow, TableCell } from '@nexus/ui';
 
 interface ReceivableData {
   clientName?: string | null;
+  cedentDoc?: string | null;
+  cedentDocType?: string | null;
   draweeDoc: string | null;
   draweeDocType: string | null;
   draweeName: string | null;
@@ -73,10 +75,18 @@ export function ReceivableExpandedRow({ data, colSpan }: ReceivableExpandedRowPr
   return (
     <TableRow className="bg-muted/30 hover:bg-muted/30">
       <TableCell colSpan={colSpan} className="p-4">
-        {data.clientName && (
+        {(data.clientName || data.cedentDoc) && (
           <div className="mb-4 rounded-md border border-primary/20 bg-primary/5 px-4 py-3">
             <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Cliente (cedente)</p>
-            <p className="text-base font-semibold text-foreground">{data.clientName}</p>
+            {data.clientName && <p className="text-base font-semibold text-foreground">{data.clientName}</p>}
+            {data.cedentDoc && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {data.cedentDocType && (
+                  <span className="uppercase">{data.cedentDocType}: </span>
+                )}
+                {formatDoc(data.cedentDoc, data.cedentDocType ?? null)}
+              </p>
+            )}
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

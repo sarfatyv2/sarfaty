@@ -20,7 +20,11 @@ interface CnabFile {
   originalFilename: string;
   bankCode: string;
   bankName: string | null;
+  fileType?: string;
+  serviceCode?: string | null;
+  cedentCode?: string | null;
   cedentName: string | null;
+  sequentialNumber?: number | null;
   remittanceDate: string | null;
   totalRecords: number | null;
   totalAmount: string | null;
@@ -85,6 +89,7 @@ export function CnabFilesTable({ files, pagination }: CnabFilesTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Arquivo</TableHead>
+              <TableHead>Tipo</TableHead>
               <TableHead>Banco</TableHead>
               <TableHead>Cedente</TableHead>
               <TableHead>Data Remessa</TableHead>
@@ -102,9 +107,26 @@ export function CnabFilesTable({ files, pagination }: CnabFilesTableProps) {
                   <TableCell>
                     <p className="text-sm font-medium">{f.originalFilename}</p>
                     <p className="text-xs text-muted-foreground">{formatDate(f.createdAt)}</p>
+                    {(f.serviceCode || f.sequentialNumber != null) && (
+                      <p className="text-xs text-muted-foreground" title="CNAB: serviço e sequencial">
+                        {[f.serviceCode && `Serv. ${f.serviceCode}`, f.sequentialNumber != null && `Seq. ${f.sequentialNumber}`].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="font-normal">
+                      {f.fileType === 'return' ? 'Retorno' : 'Remessa'}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-sm">{f.bankName ?? f.bankCode}</TableCell>
-                  <TableCell className="text-sm">{f.cedentName ?? '—'}</TableCell>
+                  <TableCell className="text-sm">
+                    <div>
+                      <p>{f.cedentName ?? '—'}</p>
+                      {f.cedentCode && (
+                        <p className="text-xs text-muted-foreground">({f.cedentCode})</p>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-sm">{formatDate(f.remittanceDate)}</TableCell>
                   <TableCell className="text-sm text-right">{f.totalRecords ?? '—'}</TableCell>
                   <TableCell className="text-sm text-right">{formatCurrency(f.totalAmount)}</TableCell>

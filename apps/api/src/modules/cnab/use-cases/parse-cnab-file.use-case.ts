@@ -71,6 +71,8 @@ export class ParseCnabFileUseCase {
 
       const finalStatus = result.errors.length > 0 ? 'partially_processed' : 'processed';
       await this.cnabFileRepo.updateStatus(cnabFileId, finalStatus, {
+        fileType: result.header.fileType,
+        serviceCode: result.header.serviceCode,
         bankName: result.header.bankName,
         cedentCode: result.header.cedentCode,
         cedentName: result.header.cedentName,
@@ -147,6 +149,8 @@ export class ParseCnabFileUseCase {
       acceptance: detail.acceptance || null,
       instruction1: detail.instruction1 || null,
       instruction2: detail.instruction2 || null,
+      cedentDocType: detail.cedentDocType || null,
+      cedentDoc: detail.cedentDoc || null,
       draweeDocType: detail.draweeDocType || null,
       draweeDoc: detail.draweeDoc || null,
       draweeName: detail.draweeName || null,

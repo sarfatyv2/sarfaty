@@ -24,6 +24,7 @@ export interface CnabRemittanceFile {
   layoutVersion: CnabLayoutVersion;
   bankCode: string;
   bankName: string | null;
+  serviceCode: string | null;
   cedentCode: string | null;
   cedentName: string | null;
   remittanceDate: string | null;

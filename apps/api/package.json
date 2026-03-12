@@ -14,7 +14,8 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "test:irpf": "tsx scripts/test-irpf-extraction.ts",
     "test:irpf:classify": "tsx scripts/test-irpf-extraction.ts --no-gemini",
-    "test:faturamento": "tsx scripts/test-faturamento-extraction.ts"
+    "test:faturamento": "tsx scripts/test-faturamento-extraction.ts",
+    "validate:cnab": "tsx scripts/validate-cnab-parse.ts"
   },
   "dependencies": {
     "@fastify/helmet": "11.1.1",
@@ -37,6 +38,7 @@
     "@supabase/supabase-js": "^2.47.12",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.38.3",
+    "fast-xml-parser": "^5.5.3",
     "multer": "^1.4.5-lts.1",
     "nestjs-pino": "^4.1.0",
     "pdf-parse": "^2.4.5",

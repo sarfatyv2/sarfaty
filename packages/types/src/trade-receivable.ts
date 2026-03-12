@@ -53,6 +53,8 @@ export interface TradeReceivable {
   acceptance: string | null;
   instruction1: string | null;
   instruction2: string | null;
+  cedentDocType: string | null;
+  cedentDoc: string | null;
   draweeDocType: string | null;
   draweeDoc: string | null;
   draweeName: string | null;

@@ -42,6 +42,8 @@ interface Receivable {
   acceptance: string | null;
   instruction1: string | null;
   instruction2: string | null;
+  cedentDocType?: string | null;
+  cedentDoc?: string | null;
   interestPerDay: string | null;
   discountValue: string | null;
   discountDeadline: string | null;
