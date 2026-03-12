@@ -36,6 +36,7 @@ const WRITE_ROLES = [
   'credit_analyst', 'backoffice', 'admin',
 ] as const;
 
+// Debt Position endpoints — added debt_position_items module
 @ApiTags('Debt Positions')
 @ApiBearerAuth()
 @Controller('clients/:clientId/debt-positions')
