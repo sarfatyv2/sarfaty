@@ -7,6 +7,7 @@ export interface CnabFileProps {
   layoutVersion: CnabLayoutVersion;
   bankCode: string;
   bankName: string | null;
+  serviceCode: string | null;
   cedentCode: string | null;
   cedentName: string | null;
   remittanceDate: string | null;
@@ -28,6 +29,7 @@ export class CnabFile {
   readonly layoutVersion: CnabLayoutVersion;
   readonly bankCode: string;
   readonly bankName: string | null;
+  readonly serviceCode: string | null;
   readonly cedentCode: string | null;
   readonly cedentName: string | null;
   readonly remittanceDate: string | null;
@@ -49,6 +51,7 @@ export class CnabFile {
     this.layoutVersion = props.layoutVersion;
     this.bankCode = props.bankCode;
     this.bankName = props.bankName;
+    this.serviceCode = props.serviceCode;
     this.cedentCode = props.cedentCode;
     this.cedentName = props.cedentName;
     this.remittanceDate = props.remittanceDate;
@@ -79,6 +82,7 @@ export class CnabFile {
       layoutVersion: this.layoutVersion,
       bankCode: this.bankCode,
       bankName: this.bankName,
+      serviceCode: this.serviceCode,
       cedentCode: this.cedentCode,
       cedentName: this.cedentName,
       remittanceDate: this.remittanceDate,

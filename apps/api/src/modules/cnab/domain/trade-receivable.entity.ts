@@ -20,6 +20,8 @@ export interface TradeReceivableProps {
   acceptance: string | null;
   instruction1: string | null;
   instruction2: string | null;
+  cedentDocType: string | null;
+  cedentDoc: string | null;
   draweeDocType: string | null;
   draweeDoc: string | null;
   draweeName: string | null;
@@ -63,6 +65,8 @@ export class TradeReceivableEntity {
   readonly acceptance: string | null;
   readonly instruction1: string | null;
   readonly instruction2: string | null;
+  readonly cedentDocType: string | null;
+  readonly cedentDoc: string | null;
   readonly draweeDocType: string | null;
   readonly draweeDoc: string | null;
   readonly draweeName: string | null;
@@ -106,6 +110,8 @@ export class TradeReceivableEntity {
     this.acceptance = props.acceptance;
     this.instruction1 = props.instruction1;
     this.instruction2 = props.instruction2;
+    this.cedentDocType = props.cedentDocType;
+    this.cedentDoc = props.cedentDoc;
     this.draweeDocType = props.draweeDocType;
     this.draweeDoc = props.draweeDoc;
     this.draweeName = props.draweeName;
@@ -158,6 +164,8 @@ export class TradeReceivableEntity {
       acceptance: this.acceptance,
       instruction1: this.instruction1,
       instruction2: this.instruction2,
+      cedentDocType: this.cedentDocType,
+      cedentDoc: this.cedentDoc,
       draweeDocType: this.draweeDocType,
       draweeDoc: this.draweeDoc,
       draweeName: this.draweeName,

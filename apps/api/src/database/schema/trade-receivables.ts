@@ -31,6 +31,9 @@ export const tradeReceivables = pgTable('trade_receivables', {
   instruction1: text('instruction_1'),
   instruction2: text('instruction_2'),
 
+  cedentDocType: text('cedent_doc_type'),
+  cedentDoc: text('cedent_doc'),
+
   draweeDocType: text('drawee_doc_type'),
   draweeDoc: text('drawee_doc'),
   draweeName: text('drawee_name'),

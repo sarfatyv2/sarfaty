@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
 import { draweeContacts } from '../../../database/schema';
 
@@ -7,6 +7,7 @@ export const DRAWEE_CONTACT_REPOSITORY = Symbol('DRAWEE_CONTACT_REPOSITORY');
 
 export interface DraweeContactRepository {
   findAllByDraweeId(draweeId: string): Promise<(typeof draweeContacts.$inferSelect)[]>;
+  findByDraweeAndSource(draweeId: string, source: string): Promise<(typeof draweeContacts.$inferSelect) | null>;
   findById(id: string): Promise<(typeof draweeContacts.$inferSelect) | null>;
   save(data: typeof draweeContacts.$inferInsert): Promise<typeof draweeContacts.$inferSelect>;
   update(id: string, data: Record<string, unknown>): Promise<(typeof draweeContacts.$inferSelect) | null>;
@@ -19,6 +20,15 @@ export class DrizzleDraweeContactRepository implements DraweeContactRepository {
 
   async findAllByDraweeId(draweeId: string) {
     return this.db.select().from(draweeContacts).where(eq(draweeContacts.draweeId, draweeId));
+  }
+
+  async findByDraweeAndSource(draweeId: string, source: string) {
+    const [row] = await this.db
+      .select()
+      .from(draweeContacts)
+      .where(and(eq(draweeContacts.draweeId, draweeId), eq(draweeContacts.source, source)))
+      .limit(1);
+    return row ?? null;
   }
 
   async findById(id: string) {

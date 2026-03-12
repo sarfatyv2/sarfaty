@@ -23,6 +23,7 @@ export class UploadCnabFileUseCase {
       layoutVersion: 'cnab400',
       bankCode: input.bankCode,
       bankName: null,
+      serviceCode: null,
       cedentCode: null,
       cedentName: null,
       remittanceDate: null,

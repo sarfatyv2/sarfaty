@@ -20,7 +20,11 @@ interface CnabFile {
   originalFilename: string;
   bankCode: string;
   bankName: string | null;
+  fileType?: string;
+  serviceCode?: string | null;
+  cedentCode?: string | null;
   cedentName: string | null;
+  sequentialNumber?: number | null;
   remittanceDate: string | null;
   totalRecords: number | null;
   totalAmount: string | null;

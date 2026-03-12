@@ -17,6 +17,8 @@ export const draweeContacts = pgTable('drawee_contacts', {
   whatsapp: boolean('whatsapp').notNull().default(false),
   homepage: text('homepage'),
   notes: text('notes'),
+  source: text('source'),  // 'manual' | 'vadu' | 'serasa' | 'brasilapi' | 'creditbox' | 'allcheck'
+  sourceQueriedAt: timestamp('source_queried_at', { withTimezone: true }),
   isPrimary: boolean('is_primary').notNull().default(false),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
@@ -25,4 +27,5 @@ export const draweeContacts = pgTable('drawee_contacts', {
   draweeIdx: index('idx_drawee_contacts_drawee').on(table.draweeId),
   primaryIdx: index('idx_drawee_contacts_primary').on(table.draweeId, table.isPrimary),
   activeIdx: index('idx_drawee_contacts_active').on(table.isActive),
+  sourceIdx: index('idx_drawee_contacts_source').on(table.draweeId, table.source),
 }));

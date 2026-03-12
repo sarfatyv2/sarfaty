@@ -41,7 +41,7 @@ export class BradescoParser implements CnabParserStrategy {
 
   private parseHeader(line: string): CnabParsedHeader {
     return {
-      fileType: substr(line, 2, 8).toUpperCase() === 'REMESSA' ? 'remittance' : 'return',
+      fileType: substr(line, 3, 9).toUpperCase() === 'REMESSA' ? 'remittance' : 'return',
       serviceCode: substr(line, 10, 11),
       cedentCode: substr(line, 27, 46),
       cedentName: substr(line, 47, 76),

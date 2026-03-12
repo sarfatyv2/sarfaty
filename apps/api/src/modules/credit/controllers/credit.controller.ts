@@ -10,8 +10,11 @@ import { GetComplianceResultsUseCase } from '../use-cases/get-compliance-results
 import { TriggerNegativeMediaSearchUseCase } from '../use-cases/trigger-negative-media-search.use-case';
 import { RequestSerasaReportUseCase } from '../use-cases/request-serasa-report.use-case';
 import { GetSerasaReportUseCase } from '../use-cases/get-serasa-report.use-case';
+import { SyncAllcheckClientUseCase } from '../use-cases/sync-allcheck-client.use-case';
+import { GetAllcheckResultUseCase } from '../use-cases/get-allcheck-result.use-case';
 import { CreditboxReportMapper } from '../infra/mappers/creditbox-report.mapper';
 import { SerasaReportMapper } from '../infra/mappers/serasa-report.mapper';
+import { AllcheckResultMapper } from '../infra/mappers/allcheck-result.mapper';
 
 @ApiTags('Credit')
 @ApiBearerAuth()
@@ -27,6 +30,8 @@ export class CreditController {
     private readonly triggerNegativeMediaSearchUseCase: TriggerNegativeMediaSearchUseCase,
     private readonly requestSerasaReportUseCase: RequestSerasaReportUseCase,
     private readonly getSerasaReportUseCase: GetSerasaReportUseCase,
+    private readonly syncAllcheckClientUseCase: SyncAllcheckClientUseCase,
+    private readonly getAllcheckResultUseCase: GetAllcheckResultUseCase,
   ) {}
 
   @Get('vadu-results')
@@ -131,6 +136,28 @@ export class CreditController {
   async getSerasaReportHistory(@Param('clientId') clientId: string) {
     const reports = await this.getSerasaReportUseCase.executeAll(clientId);
     return { data: reports.map(SerasaReportMapper.toPersistence) };
+  }
+
+  @Get('allcheck')
+  @Roles(
+    'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
+    'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
+    'legal', 'risk_manager', 'recovery', 'litigation', 'admin',
+  )
+  async getAllcheckResult(@Param('clientId') clientId: string) {
+    const result = await this.getAllcheckResultUseCase.execute(clientId);
+    return { data: result ? AllcheckResultMapper.toPersistence(result) : null };
+  }
+
+  @Post('allcheck/sync')
+  @Roles(
+    'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
+    'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
+    'legal', 'risk_manager', 'recovery', 'litigation', 'admin',
+  )
+  async syncAllcheck(@Param('clientId') clientId: string) {
+    await this.syncAllcheckClientUseCase.execute({ clientId });
+    return { message: 'Allcheck sync completed' };
   }
 }
 

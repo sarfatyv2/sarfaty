@@ -23,6 +23,8 @@ export const draweeAddresses = pgTable('drawee_addresses', {
   billingCity: text('billing_city'),
   billingState: char('billing_state', { length: 2 }),
 
+  source: text('source'),  // 'manual' | 'vadu' | 'serasa' | 'brasilapi' | 'creditbox' | 'allcheck'
+  sourceQueriedAt: timestamp('source_queried_at', { withTimezone: true }),
   isPrimary: boolean('is_primary').notNull().default(false),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
@@ -31,4 +33,5 @@ export const draweeAddresses = pgTable('drawee_addresses', {
   draweeIdx: index('idx_drawee_addresses_drawee').on(table.draweeId),
   primaryIdx: index('idx_drawee_addresses_primary').on(table.draweeId, table.isPrimary),
   useTypeIdx: index('idx_drawee_addresses_use_type').on(table.useType),
+  sourceIdx: index('idx_drawee_addresses_source').on(table.draweeId, table.source),
 }));

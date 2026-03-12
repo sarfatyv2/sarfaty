@@ -13,6 +13,8 @@ const envSchema = z.object({
   SERASA_ENV: z.enum(['uat', 'prod']).optional().default('uat'),
   CGU_API_KEY: z.string().optional().default(''),
   GEMINI_API_KEY: z.string().optional().default(''),
+  ALLCHECK_USER_ID: z.string().min(1).default('dummy'),
+  ALLCHECK_USER_TOKEN: z.string().min(1).default('dummy'),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
 });
 

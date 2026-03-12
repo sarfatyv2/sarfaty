@@ -13,6 +13,7 @@ import {
   RiskBadge,
   ExpandableHeader,
 } from '@/app/(dashboard)/clients/[id]/_components/tabs/client-credit-analysis-tab';
+import { AllcheckSection } from '@/app/(dashboard)/clients/[id]/_components/tabs/allcheck-section';
 
 function AddressValidationBadge({ addressValidation }: { addressValidation: { isValid: boolean; matchesRegistered: boolean | null } }) {
   if (!addressValidation.isValid) return <Badge className="bg-red-100 text-red-700 font-semibold px-2.5 py-0.5">CEP Inválido</Badge>;
@@ -359,6 +360,9 @@ export function DraweeCreditAnalysisTab({ draweeId }: DraweeCreditAnalysisTabPro
           </ExpandableContent>
         </Card>
       )}
+
+      {/* Allcheck Localizador */}
+      <AllcheckSection entityId={draweeId} entityType="drawee" />
     </div>
   );
 }

@@ -8,7 +8,10 @@ import { GetSerasaReportDraweeUseCase } from '../use-cases/get-serasa-report-dra
 import { RequestSerasaReportDraweeUseCase } from '../use-cases/request-serasa-report-drawee.use-case';
 import { GetComplianceResultsDraweeUseCase } from '../use-cases/get-compliance-results-drawee.use-case';
 import { TriggerNegativeMediaSearchDraweeUseCase } from '../use-cases/trigger-negative-media-search-drawee.use-case';
+import { SyncAllcheckDraweeUseCase } from '../use-cases/sync-allcheck-drawee.use-case';
+import { GetAllcheckDraweeResultUseCase } from '../use-cases/get-allcheck-drawee-result.use-case';
 import { SerasaDraweeReportApiMapper } from '../infra/mappers/serasa-drawee-report.api-mapper';
+import { AllcheckDraweeResultMapper } from '../infra/mappers/allcheck-drawee-result.mapper';
 
 const CREDIT_ROLES = [
   'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
@@ -28,6 +31,8 @@ export class DraweeCreditController {
     private readonly requestSerasaReportDraweeUseCase: RequestSerasaReportDraweeUseCase,
     private readonly getComplianceResultsDraweeUseCase: GetComplianceResultsDraweeUseCase,
     private readonly triggerNegativeMediaSearchDraweeUseCase: TriggerNegativeMediaSearchDraweeUseCase,
+    private readonly syncAllcheckDraweeUseCase: SyncAllcheckDraweeUseCase,
+    private readonly getAllcheckDraweeResultUseCase: GetAllcheckDraweeResultUseCase,
   ) {}
 
   @Get('clients')
@@ -75,5 +80,19 @@ export class DraweeCreditController {
   async triggerNegativeMediaSearch(@Param('draweeId') draweeId: string) {
     const data = await this.triggerNegativeMediaSearchDraweeUseCase.execute(draweeId);
     return { data };
+  }
+
+  @Get('credit-analysis/allcheck')
+  @Roles(...CREDIT_ROLES)
+  async getAllcheckResult(@Param('draweeId') draweeId: string) {
+    const result = await this.getAllcheckDraweeResultUseCase.execute(draweeId);
+    return { data: result ? AllcheckDraweeResultMapper.toPersistence(result) : null };
+  }
+
+  @Post('credit-analysis/allcheck/sync')
+  @Roles(...CREDIT_ROLES)
+  async syncAllcheck(@Param('draweeId') draweeId: string) {
+    await this.syncAllcheckDraweeUseCase.execute({ draweeId });
+    return { message: 'Allcheck sync completed' };
   }
 }

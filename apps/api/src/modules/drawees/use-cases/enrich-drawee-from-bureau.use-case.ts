@@ -60,29 +60,29 @@ export class EnrichDraweeFromBureauUseCase {
     const now = new Date();
 
     await Promise.allSettled([
-      data.address ? this.upsertAddress(draweeId, source, data.address) : Promise.resolve(),
-      data.contact ? this.upsertContact(draweeId, source, data.contact) : Promise.resolve(),
+      data.address ? this.upsertAddress(draweeId, source, data.address, now) : Promise.resolve(),
+      data.contact ? this.upsertContact(draweeId, source, data.contact, now) : Promise.resolve(),
       data.partners?.length ? this.upsertPartners(draweeId, source, data.partners, now) : Promise.resolve(),
     ]);
   }
 
   private async upsertAddress(
     draweeId: string,
-    _source: string,
+    source: string,
     addressData: NonNullable<BureauEnrichmentData['address']>,
+    queriedAt: Date,
   ): Promise<void> {
     const hasData = Object.values(addressData).some((v) => v != null && v !== '');
     if (!hasData) {
-      this.logger.debug(`No address data for drawee ${draweeId}, skipping`);
+      this.logger.debug(`No address data from ${source} for drawee ${draweeId}, skipping`);
       return;
     }
 
     try {
-      const existing = await this.addressRepository.findAllByDraweeId(draweeId);
-      const primaryOrFirst = existing.find((a) => a.isPrimary) ?? existing[0];
+      const existing = await this.addressRepository.findByDraweeAndSource(draweeId, source);
 
-      if (primaryOrFirst) {
-        await this.addressRepository.update(primaryOrFirst.id, {
+      if (existing) {
+        await this.addressRepository.update(existing.id, {
           street: addressData.street,
           number: addressData.number,
           complement: addressData.complement,
@@ -90,8 +90,9 @@ export class EnrichDraweeFromBureauUseCase {
           city: addressData.city,
           state: addressData.state,
           zipCode: addressData.zipCode,
+          sourceQueriedAt: queriedAt,
         });
-        this.logger.debug(`Updated address for drawee ${draweeId}`);
+        this.logger.debug(`Updated ${source} address for drawee ${draweeId}`);
       } else {
         await this.addressRepository.save({
           draweeId,
@@ -104,51 +105,60 @@ export class EnrichDraweeFromBureauUseCase {
           zipCode: addressData.zipCode,
           city: addressData.city,
           state: addressData.state,
-          isPrimary: true,
+          source,
+          sourceQueriedAt: queriedAt,
+          isPrimary: false,
           isActive: true,
         } as typeof draweeAddresses.$inferInsert);
-        this.logger.debug(`Created address for drawee ${draweeId}`);
+        this.logger.debug(`Created ${source} address for drawee ${draweeId}`);
       }
     } catch (error) {
-      this.logger.error(`Failed to upsert address for drawee ${draweeId}: ${(error as Error).message}`);
+      this.logger.error(
+        `Failed to upsert ${source} address for drawee ${draweeId}: ${(error as Error).message}`,
+      );
     }
   }
 
   private async upsertContact(
     draweeId: string,
-    _source: string,
+    source: string,
     contactData: NonNullable<BureauEnrichmentData['contact']>,
+    queriedAt: Date,
   ): Promise<void> {
     const hasData = Object.values(contactData).some((v) => v != null && v !== '');
     if (!hasData) {
-      this.logger.debug(`No contact data for drawee ${draweeId}, skipping`);
+      this.logger.debug(`No contact data from ${source} for drawee ${draweeId}, skipping`);
       return;
     }
 
     try {
-      const existing = await this.contactRepository.findAllByDraweeId(draweeId);
-      const primaryOrFirst = existing.find((c) => c.isPrimary) ?? existing[0];
+      const existing = await this.contactRepository.findByDraweeAndSource(draweeId, source);
 
-      if (primaryOrFirst) {
-        await this.contactRepository.update(primaryOrFirst.id, {
+      if (existing) {
+        await this.contactRepository.update(existing.id, {
           phone: contactData.phone,
           email: contactData.email,
+          sourceQueriedAt: queriedAt,
         });
-        this.logger.debug(`Updated contact for drawee ${draweeId}`);
+        this.logger.debug(`Updated ${source} contact for drawee ${draweeId}`);
       } else {
         await this.contactRepository.save({
           draweeId,
-          contactName: 'Contato principal',
+          contactName: `Contato ${source.toUpperCase()}`,
           useType: 'commercial',
           email: contactData.email,
           phone: contactData.phone,
-          isPrimary: true,
+          source,
+          sourceQueriedAt: queriedAt,
+          isPrimary: false,
           isActive: true,
         } as typeof draweeContacts.$inferInsert);
-        this.logger.debug(`Created contact for drawee ${draweeId}`);
+        this.logger.debug(`Created ${source} contact for drawee ${draweeId}`);
       }
     } catch (error) {
-      this.logger.error(`Failed to upsert contact for drawee ${draweeId}: ${(error as Error).message}`);
+      this.logger.error(
+        `Failed to upsert ${source} contact for drawee ${draweeId}: ${(error as Error).message}`,
+      );
     }
   }
 
@@ -160,6 +170,7 @@ export class EnrichDraweeFromBureauUseCase {
   ): Promise<void> {
     try {
       const existingPersons = await this.authorizedPersonRepository.findByDraweeAndSource(draweeId, source);
+
       const incomingCpfs = new Set(
         partners.filter((p) => p.cpf).map((p) => p.cpf!.replaceAll(/\D/g, '')),
       );
