@@ -1,7 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GoogleGenAI } from '@google/genai';
+import * as xlsx from 'xlsx';
 import { debtPositionRawExtractionSchema, type DebtPositionRawExtraction, type DebtPositionRawItem } from '@nexus/validators';
 import { DEBT_POSITION_EXTRACTION_PROMPT } from './debt-position-gemini-schema';
+
+const EXCEL_MIME_TYPES = new Set([
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-excel',
+]);
 
 const DEFAULT_MODEL_ID = 'gemini-2.5-pro';
 
@@ -62,29 +68,40 @@ export class DebtPositionGeminiService {
     this.modelId = process.env.DEBT_POSITION_GEMINI_MODEL_ID ?? DEFAULT_MODEL_ID;
   }
 
+  private excelToText(buffer: Buffer): string {
+    const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
+    const parts: string[] = [];
+
+    for (const sheetName of workbook.SheetNames) {
+      const sheet = workbook.Sheets[sheetName];
+      if (!sheet) continue;
+      const csv = xlsx.utils.sheet_to_csv(sheet);
+      parts.push(`=== Aba: ${sheetName} ===\n${csv}`);
+    }
+
+    return parts.join('\n\n');
+  }
+
   async extract(fileBuffer: Buffer, mimeType: string): Promise<DebtPositionRawExtraction> {
     this.logger.log(`Extracting debt position data. MIME type: ${mimeType}`);
 
-    const fileBase64 = fileBuffer.toString('base64');
+    const isExcel = EXCEL_MIME_TYPES.has(mimeType);
+
+    const contentParts = isExcel
+      ? [
+          { text: DEBT_POSITION_EXTRACTION_PROMPT },
+          { text: `\n\nDADOS DA PLANILHA (formato CSV):\n${this.excelToText(fileBuffer)}` },
+        ]
+      : [
+          { text: DEBT_POSITION_EXTRACTION_PROMPT },
+          { inlineData: { mimeType, data: fileBuffer.toString('base64') } },
+        ];
 
     const response = await withGeminiRetry(
       () =>
         this.ai.models.generateContent({
           model: this.modelId,
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                { text: DEBT_POSITION_EXTRACTION_PROMPT },
-                {
-                  inlineData: {
-                    mimeType,
-                    data: fileBase64,
-                  },
-                },
-              ],
-            },
-          ],
+          contents: [{ role: 'user', parts: contentParts }],
           config: {
             responseMimeType: 'application/json',
             temperature: 0,
