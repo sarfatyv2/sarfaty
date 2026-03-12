@@ -59,9 +59,11 @@ function getStatusBadgeClass(status: string): string {
   return '';
 }
 
-const YEAR_GROUPED_TYPES: Record<string, string> = {
+const GROUPED_DOC_TYPES: Record<string, string> = {
   revenue: 'Faturamento',
   balance_sheet_dre: 'Balanços e DRE',
+  partner_id: 'CNH ou RG dos Sócios',
+  partner_address_proof: 'Comprovante de Endereço dos Sócios',
 };
 
 function DocumentUploadItem({
@@ -272,7 +274,11 @@ function DocumentGroupContainer({
             onInterceptReport={onInterceptReport}
             isParsing={item.documentType === 'visit_report' ? parsingReport : false}
             compact
-            compactLabel={item.referenceYear != null ? String(item.referenceYear) : item.documentLabel}
+            compactLabel={
+              item.referenceYear != null
+                ? String(item.referenceYear)
+                : item.partnerName ?? item.documentLabel
+            }
           />
         ))}
       </div>
@@ -374,14 +380,14 @@ export function DocumentChecklist({
       </div>
 
       {Object.entries(grouped).map(([category, items]) => {
-        const regularItems = items.filter((i) => !YEAR_GROUPED_TYPES[i.documentType]);
-        const yearGrouped = items.filter((i) => !!YEAR_GROUPED_TYPES[i.documentType]);
+        const regularItems = items.filter((i) => !GROUPED_DOC_TYPES[i.documentType]);
+        const groupedItems = items.filter((i) => !!GROUPED_DOC_TYPES[i.documentType]);
 
-        const yearGroups = new Map<string, DocumentChecklistItem[]>();
-        for (const item of yearGrouped) {
-          const list = yearGroups.get(item.documentType) ?? [];
+        const docGroups = new Map<string, DocumentChecklistItem[]>();
+        for (const item of groupedItems) {
+          const list = docGroups.get(item.documentType) ?? [];
           list.push(item);
-          yearGroups.set(item.documentType, list);
+          docGroups.set(item.documentType, list);
         }
 
         return (
@@ -390,10 +396,10 @@ export function DocumentChecklist({
               {DOCUMENT_CATEGORY_LABELS[category] ?? category}
             </h3>
             <div className="space-y-2">
-              {Array.from(yearGroups.entries()).map(([docType, groupItems]) => (
+              {Array.from(docGroups.entries()).map(([docType, groupItems]) => (
                 <DocumentGroupContainer
                   key={docType}
-                  groupLabel={YEAR_GROUPED_TYPES[docType]!}
+                  groupLabel={GROUPED_DOC_TYPES[docType]!}
                   items={groupItems}
                   clientId={clientId}
                   onRefresh={onRefresh}
