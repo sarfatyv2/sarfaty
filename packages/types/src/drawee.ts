@@ -68,6 +68,8 @@ export interface DraweeContact {
   whatsapp: boolean;
   homepage: string | null;
   notes: string | null;
+  source: string | null;
+  sourceQueriedAt: string | null;
   isPrimary: boolean;
   isActive: boolean;
   createdAt: string | null;
@@ -86,6 +88,8 @@ export interface DraweeAddress {
   zipCode: string | null;
   city: string | null;
   state: string | null;
+  source: string | null;
+  sourceQueriedAt: string | null;
   isPrimary: boolean;
   isActive: boolean;
   createdAt: string | null;

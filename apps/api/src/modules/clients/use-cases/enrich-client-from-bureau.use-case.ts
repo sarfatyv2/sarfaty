@@ -178,19 +178,21 @@ export class EnrichClientFromBureauUseCase {
     queriedAt: Date,
   ): Promise<void> {
     try {
-      const existingPersons = await this.authorizedPersonRepository.findByClientAndSource(clientId, source);
+      // Search all existing persons (regardless of source) to avoid duplicates by CPF
+      const allExistingPersons = await this.authorizedPersonRepository.findAllByClientId(clientId);
+      const sourcePersons = allExistingPersons.filter((p) => p.source === source);
 
       const incomingCpfs = new Set(
         partners.filter((p) => p.cpf).map((p) => p.cpf!.replaceAll(/\D/g, '')),
       );
 
-      // Upsert each partner from the bureau response
       for (const partner of partners) {
         const cleanCpf = partner.cpf?.replaceAll(/\D/g, '') || null;
 
+        // Match by CPF across all sources first, then fall back to name within same source
         const match = cleanCpf
-          ? existingPersons.find((e) => e.cpf?.replaceAll(/\D/g, '') === cleanCpf)
-          : existingPersons.find((e) => e.fullName === partner.fullName);
+          ? allExistingPersons.find((e) => e.cpf?.replaceAll(/\D/g, '') === cleanCpf)
+          : sourcePersons.find((e) => e.fullName === partner.fullName);
 
         if (match) {
           await this.authorizedPersonRepository.update(match.id, {
@@ -204,6 +206,7 @@ export class EnrichClientFromBureauUseCase {
             participationPercentage: partner.participationPercentage,
             capitalTotalValue: partner.capitalTotalValue,
             restrictionSign: partner.restrictionSign,
+            source,
             sourceQueriedAt: queriedAt,
             isActive: true,
           });
@@ -231,8 +234,8 @@ export class EnrichClientFromBureauUseCase {
         }
       }
 
-      // Deactivate partners from this source that are no longer in the response
-      for (const existing of existingPersons) {
+      // Deactivate only persons from this source that are no longer in the response
+      for (const existing of sourcePersons) {
         if (!existing.isActive) continue;
         const existingCleanCpf = existing.cpf?.replaceAll(/\D/g, '') || null;
         const stillPresent = existingCleanCpf
