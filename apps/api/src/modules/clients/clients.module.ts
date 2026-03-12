@@ -74,6 +74,16 @@ import { GetFaturamentoExtractionUseCase } from './use-cases/get-faturamento-ext
 import { FaturamentoDocumentListener } from './listeners/faturamento-document.listener';
 import { FaturamentoController } from './controllers/faturamento.controller';
 import { EnrichClientFromBureauUseCase } from './use-cases/enrich-client-from-bureau.use-case';
+import { DebtPositionController } from './controllers/debt-position.controller';
+import { DEBT_POSITION_ITEM_REPOSITORY } from './domain/debt-position-item.repository';
+import { DrizzleDebtPositionItemRepository } from './infra/drizzle-debt-position-item.repository';
+import { DebtPositionGeminiService } from './infra/gemini/debt-position-gemini.service';
+import { ProcessDebtPositionDocumentUseCase } from './use-cases/process-debt-position-document.use-case';
+import { ListDebtPositionsUseCase } from './use-cases/list-debt-positions.use-case';
+import { CreateDebtPositionUseCase } from './use-cases/create-debt-position.use-case';
+import { UpdateDebtPositionUseCase } from './use-cases/update-debt-position.use-case';
+import { DeleteDebtPositionUseCase } from './use-cases/delete-debt-position.use-case';
+import { DebtPositionDocumentListener } from './listeners/debt-position-document.listener';
 
 @Module({
   imports: [],
@@ -89,6 +99,7 @@ import { EnrichClientFromBureauUseCase } from './use-cases/enrich-client-from-bu
     ClientCommercialReportsController,
     IrpfController,
     FaturamentoController,
+    DebtPositionController,
   ],
   providers: [
     // Use cases — core
@@ -160,6 +171,18 @@ import { EnrichClientFromBureauUseCase } from './use-cases/enrich-client-from-bu
     GetFaturamentoExtractionUseCase,
     // Faturamento listener
     FaturamentoDocumentListener,
+    // Debt Position repository
+    { provide: DEBT_POSITION_ITEM_REPOSITORY, useClass: DrizzleDebtPositionItemRepository },
+    // Debt Position agent services
+    DebtPositionGeminiService,
+    // Debt Position use cases
+    ProcessDebtPositionDocumentUseCase,
+    ListDebtPositionsUseCase,
+    CreateDebtPositionUseCase,
+    UpdateDebtPositionUseCase,
+    DeleteDebtPositionUseCase,
+    // Debt Position listener
+    DebtPositionDocumentListener,
   ],
   exports: [
     EnrichClientFromBureauUseCase,

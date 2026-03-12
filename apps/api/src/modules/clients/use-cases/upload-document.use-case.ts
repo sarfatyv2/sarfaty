@@ -7,6 +7,7 @@ import { ClientStorageService } from '../infra/client-storage.service';
 import { ClientNotFoundException } from '../domain/exceptions/client-not-found.exception';
 import type { IrpfDocumentUploadedPayload } from '../listeners/irpf-document.listener';
 import type { FaturamentoDocumentUploadedPayload } from '../listeners/faturamento-document.listener';
+import type { DebtPositionDocumentUploadedPayload } from '../listeners/debt-position-document.listener';
 
 export interface UploadDocumentInput {
   clientId: string;
@@ -94,6 +95,17 @@ export class UploadDocumentUseCase {
         referenceYear: input.dto.referenceYear ?? null,
       };
       this.eventEmitter.emit('document.uploaded.faturamento', payload);
+    }
+
+    // Trigger async debt position extraction agent
+    if (input.dto.documentType === 'debt_position') {
+      const payload: DebtPositionDocumentUploadedPayload = {
+        documentId: document.id,
+        clientId: input.clientId,
+        storagePath: uploadResult.path,
+        mimeType: input.file.mimetype,
+      };
+      this.eventEmitter.emit('document.uploaded.debt_position', payload);
     }
 
     return document;

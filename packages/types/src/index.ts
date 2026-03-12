@@ -138,6 +138,13 @@ export {
   type FaturamentoExtractionSummary,
 } from './faturamento';
 export {
+  DEBT_POSITION_SOURCES,
+  type DebtPositionSource,
+  DEBT_POSITION_CONFIDENCE_LEVELS,
+  type DebtPositionConfidenceLevel,
+  type DebtPositionItem,
+} from './debt-position';
+export {
   CNAB_FILE_TYPES,
   type CnabFileType,
   CNAB_LAYOUT_VERSIONS,

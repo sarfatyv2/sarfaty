@@ -40,6 +40,7 @@ export { irpfExtractions } from './irpf-extractions';
 export { irpfExtractionSources } from './irpf-extraction-sources';
 export { faturamentoExtractions } from './faturamento-extractions';
 export { faturamentoExtractionSources } from './faturamento-extraction-sources';
+export { debtPositionItems } from './debt-position-items';
 export { notifications } from './notifications';
 
 // Entity Registry
