@@ -53,6 +53,7 @@ import { ClientBankAccountsTab } from './tabs/client-bank-accounts-tab';
 import { ClientCreditAnalysisTab } from './tabs/client-credit-analysis-tab';
 import { PartnerSection } from './partner-section';
 import { FaturamentoSection } from './faturamento-section';
+import { DebtPositionSection } from './debt-position-section';
 import { ClientChatTab } from './tabs/client-chat-tab';
 import { FadeIn, AnimatedTabContent } from './motion-wrapper';
 import { useRole } from '@/contexts/role-context';
@@ -576,6 +577,7 @@ export function ClientDetail({ client, segmentName, productName, segments, produ
           <TabsContent value="financeiro" className="space-y-6 mt-5">
             <AnimatedTabContent key="financeiro">
               <FatureamentoSectionWrapper clientId={client.id} />
+              <DebtPositionSection clientId={client.id} />
             </AnimatedTabContent>
           </TabsContent>
 

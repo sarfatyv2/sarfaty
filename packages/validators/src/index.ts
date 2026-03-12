@@ -207,6 +207,18 @@ export {
   type FaturamentoMonthlyRevenuesDto,
 } from './faturamento.schema';
 
+// Debt Position schemas
+export {
+  debtPositionRawItemSchema,
+  debtPositionRawExtractionSchema,
+  createDebtPositionSchema,
+  updateDebtPositionSchema,
+  type DebtPositionRawItem,
+  type DebtPositionRawExtraction,
+  type CreateDebtPositionDto,
+  type UpdateDebtPositionDto,
+} from './debt-position.schema';
+
 // Audit schemas
 export {
   listAuditLogsQuerySchema,
