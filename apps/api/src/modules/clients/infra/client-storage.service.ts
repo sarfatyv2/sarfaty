@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { supabaseAdmin } from '../../../config/supabase';
 
 const BUCKET_ID = 'client-documents';
@@ -8,6 +8,8 @@ const ALLOWED_MIME_TYPES = new Set([
   'image/jpeg',
   'image/png',
   'image/webp',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'application/vnd.ms-excel', // .xls
 ]);
 
 export interface UploadResult {
@@ -82,10 +84,10 @@ export class ClientStorageService {
 
   private validateFile(buffer: Buffer, mimetype: string): void {
     if (buffer.length > MAX_FILE_SIZE_BYTES) {
-      throw new Error(`File exceeds maximum size of ${MAX_FILE_SIZE_BYTES / 1024 / 1024}MB`);
+      throw new BadRequestException(`File exceeds maximum size of ${MAX_FILE_SIZE_BYTES / 1024 / 1024}MB`);
     }
     if (!ALLOWED_MIME_TYPES.has(mimetype)) {
-      throw new Error('Invalid file type. Accepted: PDF, JPEG, PNG, WebP');
+      throw new BadRequestException('Invalid file type. Accepted: PDF, JPEG, PNG, WebP, XLS, XLSX');
     }
   }
 }
