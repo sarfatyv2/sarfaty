@@ -4,9 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Button,
   Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
   Dialog,
   DialogContent,
   DialogHeader,
@@ -20,7 +17,7 @@ import {
 import { Plus, Pencil, Trash2, Loader2, ShieldAlert, Bot, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
-import { FadeIn, StaggerChildren, StaggerItem } from './motion-wrapper';
+import { FadeIn, StaggerChildren, StaggerItem, ExpandableContent, RotatingChevron } from './motion-wrapper';
 
 interface DebtPositionItem {
   id: string;
@@ -84,6 +81,7 @@ function formatPercentage(value: string | null): string {
 export function DebtPositionSection({ clientId }: DebtPositionSectionProps) {
   const [items, setItems] = useState<DebtPositionItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -194,144 +192,154 @@ export function DebtPositionSection({ clientId }: DebtPositionSectionProps) {
   return (
     <FadeIn delay={0.1}>
       <Card className="overflow-hidden">
-        <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-transparent">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 min-w-0">
-              <ShieldAlert size={15} className="text-primary shrink-0" />
-              <CardTitle className="text-sm">
-                Endividamento
-              </CardTitle>
-              {items.length > 0 && (
-                <span className="text-sm font-normal text-muted-foreground">
-                  ({items.length} {items.length === 1 ? 'item' : 'itens'})
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
+        {/* Clickable header */}
+        <div
+          role="button"
+          tabIndex={0}
+          className="flex items-center justify-between px-5 py-4 cursor-pointer select-none"
+          onClick={() => setExpanded((v) => !v)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpanded((v) => !v); } }}
+        >
+          <div className="flex items-center gap-2.5">
+            <ShieldAlert size={15} className="text-primary shrink-0" />
+            <span className="text-sm font-medium">Endividamento</span>
+            {items.length > 0 && (
+              <span className="text-xs text-muted-foreground">
+                ({items.length} {items.length === 1 ? 'item' : 'itens'})
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            {items.length > 0 && (
+              <span className="text-sm font-medium">
+                {totalDebt.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </span>
+            )}
+            <RotatingChevron isOpen={expanded} className="text-muted-foreground" />
+          </div>
+        </div>
+
+        <ExpandableContent isOpen={expanded}>
+          <div className="border-t">
+            {/* Action bar */}
+            <div className="flex items-center justify-end gap-2 px-4 py-2 bg-muted/20">
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-muted-foreground"
-                onClick={() => void loadItems()}
+                onClick={(e) => { e.stopPropagation(); void loadItems(); }}
                 title="Atualizar"
               >
                 <RefreshCw size={13} />
               </Button>
-              <Button variant="outline" size="sm" onClick={openCreate} className="gap-1.5">
-                <Plus size={14} />
+              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); openCreate(); }} className="gap-1.5 h-7 text-xs">
+                <Plus size={13} />
                 Adicionar
               </Button>
             </div>
-          </div>
-        </CardHeader>
 
-        <CardContent className="p-0">
-          {items.length === 0 ? (
-            <div className="rounded-b-xl flex flex-col items-center justify-center py-12 text-center space-y-2 px-6">
-              <ShieldAlert size={28} className="text-muted-foreground/30" />
-              <p className="text-sm text-muted-foreground font-medium">
-                Nenhum item de endividamento cadastrado.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Faça o upload do documento na aba Documentos para extração automática,
-                ou adicione os dados manualmente.
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Table header */}
-              <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 px-4 py-2 bg-muted/30 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 border-b">
-                <span>Instituição / Modalidade</span>
-                <span className="text-right w-32">Garantia</span>
-                <span className="text-right w-16 whitespace-nowrap">% Garantia</span>
-                <span className="text-right w-28">Saldo</span>
-                <span className="w-16" />
+            {items.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center space-y-2 px-6">
+                <ShieldAlert size={28} className="text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground font-medium">
+                  Nenhum item de endividamento cadastrado.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Faça o upload do documento na aba Documentos para extração automática,
+                  ou adicione os dados manualmente.
+                </p>
               </div>
+            ) : (
+              <>
+                {/* Table header */}
+                <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 px-4 py-2 bg-muted/30 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 border-b">
+                  <span>Instituição / Modalidade</span>
+                  <span className="text-right w-32">Garantia</span>
+                  <span className="text-right w-16 whitespace-nowrap">% Garantia</span>
+                  <span className="text-right w-28">Saldo</span>
+                  <span className="w-16" />
+                </div>
 
-              <StaggerChildren className="divide-y" staggerDelay={0.04}>
-                {items.map((item) => (
-                  <StaggerItem key={item.id}>
-                    <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 items-center px-4 py-3 hover:bg-muted/30 transition-colors">
-                      {/* Institution + modality */}
-                      <div className="min-w-0 space-y-0.5">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-medium truncate">{item.institution}</p>
-                          {item.isAiGenerated && (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] h-4 px-1.5 gap-0.5 border-blue-300 text-blue-600 bg-blue-50"
-                            >
-                              <Bot size={8} />
-                              IA
-                              {item.extractionConfidence && (
-                                <span className="ml-0.5">· {CONFIDENCE_LABELS[item.extractionConfidence]}</span>
-                              )}
-                            </Badge>
+                <StaggerChildren className="divide-y" staggerDelay={0.04}>
+                  {items.map((item) => (
+                    <StaggerItem key={item.id}>
+                      <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 items-center px-4 py-3 hover:bg-muted/30 transition-colors">
+                        <div className="min-w-0 space-y-0.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-medium truncate">{item.institution}</p>
+                            {item.isAiGenerated && (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] h-4 px-1.5 gap-0.5 border-blue-300 text-blue-600 bg-blue-50"
+                              >
+                                <Bot size={8} />
+                                IA
+                                {item.extractionConfidence && (
+                                  <span className="ml-0.5">· {CONFIDENCE_LABELS[item.extractionConfidence]}</span>
+                                )}
+                              </Badge>
+                            )}
+                          </div>
+                          {item.modality && (
+                            <p className="text-xs text-muted-foreground">{item.modality}</p>
                           )}
                         </div>
-                        {item.modality && (
-                          <p className="text-xs text-muted-foreground">{item.modality}</p>
-                        )}
-                      </div>
 
-                      {/* Guarantee */}
-                      <div className="text-right w-32">
-                        <p className="text-sm text-muted-foreground truncate">
-                          {item.guarantee ?? '—'}
-                        </p>
-                      </div>
+                        <div className="text-right w-32">
+                          <p className="text-sm text-muted-foreground truncate">
+                            {item.guarantee ?? '—'}
+                          </p>
+                        </div>
 
-                      {/* Guarantee % */}
-                      <div className="text-right w-16">
-                        <p className="text-sm font-mono text-muted-foreground">
-                          {formatPercentage(item.guaranteePercentage)}
-                        </p>
-                      </div>
+                        <div className="text-right w-16">
+                          <p className="text-sm font-mono text-muted-foreground">
+                            {formatPercentage(item.guaranteePercentage)}
+                          </p>
+                        </div>
 
-                      {/* Value */}
-                      <div className="text-right w-28">
-                        <p className="text-sm font-medium">{formatCurrency(item.value)}</p>
-                      </div>
+                        <div className="text-right w-28">
+                          <p className="text-sm font-medium">{formatCurrency(item.value)}</p>
+                        </div>
 
-                      {/* Actions */}
-                      <div className="flex gap-1 justify-end w-16">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                          onClick={() => openEdit(item)}
-                        >
-                          <Pencil size={13} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleDelete(item.id)}
-                          disabled={deleting === item.id}
-                        >
-                          {deleting === item.id
-                            ? <Loader2 size={13} className="animate-spin" />
-                            : <Trash2 size={13} />}
-                        </Button>
+                        <div className="flex gap-1 justify-end w-16">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            onClick={() => openEdit(item)}
+                          >
+                            <Pencil size={13} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDelete(item.id)}
+                            disabled={deleting === item.id}
+                          >
+                            {deleting === item.id
+                              ? <Loader2 size={13} className="animate-spin" />
+                              : <Trash2 size={13} />}
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </StaggerItem>
-                ))}
-              </StaggerChildren>
+                    </StaggerItem>
+                  ))}
+                </StaggerChildren>
 
-              {/* Total row */}
-              <div className="flex items-center justify-between px-4 py-3 bg-muted/30 border-t">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
-                  Total
-                </span>
-                <span className="text-sm font-semibold">
-                  {totalDebt.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                </span>
-              </div>
-            </>
-          )}
-        </CardContent>
+                {/* Total row */}
+                <div className="flex items-center justify-between px-4 py-3 bg-muted/30 border-t">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+                    Total
+                  </span>
+                  <span className="text-sm font-semibold">
+                    {totalDebt.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        </ExpandableContent>
       </Card>
 
       {/* Add / Edit dialog */}
