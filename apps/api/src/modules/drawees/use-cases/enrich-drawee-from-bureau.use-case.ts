@@ -180,13 +180,14 @@ export class EnrichDraweeFromBureauUseCase {
       for (const partner of partners) {
         const cleanCpf = partner.cpf?.replaceAll(/\D/g, '') || null;
 
-        // Match by CPF across all sources first, then fall back to name within same source
-        const match = cleanCpf
-          ? allExistingPersons.find((e) => e.cpf?.replaceAll(/\D/g, '') === cleanCpf)
+        // Check if a record already exists for this source
+        const sameSourceMatch = cleanCpf
+          ? sourcePersons.find((e) => e.cpf?.replaceAll(/\D/g, '') === cleanCpf)
           : sourcePersons.find((e) => e.fullName === partner.fullName);
 
-        if (match) {
-          await this.authorizedPersonRepository.update(match.id, {
+        if (sameSourceMatch) {
+          // Update existing record from the same source
+          await this.authorizedPersonRepository.update(sameSourceMatch.id, {
             fullName: partner.fullName,
             authorizationType: partner.authorizationType,
             phone: partner.phone,
@@ -197,32 +198,44 @@ export class EnrichDraweeFromBureauUseCase {
             participationPercentage: partner.participationPercentage,
             capitalTotalValue: partner.capitalTotalValue,
             restrictionSign: partner.restrictionSign,
-            source,
             sourceQueriedAt: queriedAt,
             isActive: true,
           });
           this.logger.debug(`Updated ${source} partner ${partner.fullName} for drawee ${draweeId}`);
-        } else {
-          const person = DraweeAuthorizedPerson.create({
-            draweeId,
-            authorizationType: partner.authorizationType,
-            fullName: partner.fullName,
-            cpf: cleanCpf,
-            phone: partner.phone,
-            email: partner.email,
-            joinedAt: partner.joinedAt,
-            mandateEndAt: partner.mandateEndAt,
-            role: partner.role,
-            participationPercentage: partner.participationPercentage,
-            capitalTotalValue: partner.capitalTotalValue,
-            restrictionSign: partner.restrictionSign,
-            source,
-            sourceQueriedAt: queriedAt,
-            isActive: true,
-          });
-          await this.authorizedPersonRepository.save(person);
-          this.logger.debug(`Created ${source} partner ${partner.fullName} for drawee ${draweeId}`);
+          continue;
         }
+
+        // Check if same CPF exists from a different source — skip creation to avoid duplicates
+        const otherSourceMatch = cleanCpf
+          ? allExistingPersons.find((e) => e.cpf?.replaceAll(/\D/g, '') === cleanCpf)
+          : null;
+
+        if (otherSourceMatch) {
+          this.logger.debug(
+            `Partner ${partner.fullName} (CPF ${cleanCpf}) already exists from source "${otherSourceMatch.source}", skipping creation for ${source}`,
+          );
+          continue;
+        }
+
+        const person = DraweeAuthorizedPerson.create({
+          draweeId,
+          authorizationType: partner.authorizationType,
+          fullName: partner.fullName,
+          cpf: cleanCpf,
+          phone: partner.phone,
+          email: partner.email,
+          joinedAt: partner.joinedAt,
+          mandateEndAt: partner.mandateEndAt,
+          role: partner.role,
+          participationPercentage: partner.participationPercentage,
+          capitalTotalValue: partner.capitalTotalValue,
+          restrictionSign: partner.restrictionSign,
+          source,
+          sourceQueriedAt: queriedAt,
+          isActive: true,
+        });
+        await this.authorizedPersonRepository.save(person);
+        this.logger.debug(`Created ${source} partner ${partner.fullName} for drawee ${draweeId}`);
       }
 
       // Deactivate only persons from this source that are no longer in the response
