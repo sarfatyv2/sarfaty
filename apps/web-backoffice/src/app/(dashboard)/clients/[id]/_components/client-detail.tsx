@@ -574,8 +574,8 @@ export function ClientDetail({ client, segmentName, productName, segments, produ
           </TabsContent>
 
           {/* Financeiro */}
-          <TabsContent value="financeiro" className="space-y-6 mt-5">
-            <AnimatedTabContent key="financeiro">
+          <TabsContent value="financeiro" className="mt-5">
+            <AnimatedTabContent key="financeiro" className="space-y-4">
               <FatureamentoSectionWrapper clientId={client.id} />
               <DebtPositionSection clientId={client.id} />
             </AnimatedTabContent>

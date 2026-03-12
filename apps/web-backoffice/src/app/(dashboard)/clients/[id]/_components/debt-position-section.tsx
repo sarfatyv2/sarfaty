@@ -191,7 +191,7 @@ export function DebtPositionSection({ clientId }: DebtPositionSectionProps) {
 
   return (
     <FadeIn delay={0.1}>
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden border shadow-sm">
         {/* Clickable header */}
         <div
           role="button"
