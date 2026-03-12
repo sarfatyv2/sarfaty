@@ -70,7 +70,7 @@ export class SyncAllcheckClientUseCase {
                 email: result.emails[0] ?? null,
               }
             : result.emails.length > 0
-              ? { phone: null, email: result.emails[0] }
+              ? { phone: null, email: result.emails[0] ?? null }
               : undefined,
           partners: result.partners.map((p) => ({
             fullName: p.name,
