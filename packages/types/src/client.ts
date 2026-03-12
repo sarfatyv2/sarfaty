@@ -78,9 +78,9 @@ export interface CanSubmitResult {
 }
 
 export const BASE_DOCUMENT_TYPES = [
-  { type: 'revenue', label: 'Faturamento 2022, 2023, 2024 e 2025', description: 'Faturamento mês a mês por ano' },
+  { type: 'revenue', label: 'Faturamento', description: 'Faturamento mês a mês por ano (2022–2025)' },
   { type: 'debt_position', label: 'Endividamento Atual (assinado)', description: 'Aberto por instituição, saldo, modalidade, garantia, % e vencimento' },
-  { type: 'balance_sheet_dre', label: 'Balanços e DRE 2023, 2024 e 2025', description: 'Balanço patrimonial + DRE de cada exercício' },
+  { type: 'balance_sheet_dre', label: 'Balanços e DRE', description: 'Balanço patrimonial + DRE (2023–2025)' },
   { type: 'balance_trial_comparative', label: 'Balancete Comparativo', description: 'Mesmo período, ano atual vs anterior' },
   { type: 'irpf', label: 'IRPF dos Sócios (declaração + recibo) 2024, 2025', description: 'Declaração completa e recibo de entrega' },
   { type: 'corporate_docs', label: 'Documentação Societária', description: 'Ata, organograma, contrato social e alterações' },
