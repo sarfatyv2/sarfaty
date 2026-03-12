@@ -59,12 +59,27 @@ function getStatusBadgeClass(status: string): string {
   return '';
 }
 
-const GROUPED_DOC_TYPES: Record<string, string> = {
+// Document types grouped by year within a container (base category)
+const YEAR_GROUPED_DOC_TYPES: Record<string, string> = {
   revenue: 'Faturamento',
   balance_sheet_dre: 'Balanços e DRE',
-  partner_id: 'CNH ou RG dos Sócios',
-  partner_address_proof: 'Comprovante de Endereço dos Sócios',
 };
+
+// Short labels for partner-scoped document types shown inside a partner container
+const PARTNER_DOC_COMPACT_LABELS: Record<string, string> = {
+  partner_id: 'CNH ou RG',
+  partner_address_proof: 'Comprovante de Endereço',
+};
+
+function getPartnerItemLabel(item: DocumentChecklistItem): string {
+  if (PARTNER_DOC_COMPACT_LABELS[item.documentType]) {
+    return PARTNER_DOC_COMPACT_LABELS[item.documentType]!;
+  }
+  if (item.documentType === 'irpf' && item.referenceYear != null) {
+    return `IRPF — ${item.referenceYear}`;
+  }
+  return item.documentLabel;
+}
 
 function DocumentUploadItem({
   item,
@@ -239,6 +254,7 @@ function DocumentGroupContainer({
   onSilentRefresh,
   onInterceptReport,
   parsingReport,
+  getItemLabel,
 }: {
   groupLabel: string;
   items: DocumentChecklistItem[];
@@ -247,6 +263,7 @@ function DocumentGroupContainer({
   onSilentRefresh: () => void;
   onInterceptReport: (file: File, item: DocumentChecklistItem) => void;
   parsingReport: boolean;
+  getItemLabel?: (item: DocumentChecklistItem) => string;
 }) {
   const uploaded = items.filter((i) => i.status !== 'missing').length;
 
@@ -266,7 +283,7 @@ function DocumentGroupContainer({
       <div className="p-2 space-y-1">
         {items.map((item) => (
           <DocumentUploadItem
-            key={`${item.documentType}-${item.referenceYear ?? ''}`}
+            key={`${item.documentType}-${item.partnerCpf ?? ''}-${item.referenceYear ?? ''}`}
             item={item}
             clientId={clientId}
             onRefresh={onRefresh}
@@ -274,11 +291,7 @@ function DocumentGroupContainer({
             onInterceptReport={onInterceptReport}
             isParsing={item.documentType === 'visit_report' ? parsingReport : false}
             compact
-            compactLabel={
-              item.referenceYear != null
-                ? String(item.referenceYear)
-                : item.partnerName ?? item.documentLabel
-            }
+            compactLabel={getItemLabel ? getItemLabel(item) : undefined}
           />
         ))}
       </div>
@@ -380,14 +393,49 @@ export function DocumentChecklist({
       </div>
 
       {Object.entries(grouped).map(([category, items]) => {
-        const regularItems = items.filter((i) => !GROUPED_DOC_TYPES[i.documentType]);
-        const groupedItems = items.filter((i) => !!GROUPED_DOC_TYPES[i.documentType]);
+        // 'partner' category: group all items by partner name (one container per partner)
+        if (category === 'partner') {
+          const partnerGroups = new Map<string, DocumentChecklistItem[]>();
+          for (const item of items) {
+            const key = item.partnerName ?? '__unknown__';
+            const list = partnerGroups.get(key) ?? [];
+            list.push(item);
+            partnerGroups.set(key, list);
+          }
 
-        const docGroups = new Map<string, DocumentChecklistItem[]>();
-        for (const item of groupedItems) {
-          const list = docGroups.get(item.documentType) ?? [];
+          return (
+            <div key={category} className="space-y-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                {DOCUMENT_CATEGORY_LABELS[category] ?? category}
+              </h3>
+              <div className="space-y-2">
+                {Array.from(partnerGroups.entries()).map(([partnerName, partnerItems]) => (
+                  <DocumentGroupContainer
+                    key={partnerName}
+                    groupLabel={partnerName}
+                    items={partnerItems}
+                    clientId={clientId}
+                    onRefresh={onRefresh}
+                    onSilentRefresh={onSilentRefresh}
+                    onInterceptReport={handleInterceptReport}
+                    parsingReport={parsingReport}
+                    getItemLabel={getPartnerItemLabel}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        }
+
+        // All other categories: group by document type for year-expanded types
+        const regularItems = items.filter((i) => !YEAR_GROUPED_DOC_TYPES[i.documentType]);
+        const yearGroupedItems = items.filter((i) => !!YEAR_GROUPED_DOC_TYPES[i.documentType]);
+
+        const yearGroups = new Map<string, DocumentChecklistItem[]>();
+        for (const item of yearGroupedItems) {
+          const list = yearGroups.get(item.documentType) ?? [];
           list.push(item);
-          docGroups.set(item.documentType, list);
+          yearGroups.set(item.documentType, list);
         }
 
         return (
@@ -396,16 +444,17 @@ export function DocumentChecklist({
               {DOCUMENT_CATEGORY_LABELS[category] ?? category}
             </h3>
             <div className="space-y-2">
-              {Array.from(docGroups.entries()).map(([docType, groupItems]) => (
+              {Array.from(yearGroups.entries()).map(([docType, groupItems]) => (
                 <DocumentGroupContainer
                   key={docType}
-                  groupLabel={GROUPED_DOC_TYPES[docType]!}
+                  groupLabel={YEAR_GROUPED_DOC_TYPES[docType]!}
                   items={groupItems}
                   clientId={clientId}
                   onRefresh={onRefresh}
                   onSilentRefresh={onSilentRefresh}
                   onInterceptReport={handleInterceptReport}
                   parsingReport={parsingReport}
+                  getItemLabel={(item) => item.referenceYear != null ? String(item.referenceYear) : item.documentLabel}
                 />
               ))}
               {regularItems.map((item) => (
