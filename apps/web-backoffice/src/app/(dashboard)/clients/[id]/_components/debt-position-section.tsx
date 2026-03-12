@@ -243,7 +243,7 @@ export function DebtPositionSection({ clientId }: DebtPositionSectionProps) {
               <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-4 px-4 py-2 bg-muted/30 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 border-b">
                 <span>Instituição / Modalidade</span>
                 <span className="text-right w-32">Garantia</span>
-                <span className="text-right w-16">% Garantia</span>
+                <span className="text-right w-16 whitespace-nowrap">% Garantia</span>
                 <span className="text-right w-28">Saldo</span>
                 <span className="w-16" />
               </div>
