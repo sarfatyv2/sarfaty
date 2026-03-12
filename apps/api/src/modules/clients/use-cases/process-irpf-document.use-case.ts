@@ -111,47 +111,55 @@ export class ProcessIrpfDocumentUseCase {
   async execute(input: ProcessIrpfInput): Promise<IrpfExtractionProps> {
     this.logger.log(`Processing IRPF document ${input.documentId} for client ${input.clientId}`);
 
-    // 1. Download PDF
-    const pdfBuffer = await this.storageService.downloadDocument(input.storagePath);
-    const fileHash = createHash('sha256').update(pdfBuffer).digest('hex');
+    try {
+      // 1. Download PDF
+      const pdfBuffer = await this.storageService.downloadDocument(input.storagePath);
+      const fileHash = createHash('sha256').update(pdfBuffer).digest('hex');
 
-    // 2. Idempotency: skip re-extraction if already processed, but still validate identity
-    const alreadyProcessed = await this.extractionRepo.findByFileHash(fileHash);
-    if (alreadyProcessed) {
-      this.logger.log(`Document ${input.documentId} already processed (hash: ${fileHash}). Validating identity before skipping.`);
+      // 2. Idempotency: skip re-extraction if already processed, but still validate identity
+      const alreadyProcessed = await this.extractionRepo.findByFileHash(fileHash);
+      if (alreadyProcessed) {
+        this.logger.log(`Document ${input.documentId} already processed (hash: ${fileHash}). Validating identity before skipping.`);
 
-      const expectedYearsForCache = input.referenceYear
-        ? [input.referenceYear]
-        : [CURRENT_YEAR - 1, CURRENT_YEAR - 2];
+        const expectedYearsForCache = input.referenceYear
+          ? [input.referenceYear]
+          : [CURRENT_YEAR - 1, CURRENT_YEAR - 2];
 
-      const cacheCheck = checkIdentityMismatch(
-        alreadyProcessed.fullName,
-        alreadyProcessed.exerciseYear,
-        input.partnerName,
-        expectedYearsForCache,
-      );
+        const cacheCheck = checkIdentityMismatch(
+          alreadyProcessed.fullName,
+          alreadyProcessed.exerciseYear,
+          input.partnerName,
+          expectedYearsForCache,
+        );
 
-      if (cacheCheck.rejected) {
-        this.logger.warn(`Identity mismatch (cached) for document ${input.documentId}: ${cacheCheck.rejectionReason}`);
+        if (cacheCheck.rejected) {
+          this.logger.warn(`Identity mismatch (cached) for document ${input.documentId}: ${cacheCheck.rejectionReason}`);
+          await this.documentRepo.updateExtraction(input.documentId, {
+            extractedData: { _rejectionReason: cacheCheck.rejectionReason, fullName: cacheCheck.fullName, exerciseYear: cacheCheck.exerciseYear },
+            validationStatus: 'invalid',
+            validatedAt: new Date(),
+          });
+          throw new Error(cacheCheck.rejectionReason);
+        }
+
+        // Still resolve the current document's status — same file, same result
+        const cachedFinalStatus = alreadyProcessed.needsReview ? 'needs_review' : 'valid';
         await this.documentRepo.updateExtraction(input.documentId, {
-          extractedData: { _rejectionReason: cacheCheck.rejectionReason, fullName: cacheCheck.fullName, exerciseYear: cacheCheck.exerciseYear },
-          validationStatus: 'invalid',
+          extractedData: null,
+          validationStatus: cachedFinalStatus,
           validatedAt: new Date(),
         });
-        throw new Error(cacheCheck.rejectionReason);
+
+        return alreadyProcessed;
       }
 
-      return alreadyProcessed;
-    }
+      // 3. Update document status to processing
+      await this.documentRepo.updateExtraction(input.documentId, {
+        extractedData: null,
+        validationStatus: 'processing',
+        validatedAt: new Date(),
+      });
 
-    // 3. Update document status to processing
-    await this.documentRepo.updateExtraction(input.documentId, {
-      extractedData: null,
-      validationStatus: 'processing',
-      validatedAt: new Date(),
-    });
-
-    try {
       // 4. Classify document type
       const classification = await this.classifier.classify(pdfBuffer);
       this.logger.log(`Document classified as: ${classification.type}`);

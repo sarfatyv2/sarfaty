@@ -41,25 +41,34 @@ export class ProcessFaturamentoDocumentUseCase {
   async execute(input: ProcessFaturamentoInput): Promise<FaturamentoExtractionProps[]> {
     this.logger.log(`Processing faturamento document ${input.documentId} for client ${input.clientId}`);
 
-    // 1. Download file
-    const fileBuffer = await this.storageService.downloadDocument(input.storagePath);
-    const fileHash = createHash('sha256').update(fileBuffer).digest('hex');
-
-    // 2. Idempotency: skip if already processed (returns all records for multi-year documents)
-    const alreadyProcessed = await this.extractionRepo.findAllByFileHash(fileHash);
-    if (alreadyProcessed.length > 0) {
-      this.logger.log(`Document ${input.documentId} already processed (hash: ${fileHash}, ${alreadyProcessed.length} record(s)). Skipping.`);
-      return alreadyProcessed;
-    }
-
-    // 3. Update document status to processing
-    await this.documentRepo.updateExtraction(input.documentId, {
-      extractedData: null,
-      validationStatus: 'processing',
-      validatedAt: new Date(),
-    });
-
     try {
+      // 1. Download file
+      const fileBuffer = await this.storageService.downloadDocument(input.storagePath);
+      const fileHash = createHash('sha256').update(fileBuffer).digest('hex');
+
+      // 2. Idempotency: skip if already processed (returns all records for multi-year documents)
+      const alreadyProcessed = await this.extractionRepo.findAllByFileHash(fileHash);
+      if (alreadyProcessed.length > 0) {
+        this.logger.log(`Document ${input.documentId} already processed (hash: ${fileHash}, ${alreadyProcessed.length} record(s)). Skipping.`);
+
+        // Still resolve the current document's status — same file, same result
+        const anyNeedsReview = alreadyProcessed.some((p) => p.needsReview);
+        await this.documentRepo.updateExtraction(input.documentId, {
+          extractedData: null,
+          validationStatus: anyNeedsReview ? 'needs_review' : 'valid',
+          validatedAt: new Date(),
+        });
+
+        return alreadyProcessed;
+      }
+
+      // 3. Update document status to processing
+      await this.documentRepo.updateExtraction(input.documentId, {
+        extractedData: null,
+        validationStatus: 'processing',
+        validatedAt: new Date(),
+      });
+
       // 4. Extract via Gemini — returns one item per year found in the document
       const rawExtractions = await this.geminiService.extract(fileBuffer, input.mimeType);
       this.logger.log(`Gemini extracted ${rawExtractions.length} record(s) from document ${input.documentId}`);
