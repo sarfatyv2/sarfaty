@@ -67,7 +67,7 @@ export function RolesTable({ roles: initialRoles }: Readonly<RolesTableProps>) {
   function handleCreate() {
     startTransition(async () => {
       try {
-        const response = await api.post<{ data: RoleRow }>('/roles', form);
+        const response = await api.post<RoleRow>('/roles', form);
         const newRole = response.data;
         setRoles((prev) => [...prev, newRole]);
         setCreateDialogOpen(false);
@@ -83,7 +83,7 @@ export function RolesTable({ roles: initialRoles }: Readonly<RolesTableProps>) {
     const roleId = selectedRole.id;
     startTransition(async () => {
       try {
-        const response = await api.patch<{ data: RoleRow }>(`/roles/${roleId}`, {
+        const response = await api.patch<RoleRow>(`/roles/${roleId}`, {
           label: form.label,
           homeRoute: form.homeRoute,
         });
@@ -114,7 +114,7 @@ export function RolesTable({ roles: initialRoles }: Readonly<RolesTableProps>) {
 
   async function toggleActive(role: RoleRow) {
     try {
-      const response = await api.patch<{ data: RoleRow }>(`/roles/${role.id}`, {
+      const response = await api.patch<RoleRow>(`/roles/${role.id}`, {
         isActive: !role.isActive,
       });
       setRoles((prev) => prev.map((r) => (r.id === role.id ? response.data : r)));
