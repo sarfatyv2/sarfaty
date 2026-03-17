@@ -1,46 +1,30 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, MinLength, MaxLength, Matches } from 'class-validator';
+import { z } from 'zod';
 
-export class CreateRoleDto {
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(2)
-  @MaxLength(64)
-  @Matches(/^[a-z][a-z0-9_]*$/, { message: 'key must be lowercase letters, digits, or underscores, starting with a letter' })
-  key!: string;
+export const createRoleSchema = z.object({
+  key: z
+    .string()
+    .min(2)
+    .max(64)
+    .regex(/^[a-z][a-z0-9_]*$/, 'key must be lowercase letters, digits, or underscores, starting with a letter'),
+  label: z.string().min(2).max(64),
+  homeRoute: z.string().min(1),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(2)
-  @MaxLength(64)
-  label!: string;
+export const updateRoleSchema = z.object({
+  label: z.string().min(2).max(64).optional(),
+  homeRoute: z.string().min(1).optional(),
+  isActive: z.boolean().optional(),
+});
 
-  @IsString()
-  @IsNotEmpty()
-  homeRoute!: string;
-}
+export const setPermissionsSchema = z.object({
+  featureKeys: z.array(z.string()),
+});
 
-export class UpdateRoleDto {
-  @IsString()
-  @IsOptional()
-  @MinLength(2)
-  @MaxLength(64)
-  label?: string;
+export const toggleModuleSchema = z.object({
+  enabled: z.boolean(),
+});
 
-  @IsString()
-  @IsOptional()
-  homeRoute?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
-}
-
-export class SetPermissionsDto {
-  @IsString({ each: true })
-  featureKeys!: string[];
-}
-
-export class ToggleModuleDto {
-  @IsBoolean()
-  enabled!: boolean;
-}
+export type CreateRoleDto = z.infer<typeof createRoleSchema>;
+export type UpdateRoleDto = z.infer<typeof updateRoleSchema>;
+export type SetPermissionsDto = z.infer<typeof setPermissionsSchema>;
+export type ToggleModuleDto = z.infer<typeof toggleModuleSchema>;

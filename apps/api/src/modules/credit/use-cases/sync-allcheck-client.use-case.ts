@@ -75,6 +75,7 @@ export class SyncAllcheckClientUseCase {
           partners: result.partners.map((p) => ({
             fullName: p.name,
             cpf: p.cpf,
+            cnpj: null,
             authorizationType: p.qualification ?? 'SÓCIO',
             phone: null,
             email: null,
