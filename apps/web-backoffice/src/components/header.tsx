@@ -3,20 +3,18 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@nexus/ui';
-import { type Role } from '@nexus/types';
 import { Menu } from 'lucide-react';
 import { NotificationBell } from './notification-bell';
 import { UserMenu } from './user-menu';
 
 interface HeaderProps {
   fullName: string;
-  role: Role;
   email: string;
   avatarUrl?: string;
   onMenuClick?: () => void;
 }
 
-export function Header({ fullName, role, email, avatarUrl, onMenuClick }: Readonly<HeaderProps>) {
+export function Header({ fullName, email, avatarUrl, onMenuClick }: Readonly<HeaderProps>) {
   return (
     <header className="h-14 border-b bg-white px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2 min-w-0">
@@ -37,7 +35,7 @@ export function Header({ fullName, role, email, avatarUrl, onMenuClick }: Readon
       </div>
       <div className="flex items-center gap-2">
         <NotificationBell />
-        <UserMenu fullName={fullName} role={role} email={email} avatarUrl={avatarUrl} />
+        <UserMenu fullName={fullName} email={email} avatarUrl={avatarUrl} />
       </div>
     </header>
   );

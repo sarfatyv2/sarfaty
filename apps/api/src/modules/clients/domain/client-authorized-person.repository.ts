@@ -6,6 +6,7 @@ export interface ClientAuthorizedPersonRepository {
   findAllByClientId(clientId: string): Promise<ClientAuthorizedPerson[]>;
   findById(id: string): Promise<ClientAuthorizedPerson | null>;
   findByClientAndSource(clientId: string, source: string): Promise<ClientAuthorizedPerson[]>;
+  findPjPartnersByCnpj(cnpj: string): Promise<ClientAuthorizedPerson[]>;
   save(person: ClientAuthorizedPerson): Promise<ClientAuthorizedPerson>;
   update(id: string, data: Record<string, unknown>): Promise<ClientAuthorizedPerson | null>;
   delete(id: string): Promise<void>;

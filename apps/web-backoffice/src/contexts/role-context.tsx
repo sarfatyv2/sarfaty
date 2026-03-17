@@ -1,24 +1,42 @@
 'use client';
 
-import { createContext, useContext } from 'react';
-import type { Role } from '@nexus/types';
+import { createContext, useContext, useMemo } from 'react';
+import type { Role, RoleConfig } from '@nexus/types';
 
-const RoleContext = createContext<Role | null>(null);
+interface RoleContextValue {
+  role: Role;
+  config: RoleConfig;
+}
+
+const RoleContext = createContext<RoleContextValue | null>(null);
 
 export function RoleProvider({
   role,
+  config,
   children,
 }: Readonly<{
   role: Role;
+  config: RoleConfig;
   children: React.ReactNode;
 }>) {
-  return <RoleContext.Provider value={role}>{children}</RoleContext.Provider>;
+  const value = useMemo(() => ({ role, config }), [role, config]);
+
+  return (
+    <RoleContext.Provider value={value}>
+      {children}
+    </RoleContext.Provider>
+  );
 }
 
 export function useRole(): Role {
-  const role = useContext(RoleContext);
-  if (!role) {
-    return 'employee';
+  const ctx = useContext(RoleContext);
+  return ctx?.role ?? 'employee';
+}
+
+export function useRoleConfig(): RoleConfig {
+  const ctx = useContext(RoleContext);
+  if (!ctx) {
+    throw new Error('useRoleConfig must be used within a RoleProvider');
   }
-  return role;
+  return ctx.config;
 }

@@ -13,6 +13,7 @@ import { ListClientAuthorizedPersonsUseCase } from '../use-cases/list-client-aut
 import { CreateClientAuthorizedPersonUseCase } from '../use-cases/create-client-authorized-person.use-case';
 import { UpdateClientAuthorizedPersonUseCase } from '../use-cases/update-client-authorized-person.use-case';
 import { DeleteClientAuthorizedPersonUseCase } from '../use-cases/delete-client-authorized-person.use-case';
+import { GetPartnerBureauDataUseCase } from '../use-cases/get-partner-bureau-data.use-case';
 
 @ApiTags('Client Authorized Persons')
 @ApiBearerAuth()
@@ -24,6 +25,7 @@ export class ClientAuthorizedPersonsController {
     private readonly createUseCase: CreateClientAuthorizedPersonUseCase,
     private readonly updateUseCase: UpdateClientAuthorizedPersonUseCase,
     private readonly deleteUseCase: DeleteClientAuthorizedPersonUseCase,
+    private readonly getPartnerBureauDataUseCase: GetPartnerBureauDataUseCase,
   ) {}
 
   @Get()
@@ -41,6 +43,16 @@ export class ClientAuthorizedPersonsController {
     @Body(new ZodValidationPipe(createClientAuthorizedPersonSchema)) dto: CreateClientAuthorizedPersonDto,
   ) {
     const data = await this.createUseCase.execute(clientId, dto);
+    return { data };
+  }
+
+  @Get(':subId/bureau-data')
+  @Roles('sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director', 'credit_analyst', 'admin')
+  async getPartnerBureauData(
+    @Param('id') clientId: string,
+    @Param('subId') authorizedPersonId: string,
+  ) {
+    const data = await this.getPartnerBureauDataUseCase.execute(clientId, authorizedPersonId);
     return { data };
   }
 

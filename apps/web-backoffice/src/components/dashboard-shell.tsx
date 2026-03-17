@@ -6,35 +6,35 @@ import { RoleProvider } from '@/contexts/role-context';
 import { Sidebar } from './sidebar';
 import { SidebarContent } from './sidebar-content';
 import { Header } from './header';
-import type { Role } from '@nexus/types';
+import type { Role, RoleConfig } from '@nexus/types';
 
 interface DashboardShellProps {
   role: Role;
+  roleConfig: RoleConfig;
   fullName: string;
   email: string;
   avatarUrl?: string;
   children: React.ReactNode;
 }
 
-export function DashboardShell({ role, fullName, email, avatarUrl, children }: Readonly<DashboardShellProps>) {
+export function DashboardShell({ role, roleConfig, fullName, email, avatarUrl, children }: Readonly<DashboardShellProps>) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <RoleProvider role={role}>
+    <RoleProvider role={role} config={roleConfig}>
     <div className="flex h-screen overflow-hidden">
-      <Sidebar role={role} />
+      <Sidebar />
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetContent side="left" className="w-64 p-0 flex flex-col gap-0 border-0">
           <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
           <div className="flex flex-col h-full bg-muted/30 pt-14">
-            <SidebarContent role={role} onNavigate={() => setMobileMenuOpen(false)} />
+            <SidebarContent onNavigate={() => setMobileMenuOpen(false)} />
           </div>
         </SheetContent>
       </Sheet>
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <Header
           fullName={fullName}
-          role={role}
           email={email}
           avatarUrl={avatarUrl}
           onMenuClick={() => setMobileMenuOpen(true)}

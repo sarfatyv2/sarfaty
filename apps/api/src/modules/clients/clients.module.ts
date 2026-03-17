@@ -34,6 +34,7 @@ import { ListClientAuthorizedPersonsUseCase } from './use-cases/list-client-auth
 import { CreateClientAuthorizedPersonUseCase } from './use-cases/create-client-authorized-person.use-case';
 import { UpdateClientAuthorizedPersonUseCase } from './use-cases/update-client-authorized-person.use-case';
 import { DeleteClientAuthorizedPersonUseCase } from './use-cases/delete-client-authorized-person.use-case';
+import { GetPartnerBureauDataUseCase } from './use-cases/get-partner-bureau-data.use-case';
 import { DrizzleClientRepository } from './infra/drizzle-client.repository';
 import { DrizzleClientDocumentRepository } from './infra/drizzle-client-document.repository';
 import { DrizzleClientContactRepository } from './infra/drizzle-client-contact.repository';
@@ -138,6 +139,7 @@ import { DebtPositionDocumentListener } from './listeners/debt-position-document
     CreateClientAuthorizedPersonUseCase,
     UpdateClientAuthorizedPersonUseCase,
     DeleteClientAuthorizedPersonUseCase,
+    GetPartnerBureauDataUseCase,
     // Repositories
     { provide: CLIENT_REPOSITORY, useClass: DrizzleClientRepository },
     { provide: CLIENT_DOCUMENT_REPOSITORY, useClass: DrizzleClientDocumentRepository },

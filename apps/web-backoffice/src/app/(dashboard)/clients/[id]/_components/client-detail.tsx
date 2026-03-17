@@ -43,7 +43,7 @@ import {
   getStatusLabel,
   getStatusColor,
   getStatusMessage,
-  canAccessTab,
+  canAccessTabFromConfig,
 } from '@nexus/utils';
 import type { DocumentChecklistItem, CanSubmitResult } from '@nexus/types';
 import { DocumentChecklist } from '../../new/_components/document-checklist';
@@ -56,7 +56,7 @@ import { FaturamentoSection } from './faturamento-section';
 import { DebtPositionSection } from './debt-position-section';
 import { ClientChatTab } from './tabs/client-chat-tab';
 import { FadeIn, AnimatedTabContent } from './motion-wrapper';
-import { useRole } from '@/contexts/role-context';
+import { useRoleConfig } from '@/contexts/role-context';
 
 interface ClientData {
   id: string;
@@ -181,8 +181,8 @@ type CreditForm = {
 
 export function ClientDetail({ client, segmentName, productName, segments, products }: ClientDetailProps) {
   const router = useRouter();
-  const role = useRole();
-  const canShowChat = canAccessTab(role, 'chat');
+  const roleConfig = useRoleConfig();
+  const canShowChat = canAccessTabFromConfig(roleConfig, 'chat');
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState(canShowChat ? 'chat' : 'dados');
 

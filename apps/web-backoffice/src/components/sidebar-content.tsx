@@ -3,19 +3,18 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ROLE_PERMISSIONS, type Role } from '@nexus/types';
+import { useRoleConfig } from '@/contexts/role-context';
 import { icons } from 'lucide-react';
 
 interface SidebarContentProps {
-  role: Role;
   onNavigate?: () => void;
 }
 
 const USER_MENU_SECTION = 'Meu Espaço';
 
-export function SidebarContent({ role, onNavigate }: SidebarContentProps) {
+export function SidebarContent({ onNavigate }: Readonly<SidebarContentProps>) {
   const pathname = usePathname();
-  const config = ROLE_PERMISSIONS[role] ?? ROLE_PERMISSIONS.employee;
+  const config = useRoleConfig();
 
   const sidebarSections = config.sidebar.filter(
     (section) => section.section !== USER_MENU_SECTION,

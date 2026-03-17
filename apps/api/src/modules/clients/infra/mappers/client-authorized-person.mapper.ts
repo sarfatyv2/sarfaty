@@ -1,4 +1,4 @@
-import { ClientAuthorizedPerson, type ClientAuthorizedPersonProps } from '../../domain/client-authorized-person.entity';
+import { ClientAuthorizedPerson, type ClientAuthorizedPersonProps, type AuthorizedPersonType } from '../../domain/client-authorized-person.entity';
 import type { clientAuthorizedPersons } from '../../../../database/schema';
 
 type Row = typeof clientAuthorizedPersons.$inferSelect;
@@ -10,7 +10,10 @@ export class ClientAuthorizedPersonMapper {
       clientId: row.clientId,
       authorizationType: row.authorizationType,
       fullName: row.fullName,
+      personType: (row.personType as AuthorizedPersonType) ?? 'pf',
       cpf: row.cpf,
+      cnpj: row.cnpj ?? null,
+      linkedClientId: row.linkedClientId ?? null,
       phone: row.phone,
       email: row.email,
       source: row.source,
@@ -33,7 +36,10 @@ export class ClientAuthorizedPersonMapper {
       clientId: person.clientId,
       authorizationType: person.authorizationType,
       fullName: person.fullName,
+      personType: person.personType,
       cpf: person.cpf,
+      cnpj: person.cnpj,
+      linkedClientId: person.linkedClientId,
       phone: person.phone,
       email: person.email,
       source: person.source,

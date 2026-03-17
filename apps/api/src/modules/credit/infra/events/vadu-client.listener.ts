@@ -1,9 +1,13 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
+import { OnEvent, EventEmitter2 } from '@nestjs/event-emitter';
 import { eq } from 'drizzle-orm';
 import { SyncVaduClientUseCase } from '../../use-cases/sync-vadu-client.use-case';
 import { RequestSerasaReportUseCase } from '../../use-cases/request-serasa-report.use-case';
-import { ClientSubmittedEvent, ClientCreatedEvent } from '../../../notifications/domain/events/client-events';
+import {
+  ClientSubmittedEvent,
+  ClientCreatedEvent,
+  PartnerCompanyDetectedEvent,
+} from '../../../notifications/domain/events/client-events';
 import { DRIZZLE, type DrizzleDB } from '../../../../database/database.module';
 import { clients, clientAuthorizedPersons } from '../../../../database/schema';
 
@@ -16,6 +20,7 @@ export class VaduClientListener {
     private readonly db: DrizzleDB,
     private readonly syncVaduClientUseCase: SyncVaduClientUseCase,
     private readonly requestSerasaReportUseCase: RequestSerasaReportUseCase,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @OnEvent(ClientCreatedEvent.EVENT_NAME, { async: true })
@@ -40,20 +45,26 @@ export class VaduClientListener {
         .select({
           id: clientAuthorizedPersons.id,
           cpf: clientAuthorizedPersons.cpf,
+          cnpj: clientAuthorizedPersons.cnpj,
+          personType: clientAuthorizedPersons.personType,
+          fullName: clientAuthorizedPersons.fullName,
         })
         .from(clientAuthorizedPersons)
         .where(eq(clientAuthorizedPersons.clientId, event.clientId))
         .execute();
 
-      const validPersons = personsRows
-        .filter(p => p.cpf != null)
+      const pfPersons = personsRows
+        .filter(p => p.personType !== 'pj' && p.cpf != null)
         .map(p => ({ id: p.id, cpf: p.cpf as string }));
+
+      const pjPersons = personsRows
+        .filter(p => p.personType === 'pj' && p.cnpj != null);
 
       const results = await Promise.allSettled([
         this.syncVaduClientUseCase.execute({
           clientId: event.clientId,
           cnpj: client.cnpj || undefined,
-          authorizedPersons: validPersons,
+          authorizedPersons: pfPersons,
         }),
         client.cnpj
           ? this.requestSerasaReportUseCase.execute(event.clientId)
@@ -65,6 +76,19 @@ export class VaduClientListener {
           const source = idx === 0 ? 'Vadu' : 'Serasa';
           this.logger.error(`${source} integration failed for client ${event.clientId}: ${result.reason}`);
         }
+      }
+
+      // Emit events for PJ partners that were already manually registered
+      for (const pj of pjPersons) {
+        this.eventEmitter.emit(
+          PartnerCompanyDetectedEvent.EVENT_NAME,
+          new PartnerCompanyDetectedEvent(
+            event.clientId,
+            pj.id,
+            pj.cnpj as string,
+            pj.fullName,
+          ),
+        );
       }
 
     } catch (error) {

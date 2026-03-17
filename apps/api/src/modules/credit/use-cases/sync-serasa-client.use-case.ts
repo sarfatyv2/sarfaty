@@ -77,19 +77,7 @@ export class SyncSerasaClientUseCase {
     const partnersList = qsa.partnerCompleteReport?.partnersList ?? [];
     for (const p of partnersList) {
       if (!p.name) continue;
-      partners.push({
-        fullName: p.name,
-        cpf: p.documentType === 'CPF' ? (p.documentId ?? null) : null,
-        authorizationType: 'partner',
-        phone: null,
-        email: null,
-        joinedAt: this.parseDate(p.sinceDate),
-        mandateEndAt: null,
-        role: null,
-        participationPercentage: this.parseNumeric(p.participationPercentage),
-        capitalTotalValue: this.parseNumeric(p.capitalTotalValue),
-        restrictionSign: p.restrictionSign ?? null,
-      });
+      partners.push(this.mapPartnerEntry(p));
     }
 
     const directorsList = qsa.directorCompleteReport?.directorsList ?? [];
@@ -99,23 +87,44 @@ export class SyncSerasaClientUseCase {
         (p) => p.cpf && d.documentId && p.cpf === d.documentId,
       );
       if (alreadyAdded) continue;
-
-      partners.push({
-        fullName: d.name,
-        cpf: d.documentType === 'CPF' ? (d.documentId ?? null) : null,
-        authorizationType: 'administrator',
-        phone: null,
-        email: null,
-        joinedAt: this.parseDate(d.mandateStart),
-        mandateEndAt: this.parseDate(d.mandateEnd),
-        role: d.role ?? null,
-        participationPercentage: null,
-        capitalTotalValue: null,
-        restrictionSign: null,
-      });
+      partners.push(this.mapDirectorEntry(d));
     }
 
     return partners;
+  }
+
+  private mapPartnerEntry(p: any): BureauPartnerData {
+    return {
+      fullName: p.name,
+      cpf: p.documentType === 'CPF' ? (p.documentId ?? null) : null,
+      cnpj: p.documentType === 'CNPJ' ? (p.documentId ?? null) : null,
+      authorizationType: 'partner',
+      phone: null,
+      email: null,
+      joinedAt: this.parseDate(p.sinceDate),
+      mandateEndAt: null,
+      role: null,
+      participationPercentage: this.parseNumeric(p.participationPercentage),
+      capitalTotalValue: this.parseNumeric(p.capitalTotalValue),
+      restrictionSign: p.restrictionSign ?? null,
+    };
+  }
+
+  private mapDirectorEntry(d: any): BureauPartnerData {
+    return {
+      fullName: d.name,
+      cpf: d.documentType === 'CPF' ? (d.documentId ?? null) : null,
+      cnpj: d.documentType === 'CNPJ' ? (d.documentId ?? null) : null,
+      authorizationType: 'administrator',
+      phone: null,
+      email: null,
+      joinedAt: this.parseDate(d.mandateStart),
+      mandateEndAt: this.parseDate(d.mandateEnd),
+      role: d.role ?? null,
+      participationPercentage: null,
+      capitalTotalValue: null,
+      restrictionSign: null,
+    };
   }
 
   private parseDate(value: unknown): Date | null {

@@ -1,3 +1,7 @@
+// RBAC
+export { roles } from './roles';
+export { rolePermissions } from './role-permissions';
+
 // People
 export { profiles } from './profiles';
 export { collaborators } from './collaborators';

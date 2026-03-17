@@ -20,3 +20,14 @@ export class ClientSubmittedEvent {
     public readonly actorName: string,
   ) {}
 }
+
+export class PartnerCompanyDetectedEvent {
+  static readonly EVENT_NAME = 'client.partner_company.detected';
+
+  constructor(
+    public readonly clientId: string,
+    public readonly authorizedPersonId: string,
+    public readonly cnpj: string,
+    public readonly companyName: string,
+  ) {}
+}

@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { DashboardShell } from '@/components/dashboard-shell';
+import { fetchRoleConfig } from '@/lib/fetch-role-config';
 import { ROLES, type Role } from '@nexus/types';
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -22,8 +23,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const fullName = (profile?.full_name as string) ?? (user.user_metadata?.full_name as string) ?? user.email ?? '';
   const avatarUrl = (profile?.avatar_url as string) ?? undefined;
 
+  const roleConfig = await fetchRoleConfig(role);
+
   return (
-    <DashboardShell role={role} fullName={fullName} email={user.email ?? ''} avatarUrl={avatarUrl}>
+    <DashboardShell role={role} roleConfig={roleConfig} fullName={fullName} email={user.email ?? ''} avatarUrl={avatarUrl}>
       {children}
     </DashboardShell>
   );
