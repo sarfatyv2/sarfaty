@@ -14,10 +14,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import type { FastifyRequest } from 'fastify';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { Auditable } from '../../../common/decorators/auditable.decorator';
+import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import { MODULE_CATALOG, FEATURE_CATALOG } from '@nexus/types';
 import {
   ListRolesUseCase,
@@ -29,7 +29,24 @@ import {
   ToggleModulePermissionsUseCase,
 } from '../use-cases/roles.use-cases';
 import { GetMyPermissionsUseCase } from '../use-cases/get-my-permissions.use-case';
-import { CreateRoleDto, UpdateRoleDto, SetPermissionsDto, ToggleModuleDto } from '../dto/roles.dto';
+import {
+  createRoleSchema,
+  updateRoleSchema,
+  setPermissionsSchema,
+  toggleModuleSchema,
+  type CreateRoleDto,
+  type UpdateRoleDto,
+  type SetPermissionsDto,
+  type ToggleModuleDto,
+} from '../dto/roles.dto';
+
+interface AuthenticatedRequest {
+  user: {
+    user_metadata: {
+      role: string;
+    };
+  };
+}
 
 @ApiTags('Roles')
 @ApiBearerAuth()
@@ -49,7 +66,7 @@ export class RolesController {
   // ── My permissions ──────────────────────────────────────────────────────────
 
   @Get('my/permissions')
-  async getMyPermissions(@Req() req: FastifyRequest & { user: { user_metadata: { role: string } } }) {
+  async getMyPermissions(@Req() req: AuthenticatedRequest) {
     const roleKey = req.user.user_metadata.role;
     const config = await this.getMyPermissionsUseCase.execute(roleKey);
     return { data: config };
@@ -97,7 +114,7 @@ export class RolesController {
   @Roles('admin')
   @Auditable({ action: 'role.create', entity: 'role' })
   @HttpCode(HttpStatus.CREATED)
-  async createRole(@Body() dto: CreateRoleDto) {
+  async createRole(@Body(new ZodValidationPipe(createRoleSchema)) dto: CreateRoleDto) {
     const role = await this.createRoleUseCase.execute(dto);
     return { data: role };
   }
@@ -106,7 +123,10 @@ export class RolesController {
   @UseGuards(RolesGuard)
   @Roles('admin')
   @Auditable({ action: 'role.update', entity: 'role' })
-  async updateRole(@Param('id') id: string, @Body() dto: UpdateRoleDto) {
+  async updateRole(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(updateRoleSchema)) dto: UpdateRoleDto,
+  ) {
     const role = await this.updateRoleUseCase.execute(id, dto);
     return { data: role };
   }
@@ -124,7 +144,10 @@ export class RolesController {
   @UseGuards(RolesGuard)
   @Roles('admin')
   @Auditable({ action: 'role.permissions.set', entity: 'role' })
-  async setPermissions(@Param('id') id: string, @Body() dto: SetPermissionsDto) {
+  async setPermissions(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(setPermissionsSchema)) dto: SetPermissionsDto,
+  ) {
     const role = await this.setRolePermissionsUseCase.execute(id, dto);
     return { data: role };
   }
@@ -136,7 +159,7 @@ export class RolesController {
   async toggleModule(
     @Param('id') id: string,
     @Param('moduleKey') moduleKey: string,
-    @Body() dto: ToggleModuleDto,
+    @Body(new ZodValidationPipe(toggleModuleSchema)) dto: ToggleModuleDto,
   ) {
     const role = await this.toggleModulePermissionsUseCase.execute(id, moduleKey, dto);
     return { data: role };
