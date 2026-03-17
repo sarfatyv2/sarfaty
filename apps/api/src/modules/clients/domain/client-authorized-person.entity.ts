@@ -1,9 +1,14 @@
+export type AuthorizedPersonType = 'pf' | 'pj';
+
 export interface ClientAuthorizedPersonProps {
   id: string;
   clientId: string;
   authorizationType: string | null;
   fullName: string;
+  personType: AuthorizedPersonType;
   cpf: string | null;
+  cnpj: string | null;
+  linkedClientId: string | null;
   phone: string | null;
   email: string | null;
   source: string | null;
@@ -24,7 +29,10 @@ export class ClientAuthorizedPerson {
   readonly clientId: string;
   readonly authorizationType: string | null;
   readonly fullName: string;
+  readonly personType: AuthorizedPersonType;
   readonly cpf: string | null;
+  readonly cnpj: string | null;
+  readonly linkedClientId: string | null;
   readonly phone: string | null;
   readonly email: string | null;
   readonly source: string | null;
@@ -44,7 +52,10 @@ export class ClientAuthorizedPerson {
     this.clientId = props.clientId;
     this.authorizationType = props.authorizationType;
     this.fullName = props.fullName;
+    this.personType = props.personType;
     this.cpf = props.cpf;
+    this.cnpj = props.cnpj;
+    this.linkedClientId = props.linkedClientId;
     this.phone = props.phone;
     this.email = props.email;
     this.source = props.source;
@@ -79,7 +90,10 @@ export class ClientAuthorizedPerson {
       clientId: this.clientId,
       authorizationType: this.authorizationType,
       fullName: this.fullName,
+      personType: this.personType,
       cpf: this.cpf,
+      cnpj: this.cnpj,
+      linkedClientId: this.linkedClientId,
       phone: this.phone,
       email: this.email,
       source: this.source,

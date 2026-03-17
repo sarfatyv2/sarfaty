@@ -51,6 +51,7 @@ import { DatabaseModule } from '../../database/database.module';
 import { VaduClientListener } from './infra/events/vadu-client.listener';
 import { ComplianceCheckListener } from './infra/events/compliance-check.listener';
 import { DraweeBureauListener } from './infra/events/drawee-bureau.listener';
+import { PartnerCompanyListener } from './infra/events/partner-company.listener';
 import { CreditController } from './controllers/credit.controller';
 import { DraweeCreditController } from './controllers/drawee-credit.controller';
 import { ClientsModule } from '../clients/clients.module';
@@ -175,6 +176,7 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     VaduClientListener,
     ComplianceCheckListener,
     DraweeBureauListener,
+    PartnerCompanyListener,
   ],
   exports: [
     VaduAdapter,

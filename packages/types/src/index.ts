@@ -1,5 +1,16 @@
 export { type Role, ROLES } from './roles';
 export { type Profile } from './profile';
+
+/** Represents a role record returned by the dynamic RBAC API */
+export interface RoleData {
+  id: string;
+  key: string;
+  label: string;
+  homeRoute: string;
+  isSystem: boolean;
+  isActive: boolean;
+  features?: string[];
+}
 export {
   type Collaborator,
   type EmploymentType,
@@ -18,6 +29,15 @@ export {
   type SidebarItem,
   ROLE_PERMISSIONS,
 } from './permissions';
+export {
+  type FeatureType,
+  type ModuleCatalogEntry,
+  type FeatureCatalogEntry,
+  MODULE_CATALOG,
+  FEATURE_CATALOG,
+  getFeaturesForModule,
+  getFeaturesForModuleAndType,
+} from './catalog';
 export {
   CLIENT_STATUSES,
   type ClientStatus,

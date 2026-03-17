@@ -6,7 +6,10 @@ export const clientAuthorizedPersons = pgTable('client_authorized_persons', {
   clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
   authorizationType: text('authorization_type'),  // 'partner' | 'attorney' | 'legal_representative' | 'authorized' | 'administrator'
   fullName: text('full_name').notNull(),
+  personType: text('person_type').notNull().default('pf'),  // 'pf' | 'pj'
   cpf: text('cpf'),
+  cnpj: text('cnpj'),
+  linkedClientId: uuid('linked_client_id').references(() => clients.id, { onDelete: 'set null' }),
   phone: text('phone'),
   email: text('email'),
   source: text('source'),  // 'manual' | 'vadu' | 'serasa' | 'brasilapi' | 'creditbox'
@@ -25,5 +28,7 @@ export const clientAuthorizedPersons = pgTable('client_authorized_persons', {
   clientIdx: index('idx_client_auth_persons_client').on(table.clientId),
   activeIdx: index('idx_client_auth_persons_active').on(table.isActive),
   cpfIdx: index('idx_client_auth_persons_cpf').on(table.cpf),
+  cnpjIdx: index('idx_client_auth_persons_cnpj').on(table.cnpj),
+  linkedClientIdx: index('idx_client_auth_persons_linked_client').on(table.linkedClientId),
   sourceIdx: index('idx_client_auth_persons_source').on(table.clientId, table.source),
 }));

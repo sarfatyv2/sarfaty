@@ -11,11 +11,15 @@ export class CreateClientAuthorizedPersonUseCase {
   ) {}
 
   async execute(clientId: string, dto: CreateClientAuthorizedPersonDto) {
+    const isPj = dto.personType === 'pj';
     const person = ClientAuthorizedPerson.create({
       clientId,
       authorizationType: dto.authorizationType ?? null,
       fullName: dto.fullName,
-      cpf: dto.cpf ?? null,
+      personType: dto.personType ?? 'pf',
+      cpf: isPj ? null : (dto.cpf ?? null),
+      cnpj: isPj ? (dto.cnpj ?? null) : null,
+      linkedClientId: null,
       phone: dto.phone ?? null,
       email: dto.email ?? null,
       source: 'manual',

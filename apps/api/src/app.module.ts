@@ -29,6 +29,7 @@ import { CommunicationModule } from './modules/communication/communication.modul
 import { CnabModule } from './modules/cnab/cnab.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { AuditTrailModule } from './modules/audit/audit.module';
+import { RolesModule } from './modules/roles/roles.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { AuditTrailModule } from './modules/audit/audit.module';
     CnabModule,
     ChatModule,
     AuditTrailModule,
+    RolesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },

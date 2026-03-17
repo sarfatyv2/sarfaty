@@ -1,14 +1,17 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CLIENT_ADDRESS_REPOSITORY, type ClientAddressRepository } from '../domain/client-address.repository';
 import { CLIENT_CONTACT_REPOSITORY, type ClientContactRepository } from '../domain/client-contact.repository';
 import { CLIENT_AUTHORIZED_PERSON_REPOSITORY, type ClientAuthorizedPersonRepository } from '../domain/client-authorized-person.repository';
 import { ClientAddress } from '../domain/client-address.entity';
 import { ClientContact } from '../domain/client-contact.entity';
 import { ClientAuthorizedPerson } from '../domain/client-authorized-person.entity';
+import { PartnerCompanyDetectedEvent } from '../../notifications/domain/events/client-events';
 
 export interface BureauPartnerData {
   fullName: string;
   cpf: string | null;
+  cnpj: string | null;
   authorizationType: string;
   phone: string | null;
   email: string | null;
@@ -54,6 +57,7 @@ export class EnrichClientFromBureauUseCase {
     private readonly contactRepository: ClientContactRepository,
     @Inject(CLIENT_AUTHORIZED_PERSON_REPOSITORY)
     private readonly authorizedPersonRepository: ClientAuthorizedPersonRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async execute(input: EnrichClientFromBureauInput): Promise<void> {
@@ -178,92 +182,146 @@ export class EnrichClientFromBureauUseCase {
     queriedAt: Date,
   ): Promise<void> {
     try {
-      // Search all existing persons (regardless of source) to avoid duplicates by CPF
       const allExistingPersons = await this.authorizedPersonRepository.findAllByClientId(clientId);
       const sourcePersons = allExistingPersons.filter((p) => p.source === source);
 
       const incomingCpfs = new Set(
         partners.filter((p) => p.cpf).map((p) => p.cpf!.replaceAll(/\D/g, '')),
       );
+      const incomingCnpjs = new Set(
+        partners.filter((p) => p.cnpj).map((p) => p.cnpj!.replaceAll(/\D/g, '')),
+      );
 
       for (const partner of partners) {
-        const cleanCpf = partner.cpf?.replaceAll(/\D/g, '') || null;
-
-        // Check if a record already exists for this source
-        const sameSourceMatch = cleanCpf
-          ? sourcePersons.find((e) => e.cpf?.replaceAll(/\D/g, '') === cleanCpf)
-          : sourcePersons.find((e) => e.fullName === partner.fullName);
-
-        if (sameSourceMatch) {
-          // Update existing record from the same source
-          await this.authorizedPersonRepository.update(sameSourceMatch.id, {
-            fullName: partner.fullName,
-            authorizationType: partner.authorizationType,
-            phone: partner.phone,
-            email: partner.email,
-            joinedAt: partner.joinedAt,
-            mandateEndAt: partner.mandateEndAt,
-            role: partner.role,
-            participationPercentage: partner.participationPercentage,
-            capitalTotalValue: partner.capitalTotalValue,
-            restrictionSign: partner.restrictionSign,
-            sourceQueriedAt: queriedAt,
-            isActive: true,
-          });
-          this.logger.debug(`Updated ${source} partner ${partner.fullName} for client ${clientId}`);
-          continue;
-        }
-
-        // Check if same CPF exists from a different source — skip creation to avoid duplicates
-        const otherSourceMatch = cleanCpf
-          ? allExistingPersons.find((e) => e.cpf?.replaceAll(/\D/g, '') === cleanCpf)
-          : null;
-
-        if (otherSourceMatch) {
-          this.logger.debug(
-            `Partner ${partner.fullName} (CPF ${cleanCpf}) already exists from source "${otherSourceMatch.source}", skipping creation for ${source}`,
-          );
-          continue;
-        }
-
-        const person = ClientAuthorizedPerson.create({
-          clientId,
-          authorizationType: partner.authorizationType,
-          fullName: partner.fullName,
-          cpf: cleanCpf,
-          phone: partner.phone,
-          email: partner.email,
-          joinedAt: partner.joinedAt,
-          mandateEndAt: partner.mandateEndAt,
-          role: partner.role,
-          participationPercentage: partner.participationPercentage,
-          capitalTotalValue: partner.capitalTotalValue,
-          restrictionSign: partner.restrictionSign,
-          source,
-          sourceQueriedAt: queriedAt,
-          isActive: true,
-        });
-        await this.authorizedPersonRepository.save(person);
-        this.logger.debug(`Created ${source} partner ${partner.fullName} for client ${clientId}`);
+        await this.processPartner(clientId, source, partner, queriedAt, allExistingPersons, sourcePersons);
       }
 
-      // Deactivate only persons from this source that are no longer in the response
-      for (const existing of sourcePersons) {
-        if (!existing.isActive) continue;
-        const existingCleanCpf = existing.cpf?.replaceAll(/\D/g, '') || null;
-        const stillPresent = existingCleanCpf
-          ? incomingCpfs.has(existingCleanCpf)
-          : partners.some((p) => p.fullName === existing.fullName);
-
-        if (!stillPresent) {
-          await this.authorizedPersonRepository.update(existing.id, { isActive: false });
-          this.logger.debug(`Deactivated ${source} partner ${existing.fullName} for client ${clientId}`);
-        }
-      }
+      await this.deactivateRemovedPartners(source, sourcePersons, partners, incomingCpfs, incomingCnpjs, clientId);
     } catch (error) {
       this.logger.error(
         `Failed to upsert ${source} partners for client ${clientId}: ${(error as Error).message}`,
       );
     }
   }
-}
+
+  private async processPartner(
+    clientId: string,
+    source: string,
+    partner: BureauPartnerData,
+    queriedAt: Date,
+    allExistingPersons: ClientAuthorizedPerson[],
+    sourcePersons: ClientAuthorizedPerson[],
+  ): Promise<void> {
+    const isPj = !partner.cpf && !!partner.cnpj;
+    const cleanCpf = partner.cpf?.replaceAll(/\D/g, '') || null;
+    const cleanCnpj = partner.cnpj?.replaceAll(/\D/g, '') || null;
+    const identifier = isPj ? cleanCnpj : cleanCpf;
+
+    const sameSourceMatch = this.findByIdentifier(sourcePersons, identifier, isPj, partner.fullName);
+    if (sameSourceMatch) {
+      await this.authorizedPersonRepository.update(sameSourceMatch.id, {
+        fullName: partner.fullName,
+        authorizationType: partner.authorizationType,
+        phone: partner.phone,
+        email: partner.email,
+        joinedAt: partner.joinedAt,
+        mandateEndAt: partner.mandateEndAt,
+        role: partner.role,
+        participationPercentage: partner.participationPercentage,
+        capitalTotalValue: partner.capitalTotalValue,
+        restrictionSign: partner.restrictionSign,
+        sourceQueriedAt: queriedAt,
+        isActive: true,
+      });
+      this.logger.debug(`Updated ${source} partner ${partner.fullName} for client ${clientId}`);
+      return;
+    }
+
+    const otherSourceMatch = identifier
+      ? this.findByIdentifier(allExistingPersons, identifier, isPj, null)
+      : null;
+
+    if (otherSourceMatch) {
+      this.logger.debug(
+        `Partner ${partner.fullName} already exists from source "${otherSourceMatch.source}", skipping creation for ${source}`,
+      );
+      return;
+    }
+
+    const person = ClientAuthorizedPerson.create({
+      clientId,
+      authorizationType: partner.authorizationType,
+      fullName: partner.fullName,
+      personType: isPj ? 'pj' : 'pf',
+      cpf: cleanCpf,
+      cnpj: cleanCnpj,
+      linkedClientId: null,
+      phone: partner.phone,
+      email: partner.email,
+      joinedAt: partner.joinedAt,
+      mandateEndAt: partner.mandateEndAt,
+      role: partner.role,
+      participationPercentage: partner.participationPercentage,
+      capitalTotalValue: partner.capitalTotalValue,
+      restrictionSign: partner.restrictionSign,
+      source,
+      sourceQueriedAt: queriedAt,
+      isActive: true,
+    });
+    const saved = await this.authorizedPersonRepository.save(person);
+    this.logger.debug(`Created ${source} partner ${partner.fullName} for client ${clientId}`);
+
+    if (isPj && cleanCnpj) {
+      this.eventEmitter.emit(
+        PartnerCompanyDetectedEvent.EVENT_NAME,
+        new PartnerCompanyDetectedEvent(clientId, saved.id, cleanCnpj, partner.fullName),
+      );
+      this.logger.log(`Emitted PartnerCompanyDetectedEvent for CNPJ ${cleanCnpj}`);
+    }
+  }
+
+  private findByIdentifier(
+    persons: ClientAuthorizedPerson[],
+    identifier: string | null,
+    isPj: boolean,
+    fallbackName: string | null,
+  ): ClientAuthorizedPerson | undefined {
+    if (!identifier) {
+      return fallbackName ? persons.find((e) => e.fullName === fallbackName) : undefined;
+    }
+    return persons.find((e) => {
+      const eId = isPj ? e.cnpj?.replaceAll(/\D/g, '') : e.cpf?.replaceAll(/\D/g, '');
+      return eId === identifier;
+    });
+  }
+
+  private async deactivateRemovedPartners(
+    source: string,
+    sourcePersons: ClientAuthorizedPerson[],
+    partners: BureauPartnerData[],
+    incomingCpfs: Set<string>,
+    incomingCnpjs: Set<string>,
+    clientId: string,
+  ): Promise<void> {
+    for (const existing of sourcePersons) {
+      if (!existing.isActive) continue;
+      const isPjExisting = existing.personType === 'pj';
+      const existingId = isPjExisting
+        ? existing.cnpj?.replaceAll(/\D/g, '') || null
+        : existing.cpf?.replaceAll(/\D/g, '') || null;
+
+      let stillPresent: boolean;
+      if (!existingId) {
+        stillPresent = partners.some((p) => p.fullName === existing.fullName);
+      } else if (isPjExisting) {
+        stillPresent = incomingCnpjs.has(existingId);
+      } else {
+        stillPresent = incomingCpfs.has(existingId);
+      }
+
+      if (!stillPresent) {
+        await this.authorizedPersonRepository.update(existing.id, { isActive: false });
+        this.logger.debug(`Deactivated ${source} partner ${existing.fullName} for client ${clientId}`);
+      }
+    }
+  }

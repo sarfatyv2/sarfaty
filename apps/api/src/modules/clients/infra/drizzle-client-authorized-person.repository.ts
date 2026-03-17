@@ -38,6 +38,17 @@ export class DrizzleClientAuthorizedPersonRepository implements ClientAuthorized
     return rows.map(ClientAuthorizedPersonMapper.toDomain);
   }
 
+  async findPjPartnersByCnpj(cnpj: string): Promise<ClientAuthorizedPerson[]> {
+    const rows = await this.db
+      .select()
+      .from(clientAuthorizedPersons)
+      .where(and(
+        eq(clientAuthorizedPersons.personType, 'pj'),
+        eq(clientAuthorizedPersons.cnpj, cnpj),
+      ));
+    return rows.map(ClientAuthorizedPersonMapper.toDomain);
+  }
+
   async save(person: ClientAuthorizedPerson): Promise<ClientAuthorizedPerson> {
     const data = ClientAuthorizedPersonMapper.toPersistence(person);
     const [row] = await this.db

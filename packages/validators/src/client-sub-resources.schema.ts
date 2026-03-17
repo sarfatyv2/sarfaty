@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { uuidSchema, cpfSchema } from './common';
+import { uuidSchema, cpfSchema, cnpjSchema } from './common';
 
 // --- Contacts ---
 export const createClientContactSchema = z.object({
@@ -63,17 +63,36 @@ export type CreateClientBankAccountDto = z.infer<typeof createClientBankAccountS
 export type UpdateClientBankAccountDto = z.infer<typeof updateClientBankAccountSchema>;
 
 // --- Authorized Persons ---
-export const createClientAuthorizedPersonSchema = z.object({
+export const createClientAuthorizedPersonSchema = z.discriminatedUnion('personType', [
+  z.object({
+    personType: z.literal('pf'),
+    authorizationType: z.enum(['partner', 'attorney', 'legal_representative', 'authorized']).optional(),
+    fullName: z.string().min(2),
+    cpf: cpfSchema.optional(),
+    phone: z.string().max(20).optional(),
+    email: z.string().email().optional(),
+    isActive: z.boolean().default(true),
+  }),
+  z.object({
+    personType: z.literal('pj'),
+    authorizationType: z.enum(['partner', 'attorney', 'legal_representative', 'authorized']).optional(),
+    fullName: z.string().min(2),
+    cnpj: cnpjSchema,
+    phone: z.string().max(20).optional(),
+    email: z.string().email().optional(),
+    isActive: z.boolean().default(true),
+  }),
+]).default({ personType: 'pf', fullName: '' } as never);
+
+export const updateClientAuthorizedPersonSchema = z.object({
+  personType: z.enum(['pf', 'pj']).optional(),
   authorizationType: z.enum(['partner', 'attorney', 'legal_representative', 'authorized']).optional(),
-  fullName: z.string().min(2),
+  fullName: z.string().min(2).optional(),
   cpf: cpfSchema.optional(),
+  cnpj: cnpjSchema.optional(),
   phone: z.string().max(20).optional(),
   email: z.string().email().optional(),
-  isActive: z.boolean().default(true),
-});
-
-export const updateClientAuthorizedPersonSchema = createClientAuthorizedPersonSchema.partial().extend({
-  fullName: z.string().min(2).optional(),
+  isActive: z.boolean().optional(),
 });
 
 export type CreateClientAuthorizedPersonDto = z.infer<typeof createClientAuthorizedPersonSchema>;
