@@ -10,6 +10,7 @@ export async function fetchRoleConfig(roleKey: string): Promise<RoleConfig> {
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session?.access_token) {
+      console.warn('[fetchRoleConfig] No session, using fallback for role:', roleKey);
       return getFallbackConfig(roleKey);
     }
 
@@ -22,12 +23,16 @@ export async function fetchRoleConfig(roleKey: string): Promise<RoleConfig> {
     });
 
     if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      console.warn('[fetchRoleConfig] API error', response.status, text, '— using fallback for role:', roleKey);
       return getFallbackConfig(roleKey);
     }
 
     const json = (await response.json()) as { data: RoleConfig };
+    console.log('[fetchRoleConfig] API success for role:', roleKey, '— sidebar sections:', json.data?.sidebar?.length);
     return json.data;
-  } catch {
+  } catch (err) {
+    console.warn('[fetchRoleConfig] Exception, using fallback for role:', roleKey, err);
     return getFallbackConfig(roleKey);
   }
 }
