@@ -54,6 +54,8 @@ export class RequestCercValidationUseCase {
 
     const requestPayload: import('../bureaus/cerc/cerc.types').CercCriarLoteValidacoesRequest = {
       veiculo: { id: veiculoId },
+      monitoramento: false,
+      disponibilizacao_arquivo_retorno: false,
       validacoes: [
         {
           recebivel: {
