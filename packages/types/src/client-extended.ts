@@ -1,4 +1,4 @@
-export type BureauSource = 'manual' | 'vadu' | 'serasa' | 'brasilapi' | 'creditbox';
+export type BureauSource = 'manual' | 'vadu' | 'serasa' | 'brasilapi' | 'creditbox' | 'allcheck' | 'upminer';
 
 export interface ClientContact {
   id: string;

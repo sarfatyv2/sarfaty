@@ -8,6 +8,7 @@ import { ClientAddressesController } from './controllers/client-addresses.contro
 import { ClientBankAccountsController } from './controllers/client-bank-accounts.controller';
 import { ClientAuthorizedPersonsController } from './controllers/client-authorized-persons.controller';
 import { ClientCommercialReportsController } from './controllers/client-commercial-reports.controller';
+import { VisitsController } from './controllers/visits.controller';
 import { CreateClientUseCase } from './use-cases/create-client.use-case';
 import { GetClientUseCase } from './use-cases/get-client.use-case';
 import { ListClientsUseCase } from './use-cases/list-clients.use-case';
@@ -35,6 +36,8 @@ import { CreateClientAuthorizedPersonUseCase } from './use-cases/create-client-a
 import { UpdateClientAuthorizedPersonUseCase } from './use-cases/update-client-authorized-person.use-case';
 import { DeleteClientAuthorizedPersonUseCase } from './use-cases/delete-client-authorized-person.use-case';
 import { GetPartnerBureauDataUseCase } from './use-cases/get-partner-bureau-data.use-case';
+import { GetVisitsOverviewUseCase } from './use-cases/get-visits-overview.use-case';
+import { GetTeamOverviewUseCase } from './use-cases/get-team-overview.use-case';
 import { DrizzleClientRepository } from './infra/drizzle-client.repository';
 import { DrizzleClientDocumentRepository } from './infra/drizzle-client-document.repository';
 import { DrizzleClientContactRepository } from './infra/drizzle-client-contact.repository';
@@ -98,6 +101,7 @@ import { DebtPositionDocumentListener } from './listeners/debt-position-document
     ClientBankAccountsController,
     ClientAuthorizedPersonsController,
     ClientCommercialReportsController,
+    VisitsController,
     IrpfController,
     FaturamentoController,
     DebtPositionController,
@@ -140,6 +144,9 @@ import { DebtPositionDocumentListener } from './listeners/debt-position-document
     UpdateClientAuthorizedPersonUseCase,
     DeleteClientAuthorizedPersonUseCase,
     GetPartnerBureauDataUseCase,
+    // Use cases — visits tracking
+    GetVisitsOverviewUseCase,
+    GetTeamOverviewUseCase,
     // Repositories
     { provide: CLIENT_REPOSITORY, useClass: DrizzleClientRepository },
     { provide: CLIENT_DOCUMENT_REPOSITORY, useClass: DrizzleClientDocumentRepository },
