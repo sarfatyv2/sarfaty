@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata } from 'next'; // v2026.03.20
 import { Onest } from 'next/font/google';
 import { Toaster } from '@nexus/ui';
 import './globals.css';
