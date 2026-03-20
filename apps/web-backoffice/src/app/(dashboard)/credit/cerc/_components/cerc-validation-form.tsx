@@ -90,8 +90,9 @@ export function CercValidationForm({ isSubmitting, onSubmit }: Readonly<CercVali
         const result = await api.postFormData<NfeExtractedData>('/credit/cerc/extract-nfe', formData);
         applyExtracted(result.data);
         toast.success('Dados extraídos da NF-e com sucesso');
-      } catch {
-        toast.error('Não foi possível extrair os dados. Preencha manualmente.');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Erro desconhecido';
+        toast.error(`Não foi possível extrair os dados: ${message}`);
       } finally {
         setIsExtracting(false);
       }
