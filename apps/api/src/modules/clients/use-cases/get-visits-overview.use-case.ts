@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CLIENT_REPOSITORY, type ClientRepository } from '../domain/client.repository';
 import { COMMERCIAL_REPORT_REPOSITORY, type CommercialReportRepository } from '../domain/commercial-report.repository';
-import { computeVisitStatusFromDate } from './visit-status.helper';
+import { computeVisitStatusFromDate, type VisitStatus } from './visit-status.helper';
 
 export type { VisitStatus } from './visit-status.helper';
 
