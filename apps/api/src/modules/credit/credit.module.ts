@@ -14,6 +14,7 @@ import { NegativeMediaAdapter } from './bureaus/negative-media/negative-media.ad
 import { DigitalPresenceAdapter } from './bureaus/digital-presence/digital-presence.adapter';
 import { UpminerAdapter } from './bureaus/upminer/upminer.adapter';
 import { CercAdapter } from './bureaus/cerc/cerc.adapter';
+import { NfeGeminiService } from './infra/gemini/nfe-gemini.service';
 import { DrizzleVaduRepository } from './infra/drizzle/drizzle-vadu.repository';
 import { DrizzleCreditboxRepository } from './infra/drizzle/drizzle-creditbox.repository';
 import { DrizzleSerasaReportRepository } from './infra/drizzle/drizzle-serasa-report.repository';
@@ -133,6 +134,7 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     DigitalPresenceAdapter,
     UpminerAdapter,
     CercAdapter,
+    NfeGeminiService,
 
     // Repositories
     { provide: VADU_REPOSITORY, useClass: DrizzleVaduRepository },
