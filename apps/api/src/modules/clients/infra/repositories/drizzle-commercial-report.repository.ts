@@ -4,7 +4,7 @@ import { CommercialReportRepository } from '../../domain/commercial-report.repos
 import { CommercialReportEntity } from '../../domain/commercial-report.entity';
 import { CommercialReportMapper } from '../mappers/commercial-report.mapper';
 import { clientCommercialReports } from '../../../../database/schema/client-commercial-reports';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, inArray, sql } from 'drizzle-orm';
 
 @Injectable()
 export class DrizzleCommercialReportRepository implements CommercialReportRepository {
@@ -42,5 +42,24 @@ export class DrizzleCommercialReportRepository implements CommercialReportReposi
       .limit(1);
       
     return row ? CommercialReportMapper.toDomain(row) : null;
+  }
+
+  async findLatestVisitDateByClientIds(clientIds: string[]): Promise<Record<string, string | null>> {
+    if (clientIds.length === 0) return {};
+
+    const rows = await this.db
+      .select({
+        clientId: clientCommercialReports.clientId,
+        latestVisitDate: sql<string | null>`MAX(${clientCommercialReports.visitDate})`,
+      })
+      .from(clientCommercialReports)
+      .where(inArray(clientCommercialReports.clientId, clientIds))
+      .groupBy(clientCommercialReports.clientId);
+
+    const result: Record<string, string | null> = {};
+    for (const row of rows) {
+      result[row.clientId] = row.latestVisitDate ?? null;
+    }
+    return result;
   }
 }

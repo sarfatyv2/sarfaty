@@ -55,6 +55,7 @@ import { PartnerSection } from './partner-section';
 import { FaturamentoSection } from './faturamento-section';
 import { DebtPositionSection } from './debt-position-section';
 import { ClientChatTab } from './tabs/client-chat-tab';
+import { ClientVisitsTab } from './tabs/client-visits-tab';
 import { FadeIn, AnimatedTabContent } from './motion-wrapper';
 import { useRoleConfig } from '@/contexts/role-context';
 
@@ -487,6 +488,7 @@ export function ClientDetail({ client, segmentName, productName, segments, produ
             <TabsTrigger value="bureau" className="rounded-md text-xs">Bureau</TabsTrigger>
             <TabsTrigger value="documentos" className="rounded-md text-xs">Documentos</TabsTrigger>
             <TabsTrigger value="contas" className="rounded-md text-xs">Contas Bancárias</TabsTrigger>
+            <TabsTrigger value="visitas" className="rounded-md text-xs">Visitas</TabsTrigger>
           </TabsList>
 
           {/* Chat */}
@@ -608,6 +610,13 @@ export function ClientDetail({ client, segmentName, productName, segments, produ
           {/* Contas */}
           <TabsContent value="contas" className="mt-5">
             <ClientBankAccountsTab clientId={client.id} />
+          </TabsContent>
+
+          {/* Visitas */}
+          <TabsContent value="visitas" className="mt-5">
+            <AnimatedTabContent key="visitas">
+              <ClientVisitsTab clientId={client.id} />
+            </AnimatedTabContent>
           </TabsContent>
 
         </Tabs>

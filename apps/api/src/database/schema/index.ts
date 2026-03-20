@@ -136,6 +136,12 @@ export { digitalPresenceResults } from './digital-presence-results';
 export { allcheckResults } from './allcheck-results';
 export { allcheckDraweeResults } from './allcheck-drawee-results';
 
+// upMiner
+export { upminerResults } from './upminer-results';
+
+// CERC
+export { cercValidations } from './cerc-validations';
+
 // Compliance Checks - Drawees
 export { cguDraweeCheckResults } from './cgu-drawee-check-results';
 export { pepDraweeCheckResults } from './pep-drawee-check-results';

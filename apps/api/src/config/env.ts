@@ -15,6 +15,14 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().optional().default(''),
   ALLCHECK_USER_ID: z.string().min(1).default('dummy'),
   ALLCHECK_USER_TOKEN: z.string().min(1).default('dummy'),
+  UPMINER_CLIENT_ID: z.string().optional().default(''),
+  UPMINER_CLIENT_SECRET: z.string().optional().default(''),
+  UPMINER_BASE_URL: z.string().url().optional().default('https://upapi-orchestrator.uplexis.com'),
+  CERC_CLIENT_ID: z.string().optional().default(''),
+  CERC_CLIENT_SECRET: z.string().optional().default(''),
+  CERC_SUSTAINABILITY_TOKEN: z.string().optional().default(''),
+  CERC_BASE_URL: z.string().url().optional().default('https://api.int.cerc.com'),
+  CERC_VEICULO_ID: z.string().optional().default(''),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
 });
 

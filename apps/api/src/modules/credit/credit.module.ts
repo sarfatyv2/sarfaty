@@ -12,6 +12,8 @@ import { SanctionsAdapter } from './bureaus/sanctions/sanctions.adapter';
 import { SlaveLaborAdapter } from './bureaus/slave-labor/slave-labor.adapter';
 import { NegativeMediaAdapter } from './bureaus/negative-media/negative-media.adapter';
 import { DigitalPresenceAdapter } from './bureaus/digital-presence/digital-presence.adapter';
+import { UpminerAdapter } from './bureaus/upminer/upminer.adapter';
+import { CercAdapter } from './bureaus/cerc/cerc.adapter';
 import { DrizzleVaduRepository } from './infra/drizzle/drizzle-vadu.repository';
 import { DrizzleCreditboxRepository } from './infra/drizzle/drizzle-creditbox.repository';
 import { DrizzleSerasaReportRepository } from './infra/drizzle/drizzle-serasa-report.repository';
@@ -54,6 +56,7 @@ import { DraweeBureauListener } from './infra/events/drawee-bureau.listener';
 import { PartnerCompanyListener } from './infra/events/partner-company.listener';
 import { CreditController } from './controllers/credit.controller';
 import { DraweeCreditController } from './controllers/drawee-credit.controller';
+import { CercController } from './controllers/cerc.controller';
 import { ClientsModule } from '../clients/clients.module';
 import { DraweesModule } from '../drawees/drawees.module';
 import { CnabModule } from '../cnab/cnab.module';
@@ -81,10 +84,23 @@ import { SyncAllcheckClientUseCase } from './use-cases/sync-allcheck-client.use-
 import { SyncAllcheckDraweeUseCase } from './use-cases/sync-allcheck-drawee.use-case';
 import { GetAllcheckResultUseCase } from './use-cases/get-allcheck-result.use-case';
 import { GetAllcheckDraweeResultUseCase } from './use-cases/get-allcheck-drawee-result.use-case';
+import { RequestUpminerBatchUseCase } from './use-cases/request-upminer-batch.use-case';
+import { SyncUpminerBatchUseCase } from './use-cases/sync-upminer-batch.use-case';
+import { GetUpminerResultUseCase } from './use-cases/get-upminer-result.use-case';
+import { GetUpminerDossierUseCase } from './use-cases/get-upminer-dossier.use-case';
+import { RequestUpminerPdfUseCase } from './use-cases/request-upminer-pdf.use-case';
+import { RequestCercValidationUseCase } from './use-cases/request-cerc-validation.use-case';
+import { SyncCercValidationUseCase } from './use-cases/sync-cerc-validation.use-case';
+import { GetCercValidationUseCase } from './use-cases/get-cerc-validation.use-case';
+import { ListCercValidationsUseCase } from './use-cases/list-cerc-validations.use-case';
 import { ALLCHECK_RESULT_REPOSITORY } from './domain/allcheck-result.repository';
 import { ALLCHECK_DRAWEE_RESULT_REPOSITORY } from './domain/allcheck-drawee-result.repository';
 import { DrizzleAllcheckResultRepository } from './infra/drizzle/drizzle-allcheck-result.repository';
 import { DrizzleAllcheckDraweeResultRepository } from './infra/drizzle/drizzle-allcheck-drawee-result.repository';
+import { UPMINER_RESULT_REPOSITORY } from './domain/upminer-result.repository';
+import { DrizzleUpminerResultRepository } from './infra/drizzle/drizzle-upminer-result.repository';
+import { CERC_VALIDATION_REPOSITORY } from './domain/cerc-validation.repository';
+import { DrizzleCercValidationRepository } from './infra/drizzle/drizzle-cerc-validation.repository';
 import { VADU_DRAWEE_REPOSITORY } from './domain/vadu-drawee.repository';
 import { SERASA_DRAWEE_REPORT_REPOSITORY } from './domain/serasa-drawee-report.repository';
 import { CGU_DRAWEE_CHECK_REPOSITORY } from './domain/cgu-drawee-check.repository';
@@ -99,7 +115,7 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
 
 @Module({
   imports: [DatabaseModule, ClientsModule, DraweesModule, CnabModule],
-  controllers: [CreditController, DraweeCreditController],
+  controllers: [CreditController, DraweeCreditController, CercController],
   providers: [
     // Adapters
     AllcheckAdapter,
@@ -115,6 +131,8 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     SlaveLaborAdapter,
     NegativeMediaAdapter,
     DigitalPresenceAdapter,
+    UpminerAdapter,
+    CercAdapter,
 
     // Repositories
     { provide: VADU_REPOSITORY, useClass: DrizzleVaduRepository },
@@ -144,6 +162,10 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     // Allcheck repositories
     { provide: ALLCHECK_RESULT_REPOSITORY, useClass: DrizzleAllcheckResultRepository },
     { provide: ALLCHECK_DRAWEE_RESULT_REPOSITORY, useClass: DrizzleAllcheckDraweeResultRepository },
+    // upMiner repositories
+    { provide: UPMINER_RESULT_REPOSITORY, useClass: DrizzleUpminerResultRepository },
+    // CERC repositories
+    { provide: CERC_VALIDATION_REPOSITORY, useClass: DrizzleCercValidationRepository },
 
     // Use Cases
     SyncVaduClientUseCase,
@@ -171,6 +193,19 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     SyncAllcheckDraweeUseCase,
     GetAllcheckResultUseCase,
     GetAllcheckDraweeResultUseCase,
+
+    // upMiner use cases
+    RequestUpminerBatchUseCase,
+    SyncUpminerBatchUseCase,
+    GetUpminerResultUseCase,
+    GetUpminerDossierUseCase,
+    RequestUpminerPdfUseCase,
+
+    // CERC use cases
+    RequestCercValidationUseCase,
+    SyncCercValidationUseCase,
+    GetCercValidationUseCase,
+    ListCercValidationsUseCase,
 
     // Event Listeners
     VaduClientListener,
