@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Loader2, Upload, X, FileImage } from 'lucide-react';
+import { Loader2, Upload, X, FileImage, Sparkles } from 'lucide-react';
 import { Button, Input, Label, Card, CardContent, CardHeader, CardTitle } from '@nexus/ui';
+import { toast } from 'sonner';
+import { api } from '@/lib/api';
 
 interface CercValidationFormData {
   numeroDuplicata: string;
@@ -16,6 +18,17 @@ interface CercValidationFormData {
   referenciaExterna?: string;
 }
 
+interface NfeExtractedData {
+  numeroDuplicata: string | null;
+  chaveNfe: string | null;
+  valor: number | null;
+  vencimento: string | null;
+  cnpjCedente: string | null;
+  cnpjOriginador: string | null;
+  cnpjCpfPagador: string | null;
+  tipoPagador: 'cpf' | 'cnpj' | null;
+}
+
 interface CercValidationFormProps {
   isSubmitting: boolean;
   onSubmit: (data: CercValidationFormData) => void;
@@ -25,34 +38,66 @@ function stripNonDigits(value: string): string {
   return value.replaceAll(/\D/g, '');
 }
 
+const EMPTY_FIELDS = {
+  numeroDuplicata: '',
+  chaveNfe: '',
+  valor: '',
+  vencimento: '',
+  cnpjCedente: '',
+  cnpjCpfPagador: '',
+  tipoPagador: 'cnpj' as 'cpf' | 'cnpj',
+  cnpjOriginador: '',
+  referenciaExterna: '',
+};
+
 export function CercValidationForm({ isSubmitting, onSubmit }: Readonly<CercValidationFormProps>) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageName, setImageName] = useState<string | null>(null);
+  const [isExtracting, setIsExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fields, setFields] = useState(EMPTY_FIELDS);
 
-  const [fields, setFields] = useState({
-    numeroDuplicata: '',
-    chaveNfe: '',
-    valor: '',
-    vencimento: '',
-    cnpjCedente: '',
-    cnpjCpfPagador: '',
-    tipoPagador: 'cnpj' as 'cpf' | 'cnpj',
-    cnpjOriginador: '',
-    referenciaExterna: '',
-  });
-
-  const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setImageName(file.name);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setImagePreview(ev.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+  const applyExtracted = useCallback((data: NfeExtractedData) => {
+    setFields((prev) => ({
+      ...prev,
+      numeroDuplicata: data.numeroDuplicata ?? prev.numeroDuplicata,
+      chaveNfe: data.chaveNfe ?? prev.chaveNfe,
+      valor: data.valor != null ? String(data.valor) : prev.valor,
+      vencimento: data.vencimento ?? prev.vencimento,
+      cnpjCedente: data.cnpjCedente ?? prev.cnpjCedente,
+      cnpjOriginador: data.cnpjOriginador ?? prev.cnpjOriginador,
+      cnpjCpfPagador: data.cnpjCpfPagador ?? prev.cnpjCpfPagador,
+      tipoPagador: data.tipoPagador ?? prev.tipoPagador,
+    }));
   }, []);
+
+  const handleImageChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setImageName(file.name);
+
+      const reader = new FileReader();
+      reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+
+      setIsExtracting(true);
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const result = await api.postFormData<NfeExtractedData>('/credit/cerc/extract-nfe', formData);
+        applyExtracted(result.data);
+        toast.success('Dados extraídos da NF-e com sucesso');
+      } catch {
+        toast.error('Não foi possível extrair os dados. Preencha manualmente.');
+      } finally {
+        setIsExtracting(false);
+      }
+    },
+    [applyExtracted],
+  );
 
   const clearImage = useCallback(() => {
     setImagePreview(null);
@@ -92,10 +137,16 @@ export function CercValidationForm({ isSubmitting, onSubmit }: Readonly<CercVali
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Image Upload */}
+      {/* Image Upload with OCR */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">Nota Fiscal (referência visual)</CardTitle>
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <Sparkles size={14} className="text-primary" />
+            Upload da Nota Fiscal
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Envie a imagem ou PDF da DANFE para preenchimento automático dos campos.
+          </p>
         </CardHeader>
         <CardContent>
           {imagePreview ? (
@@ -107,6 +158,12 @@ export function CercValidationForm({ isSubmitting, onSubmit }: Readonly<CercVali
                   alt="Preview da NF-e"
                   className="w-full max-h-64 object-contain"
                 />
+                {isExtracting && (
+                  <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
+                    <Loader2 size={22} className="animate-spin text-primary" />
+                    <p className="text-xs font-medium">Extraindo dados com IA...</p>
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={clearImage}
@@ -118,6 +175,7 @@ export function CercValidationForm({ isSubmitting, onSubmit }: Readonly<CercVali
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <FileImage size={13} />
                 <span className="truncate">{imageName}</span>
+                {isExtracting && <Loader2 size={12} className="animate-spin ml-auto shrink-0" />}
               </div>
             </div>
           ) : (
@@ -273,7 +331,7 @@ export function CercValidationForm({ isSubmitting, onSubmit }: Readonly<CercVali
         </CardContent>
       </Card>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <Button type="submit" className="w-full" disabled={isSubmitting || isExtracting}>
         {isSubmitting ? (
           <>
             <Loader2 size={15} className="animate-spin mr-2" />
