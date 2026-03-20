@@ -77,6 +77,7 @@ export const FEATURE_CATALOG: FeatureCatalogEntry[] = [
   { key: 'sidebar:credit/queue',           module: 'credit', type: 'sidebar_item', section: 'Crédito',        label: 'Fila de Análise', icon: 'ClipboardList', route: '/credit/queue',    sortOrder: 0 },
   { key: 'sidebar:credit/reports',         module: 'credit', type: 'sidebar_item', section: 'Crédito',        label: 'Relatórios',      icon: 'FileText',      route: '/credit/reports',  sortOrder: 1 },
   { key: 'sidebar:credit/history',         module: 'credit', type: 'sidebar_item', section: 'Crédito',        label: 'Histórico',       icon: 'History',       route: '/credit/history',  sortOrder: 2 },
+  { key: 'sidebar:credit/cerc',            module: 'credit', type: 'sidebar_item', section: 'Crédito',        label: 'Validação CERC',  icon: 'ShieldCheck',   route: '/credit/cerc',     sortOrder: 3 },
   { key: 'sidebar:credit/bureaus',         module: 'credit', type: 'sidebar_item', section: 'Monitoramento',  label: 'Status Bureaus',  icon: 'Activity',      route: '/credit/bureaus',  sortOrder: 0 },
   { key: 'sidebar:credit/metrics',         module: 'credit', type: 'sidebar_item', section: 'Monitoramento',  label: 'Métricas',        icon: 'BarChart3',     route: '/credit/metrics',  sortOrder: 1 },
 

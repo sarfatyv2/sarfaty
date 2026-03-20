@@ -49,6 +49,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Crédito',
+        items: [
+          { label: 'Validação CERC', icon: 'ShieldCheck', route: '/credit/cerc' },
+        ],
+      },
+      {
         section: 'Conhecimento',
         items: [
           { label: 'Wiki', icon: 'BookOpen', route: '/knowledge' },
@@ -109,6 +115,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Operações', icon: 'Briefcase', route: '/cnab/operations' },
           { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
           { label: 'Atividades', icon: 'Calendar', route: '/activities' },
+        ],
+      },
+      {
+        section: 'Crédito',
+        items: [
+          { label: 'Validação CERC', icon: 'ShieldCheck', route: '/credit/cerc' },
         ],
       },
       {
@@ -182,6 +194,12 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         ],
       },
       {
+        section: 'Crédito',
+        items: [
+          { label: 'Validação CERC', icon: 'ShieldCheck', route: '/credit/cerc' },
+        ],
+      },
+      {
         section: 'Gestão Regional',
         items: [
           { label: 'Equipes', icon: 'UsersRound', route: '/teams' },
@@ -248,6 +266,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
           { label: 'Sacados', icon: 'Building2', route: '/drawees' },
           { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
           { label: 'Operações', icon: 'Briefcase', route: '/cnab/operations' },
+          { label: 'Validação CERC', icon: 'ShieldCheck', route: '/credit/cerc' },
         ],
       },
       {
