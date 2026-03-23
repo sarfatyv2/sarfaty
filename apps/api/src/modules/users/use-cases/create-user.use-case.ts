@@ -2,14 +2,14 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { CreateUserDto } from '../dto/create-user.dto';
 import { User } from '../domain/user.entity';
 import { USER_REPOSITORY, type UserRepository } from '../domain/user.repository';
-import { SupabaseAuthAdapter } from '../infra/supabase-auth.adapter';
+import { LocalAuthAdapter } from '../infra/local-auth.adapter';
 import { UserAlreadyExistsException } from '../domain/exceptions/user-already-exists.exception';
 
 @Injectable()
 export class CreateUserUseCase {
   constructor(
     @Inject(USER_REPOSITORY) private readonly userRepository: UserRepository,
-    private readonly authAdapter: SupabaseAuthAdapter,
+    private readonly authAdapter: LocalAuthAdapter,
   ) {}
 
   async execute(dto: CreateUserDto): Promise<User> {

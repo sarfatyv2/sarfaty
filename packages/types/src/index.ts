@@ -197,3 +197,4 @@ export {
   type ClientDraweeStatus,
   type ClientDrawee,
 } from './trade-receivable';
+export { type BillingCompany } from './billing-company';

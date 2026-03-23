@@ -152,7 +152,13 @@ export default function DpInvoicesPage() {
             Fila de notas fiscais para conferência e pagamento
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/people/dp/invoices/assign">Atribuir NFs</Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/people/dp/billing-companies">Empresas faturadoras</Link>
+          </Button>
           <Button
             variant="outline"
             size="sm"

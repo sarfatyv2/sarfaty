@@ -979,6 +979,8 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Colaboradores', icon: 'Users', route: '/people/collaborators' },
           { label: 'Notas Fiscais PJ', icon: 'FileText', route: '/people/dp/invoices' },
+          { label: 'Atribuir NFs PJ', icon: 'Send', route: '/people/dp/invoices/assign' },
+          { label: 'Empresas faturadoras', icon: 'Landmark', route: '/people/dp/billing-companies' },
           { label: 'Reembolsos', icon: 'Receipt', route: '/people/dp/reimbursements' },
         ],
       },
@@ -1030,6 +1032,8 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Colaboradores', icon: 'Users', route: '/people/collaborators' },
           { label: 'Notas Fiscais PJ', icon: 'FileText', route: '/people/dp/invoices' },
+          { label: 'Atribuir NFs PJ', icon: 'Send', route: '/people/dp/invoices/assign' },
+          { label: 'Empresas faturadoras', icon: 'Landmark', route: '/people/dp/billing-companies' },
           { label: 'Reembolsos', icon: 'Receipt', route: '/people/dp/reimbursements' },
         ],
       },

@@ -5,12 +5,15 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { supabaseAdmin } from '../../config/supabase';
+import { TokenService } from '../../modules/auth/domain/token.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly tokenService: TokenService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -29,32 +32,20 @@ export class AuthGuard implements CanActivate {
 
     const token = authHeader.slice(7);
 
-    let supabaseUser: Record<string, unknown> | null = null;
+    let payload;
     try {
-      const result = await supabaseAdmin.auth.getUser(token);
-      if (result.error || !result.data.user) {
-        throw new UnauthorizedException('Invalid or expired token');
-      }
-      supabaseUser = result.data.user as unknown as Record<string, unknown>;
+      payload = this.tokenService.verifyAccessToken(token);
     } catch (err) {
       if (err instanceof UnauthorizedException) throw err;
-      throw new UnauthorizedException('Authentication service unavailable');
+      throw new UnauthorizedException('Invalid or expired token');
     }
 
-    const userId = supabaseUser.id as string;
-    const { data: profile } = await supabaseAdmin
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
-
-    const existingMetadata = (supabaseUser.user_metadata ?? {}) as Record<string, unknown>;
-    supabaseUser.user_metadata = {
-      ...existingMetadata,
-      role: profile?.role ?? existingMetadata.role,
+    request.user = {
+      id: payload.sub,
+      email: payload.email,
+      user_metadata: { role: payload.role },
     };
 
-    request.user = supabaseUser;
     return true;
   }
 }

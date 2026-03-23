@@ -13,17 +13,17 @@ import {
 } from '@nexus/ui';
 import { ROLE_PERMISSIONS, type Role } from '@nexus/types';
 
-interface ProfileRow {
+interface UserRow {
   id: string;
-  full_name: string;
+  fullName: string;
   email: string;
   role: string;
-  is_active: boolean | null;
-  created_at: string | null;
+  isActive: boolean | null;
+  createdAt: string | null;
 }
 
 interface UsersTableProps {
-  users: ProfileRow[];
+  users: UserRow[];
 }
 
 function getRoleLabel(role: string): string {
@@ -72,17 +72,17 @@ export function UsersTable({ users }: UsersTableProps) {
         </TableHeader>
         <TableBody>
           {users.map((user) => {
-            const isActive = user.is_active ?? true;
+            const isActive = user.isActive ?? true;
             return (
               <TableRow key={user.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="text-xs">
-                        {getInitials(user.full_name)}
+                        {getInitials(user.fullName)}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="font-medium">{user.full_name}</span>
+                    <span className="font-medium">{user.fullName}</span>
                   </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
@@ -97,7 +97,7 @@ export function UsersTable({ users }: UsersTableProps) {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {formatDate(user.created_at)}
+                  {formatDate(user.createdAt)}
                 </TableCell>
               </TableRow>
             );

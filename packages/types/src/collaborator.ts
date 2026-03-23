@@ -5,6 +5,8 @@ export type BankAccountType = 'pf' | 'pj';
 export interface Collaborator {
   id: string;
   profileId: string | null;
+  /** Flash (benefícios) employee id when integrated */
+  flashEmployeeId?: string | null;
   isActive: boolean;
   registrationNumber: string | null;
   badgeNumber: string | null;

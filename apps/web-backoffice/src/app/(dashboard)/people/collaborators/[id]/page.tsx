@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
+import { decodeJwt } from 'jose';
 import { serverFetch } from '@/lib/api-server';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { ACCESS_TOKEN_COOKIE } from '@/lib/auth/constants';
 import { Button, Tabs, TabsList, TabsTrigger, TabsContent } from '@nexus/ui';
 import { ArrowLeft } from 'lucide-react';
 import { CollaboratorDetail } from '../_components/collaborator-detail';
 import { EditCollaboratorForm } from '../_components/edit-collaborator-form';
 import { DependentsList } from '../_components/dependents-list';
-import type { Role } from '@nexus/types';
+import { ROLES, type Role } from '@nexus/types';
 
 export const metadata: Metadata = {
   title: 'Detalhe do Colaborador | Sarfaty',
@@ -91,9 +93,20 @@ export default async function CollaboratorDetailPage({ params }: PageProps) {
   let collaborator: CollaboratorData;
   let dependents: DependentData[] = [];
 
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const role = (user?.user_metadata?.role as Role) ?? 'employee';
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
+  let role: Role = 'employee';
+  if (accessToken) {
+    try {
+      const payload = decodeJwt(accessToken);
+      const r = payload.role;
+      if (typeof r === 'string' && ROLES.includes(r as Role)) {
+        role = r as Role;
+      }
+    } catch {
+      role = 'employee';
+    }
+  }
   const canEdit = EDIT_COLLABORATOR_ROLES.has(role);
 
   try {

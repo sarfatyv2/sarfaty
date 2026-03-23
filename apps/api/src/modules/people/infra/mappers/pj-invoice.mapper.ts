@@ -6,10 +6,12 @@ import { type pjInvoices } from '../../../../database/schema/pj-invoices';
 type PjInvoiceRow = InferSelectModel<typeof pjInvoices>;
 
 export class PjInvoiceMapper {
-  static toDomain(row: PjInvoiceRow): PjInvoice {
+  static toDomain(row: PjInvoiceRow, billingCompanyName?: string | null): PjInvoice {
     return new PjInvoiceEntity({
       id: row.id,
       collaboratorId: row.collaboratorId ?? '',
+      billingCompanyId: row.billingCompanyId ?? null,
+      billingCompanyName: billingCompanyName ?? null,
       referenceMonth: row.referenceMonth,
       referenceYear: row.referenceYear,
       invoiceNumber: row.invoiceNumber,
@@ -32,6 +34,7 @@ export class PjInvoiceMapper {
       rejectionReason: row.rejectionReason,
       reminderSentAt: row.reminderSentAt,
       reminderCount: row.reminderCount ?? 0,
+      emailNotifiedAt: row.emailNotifiedAt ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     });

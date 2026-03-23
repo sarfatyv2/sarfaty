@@ -22,6 +22,11 @@ export interface CreatePjInvoiceData {
 
 export interface PjInvoiceRepository {
   findById(id: string): Promise<PjInvoice | null>;
+  findByCollaboratorAndPeriod(
+    collaboratorId: string,
+    referenceMonth: number,
+    referenceYear: number,
+  ): Promise<PjInvoice | null>;
   findByFilters(filters: PjInvoiceFilters): Promise<{ invoices: PjInvoice[]; total: number }>;
   findOverdue(): Promise<PjInvoice[]>;
   create(data: CreatePjInvoiceData): Promise<PjInvoice>;

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client';
+import { getAccessTokenFromDocument } from '@/lib/auth/cookies';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
@@ -30,13 +30,12 @@ class ApiError extends Error {
 }
 
 async function getAuthToken(): Promise<string | null> {
-  const supabase = createClient();
-  const { data } = await supabase.auth.getSession();
-  return data.session?.access_token ?? null;
+  return getAccessTokenFromDocument();
 }
 
 function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
-  const url = new URL(`${API_BASE_URL}${path}`);
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const url = new URL(`${API_BASE_URL}${normalizedPath}`);
 
   if (params) {
     for (const [key, value] of Object.entries(params)) {
@@ -69,6 +68,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<A
     ...restOptions,
     headers,
     body: body ? JSON.stringify(body) : undefined,
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -82,7 +82,6 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<A
     );
   }
 
-  // Handle 204 No Content
   if (response.status === 204) {
     return { data: null as T };
   }
@@ -101,12 +100,12 @@ async function requestFormData<T>(
   const headers: HeadersInit = {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
-  // Do NOT set Content-Type - browser sets multipart/form-data with boundary
 
   const response = await fetch(url, {
     method,
     headers,
     body: formData,
+    credentials: 'include',
   });
 
   if (!response.ok) {

@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
 import type { DraweeAddress } from '@nexus/types';
 import { StaggerChildren, StaggerItem } from '@/app/(dashboard)/clients/[id]/_components/motion-wrapper';
+import { AddressMapPreview } from '@/components/address-map-preview';
 
 interface DraweeAddressesTabProps {
   draweeId: string;
@@ -168,6 +169,8 @@ export function DraweeAddressesTab({ draweeId }: DraweeAddressesTabProps) {
     );
   }
 
+  const primaryAddress = addresses.find((a) => a.isPrimary) ?? addresses[0] ?? null;
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-transparent">
@@ -256,6 +259,18 @@ export function DraweeAddressesTab({ draweeId }: DraweeAddressesTabProps) {
               </StaggerItem>
             ))}
           </StaggerChildren>
+        )}
+
+        {primaryAddress && (
+          <div className="mt-4">
+            <AddressMapPreview
+              street={primaryAddress.street}
+              number={primaryAddress.number}
+              city={primaryAddress.city}
+              state={primaryAddress.state}
+              zipCode={primaryAddress.zipCode}
+            />
+          </div>
         )}
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

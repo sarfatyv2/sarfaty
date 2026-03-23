@@ -17,6 +17,10 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { ZodValidationPipe } from '../../../common/pipes/zod-validation.pipe';
 import { ROLES } from '@nexus/types';
 import {
+  assignInvoiceBillingCompaniesSchema,
+  type AssignInvoiceBillingCompaniesDto,
+} from '@nexus/validators';
+import {
   listInvoicesQuerySchema,
   type ListInvoicesQueryDto,
   rejectInvoiceSchema,
@@ -32,6 +36,7 @@ import { PayInvoiceUseCase } from '../use-cases/pay-invoice.use-case';
 import { ListOverdueInvoicesUseCase } from '../use-cases/list-overdue-invoices.use-case';
 import { SendInvoiceRemindersUseCase } from '../use-cases/send-invoice-reminders.use-case';
 import { GenerateMonthlyPjInvoicesUseCase } from '../use-cases/generate-monthly-pj-invoices.use-case';
+import { AssignInvoiceBillingCompaniesUseCase } from '../use-cases/assign-invoice-billing-companies.use-case';
 
 @ApiTags('People - Invoices')
 @ApiBearerAuth()
@@ -47,6 +52,7 @@ export class InvoicesController {
     private readonly listOverdueInvoicesUseCase: ListOverdueInvoicesUseCase,
     private readonly sendInvoiceRemindersUseCase: SendInvoiceRemindersUseCase,
     private readonly generateMonthlyPjInvoicesUseCase: GenerateMonthlyPjInvoicesUseCase,
+    private readonly assignInvoiceBillingCompaniesUseCase: AssignInvoiceBillingCompaniesUseCase,
   ) {}
 
   @Get()
@@ -195,5 +201,20 @@ export class InvoicesController {
   async sendReminders() {
     const result = await this.sendInvoiceRemindersUseCase.execute();
     return { data: { count: result.count } };
+  }
+
+  @Post('assign-companies')
+  @Roles('dp', 'hr_admin', 'admin')
+  @Auditable({ action: 'invoice.assign_billing_companies', entity: 'pj_invoice' })
+  async assignCompanies(
+    @Body(new ZodValidationPipe(assignInvoiceBillingCompaniesSchema))
+    dto: AssignInvoiceBillingCompaniesDto,
+  ) {
+    const result = await this.assignInvoiceBillingCompaniesUseCase.execute({
+      referenceMonth: dto.referenceMonth,
+      referenceYear: dto.referenceYear,
+      assignments: dto.assignments,
+    });
+    return { data: result };
   }
 }

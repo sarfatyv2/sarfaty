@@ -25,6 +25,7 @@ import {
   Landmark,
   MessageSquare,
   FileSearch,
+  ShieldCheck,
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@nexus/ui';
 
@@ -41,6 +42,7 @@ const navGroups = [
   {
     label: 'Módulos',
     items: [
+      { href: '/wiki/modules/auth', label: 'Autenticação', icon: ShieldCheck },
       { href: '/wiki/modules/commercial', label: 'Comercial', icon: Briefcase },
       { href: '/wiki/modules/credit', label: 'Crédito', icon: CreditCard },
       { href: '/wiki/modules/drawees', label: 'Sacados', icon: Building2 },

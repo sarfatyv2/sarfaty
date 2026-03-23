@@ -52,15 +52,22 @@ export class RequestCercValidationUseCase {
     await this.repository.save(entity);
     this.logger.log(`CercValidation created: ${entity.id}`);
 
+    // Format: 12-digit zero-padded NF-e number + dash + installment number
+    // e.g. NF-e 73742, parcela 001 → "000000073742-001"
+    const nfeNumero = input.chaveNfe.slice(25, 34).replace(/^0+/, '');
+    const identificadorNumero = `${nfeNumero.padStart(12, '0')}-${input.numeroDuplicata}`;
+
     const requestPayload: import('../bureaus/cerc/cerc.types').CercCriarLoteValidacoesRequest = {
       veiculo: { id: veiculoId },
-      monitoramento: false,
-      disponibilizacao_arquivo_retorno: false,
+      monitoramento: true,
+      disponibilizacao_arquivo_retorno: true,
+      aguardar_documentos: true,
+      buscar_documentos: true,
       validacoes: [
         {
           recebivel: {
             tipo: 'duplicata_mercantil',
-            identificador: { numero: input.numeroDuplicata },
+            identificador: { numero: identificadorNumero },
             vencimento: input.vencimento,
             valor: input.valor,
             documento_fiscal: {

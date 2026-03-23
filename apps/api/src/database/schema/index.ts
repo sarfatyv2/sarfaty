@@ -4,6 +4,7 @@ export { rolePermissions } from './role-permissions';
 
 // People
 export { profiles } from './profiles';
+export { refreshTokens } from './refresh-tokens';
 export { collaborators } from './collaborators';
 export { collaboratorCltData } from './collaborator-clt-data';
 export { collaboratorPjData } from './collaborator-pj-data';
@@ -13,6 +14,7 @@ export { collaboratorDocuments } from './collaborator-documents';
 export { rangeTenure } from './range-tenure';
 export { rangeAge } from './range-age';
 export { reimbursements } from './reimbursements';
+export { billingCompanies } from './billing-companies';
 export { pjInvoices } from './pj-invoices';
 export { onboardingTemplates } from './onboarding-templates';
 export { onboardingTasks } from './onboarding-tasks';

@@ -64,12 +64,11 @@ export interface CercCriarLoteValidacoesRequest {
   veiculo: CercVeiculo;
   monitoramento: boolean;
   disponibilizacao_arquivo_retorno: boolean;
+  aguardar_documentos: boolean;
+  buscar_documentos: boolean;
   validacoes: CercValidacaoInput[];
   originalPayload?: Record<string, unknown>;
   subItems?: CercLoteSubItem[];
-  aguardar_documentos?: boolean;
-  buscar_documentos?: boolean;
-  is_portal?: boolean;
 }
 
 export interface CercCriarLoteValidacoesResponse {

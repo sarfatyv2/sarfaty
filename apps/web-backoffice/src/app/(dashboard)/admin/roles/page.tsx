@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { serverFetch } from '@/lib/api-server';
 import { RolesTable } from './_components/roles-table';
 
 export const metadata: Metadata = {
@@ -17,27 +17,13 @@ interface RoleRow {
 }
 
 export default async function AdminRolesPage() {
-  const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-
   let roles: RoleRow[] = [];
 
-  if (session?.access_token) {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api'}/roles?includeInactive=true`,
-        {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-          next: { revalidate: 0 },
-        },
-      );
-      if (response.ok) {
-        const json = (await response.json()) as { data: RoleRow[] };
-        roles = json.data;
-      }
-    } catch {
-      // show empty state
-    }
+  try {
+    const result = await serverFetch<RoleRow[]>('/roles', { includeInactive: true });
+    roles = Array.isArray(result.data) ? result.data : [];
+  } catch {
+    roles = [];
   }
 
   return <RolesTable roles={roles} />;
