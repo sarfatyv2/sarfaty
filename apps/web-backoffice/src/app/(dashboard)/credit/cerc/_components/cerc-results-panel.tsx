@@ -28,9 +28,9 @@ function StatusBadge({ value, type }: Readonly<{ value: string; type: BadgeType 
 function formatDocument(numero: string, tipo: 'cnpj' | 'cpf'): string {
   const digits = numero.replaceAll(/\D/g, '');
   if (tipo === 'cpf' && digits.length === 11)
-    return digits.replaceAll(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   if (tipo === 'cnpj' && digits.length === 14)
-    return digits.replaceAll(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+    return digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
   return numero;
 }
 
