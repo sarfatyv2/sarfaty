@@ -32,27 +32,27 @@ const NFE_EXTRACTION_PROMPT = `Você é um sistema de extração de dados de doc
 
 Analise a imagem ou PDF fornecido e extraia os seguintes campos em formato JSON:
 
-- numeroDuplicata: número da duplicata ou número da NF-e (string, ex: "12811-2" ou "128")
-- chaveNfe: chave de acesso da NF-e com 44 dígitos numéricos (sem espaços ou pontos)
-- valor: valor total da NF-e em número decimal (ex: 358.40)
-- vencimento: data de vencimento no formato YYYY-MM-DD (se não houver, use a data de emissão + 30 dias)
-- cnpjCedente: CNPJ do destinatário/cedente (quem vai receber o pagamento), somente dígitos (14 caracteres)
-- cnpjOriginador: CNPJ do emitente da NF-e (quem emitiu a nota), somente dígitos (14 caracteres)
-- cnpjCpfPagador: CPF ou CNPJ do pagador/sacado (comprador), somente dígitos
-- tipoPagador: "cpf" se o pagador for pessoa física, "cnpj" se for pessoa jurídica
+- numeroDuplicata: número da PARCELA da duplicata — extraia apenas o número sequencial da primeira duplicata listada na seção "FATURA / DUPLICATA" (ex: "001", "002"). NÃO use o número da NF-e.
+- chaveNfe: chave de acesso da NF-e com exatamente 44 dígitos numéricos (sem espaços ou pontos)
+- valor: valor da PRIMEIRA duplicata listada na seção "FATURA / DUPLICATA" (não o valor total da NF-e)
+- vencimento: data de vencimento da PRIMEIRA duplicata no formato YYYY-MM-DD
+- cnpjCedente: CNPJ do emitente da NF-e (quem emitiu a nota), somente dígitos (14 caracteres)
+- cnpjOriginador: CNPJ do emitente da NF-e (quem emitiu a nota), somente dígitos (14 caracteres) — mesmo valor que cnpjCedente
+- cnpjCpfPagador: CPF ou CNPJ do destinatário/sacado (comprador), somente dígitos
+- tipoPagador: "cpf" se o destinatário for pessoa física, "cnpj" se for pessoa jurídica
 
 Retorne SOMENTE o JSON, sem markdown, sem explicações. Se um campo não for encontrado, retorne null para ele.
 
 Exemplo de retorno:
 {
-  "numeroDuplicata": "12811-2",
-  "chaveNfe": "31250300349443000788550270000128111547124236",
-  "valor": 358.40,
-  "vencimento": "2025-10-18",
-  "cnpjCedente": "13292092000172",
-  "cnpjOriginador": "00349443000788",
-  "cnpjCpfPagador": "44873461855",
-  "tipoPagador": "cpf"
+  "numeroDuplicata": "001",
+  "chaveNfe": "43260202602536000536550010000737421794214314",
+  "valor": 4194.00,
+  "vencimento": "2026-04-09",
+  "cnpjCedente": "02602536000536",
+  "cnpjOriginador": "02602536000536",
+  "cnpjCpfPagador": "33755600000119",
+  "tipoPagador": "cnpj"
 }`;
 
 export interface NfeExtractedData {
