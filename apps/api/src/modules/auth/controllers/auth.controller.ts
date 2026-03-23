@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Headers } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Headers, Req } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '../../../common/decorators/public.decorator';
@@ -8,6 +8,7 @@ import { loginSchema, type LoginDto } from '@nexus/validators';
 import { LoginUseCase } from '../use-cases/login.use-case';
 import { RefreshTokenUseCase } from '../use-cases/refresh-token.use-case';
 import { GetProfileUseCase } from '../use-cases/get-profile.use-case';
+import { SessionExpiredException } from '../domain/exceptions/session-expired.exception';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -30,8 +31,23 @@ export class AuthController {
   @Post('refresh')
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @HttpCode(HttpStatus.OK)
-  async refresh(@Headers('x-refresh-token') refreshToken: string) {
-    return this.refreshTokenUseCase.execute(refreshToken);
+  async refresh(
+    @Headers('x-refresh-token') refreshToken: string,
+    @Req() request: { headers: Record<string, string | string[] | undefined> },
+  ) {
+    if (!refreshToken?.trim()) {
+      throw new SessionExpiredException();
+    }
+
+    const forwardedFor = request.headers['x-forwarded-for'];
+    const ipAddress =
+      typeof forwardedFor === 'string' ? forwardedFor.split(',')[0]?.trim() : undefined;
+    const userAgent = typeof request.headers['user-agent'] === 'string' ? request.headers['user-agent'] : undefined;
+
+    return this.refreshTokenUseCase.execute(refreshToken.trim(), {
+      userAgent,
+      ipAddress: ipAddress ?? null,
+    });
   }
 
   @ApiBearerAuth()

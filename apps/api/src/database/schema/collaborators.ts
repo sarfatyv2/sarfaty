@@ -4,6 +4,7 @@ import { profiles } from './profiles';
 export const collaborators = pgTable('collaborators', {
   id: uuid('id').primaryKey().defaultRandom(),
   profileId: uuid('profile_id').unique().references(() => profiles.id),
+  flashEmployeeId: text('flash_employee_id').unique(),
   isActive: boolean('is_active').notNull().default(true),
   registrationNumber: text('registration_number').unique(),
   badgeNumber: text('badge_number'),

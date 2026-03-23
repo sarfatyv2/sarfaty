@@ -30,6 +30,7 @@ import { CnabModule } from './modules/cnab/cnab.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { AuditTrailModule } from './modules/audit/audit.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { RolesModule } from './modules/roles/roles.module';
       },
     }),
     DatabaseModule,
+    EmailModule,
     AuditModule,
     AuthModule,
     HealthModule,

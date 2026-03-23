@@ -8,6 +8,7 @@ import {
 export interface CollaboratorRow {
   id: string;
   profileId: string | null;
+  flashEmployeeId: string | null;
   isActive: boolean;
   registrationNumber: string | null;
   badgeNumber: string | null;
@@ -99,6 +100,7 @@ export class CollaboratorMapper {
     const props: CollaboratorProps = {
       id: row.id,
       profileId: row.profileId,
+      flashEmployeeId: row.flashEmployeeId,
       isActive: row.isActive,
       registrationNumber: row.registrationNumber,
       badgeNumber: row.badgeNumber,

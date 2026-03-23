@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
 import { Button, Input, Label, Card, CardHeader, CardDescription, CardContent } from '@nexus/ui';
 import { ROLE_PERMISSIONS, type Role } from '@nexus/types';
@@ -17,35 +16,40 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const loginResponse = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+      credentials: 'include',
     });
 
-    if (authError) {
+    if (!loginResponse.ok) {
       setError('Email ou senha inválidos');
       setLoading(false);
       return;
     }
 
-    const role = data.user?.user_metadata?.role as Role | undefined;
+    const loginJson = (await loginResponse.json()) as {
+      data: { accessToken: string; user: { role?: string } };
+    };
+
+    const role = loginJson.data.user?.role as Role | undefined;
     let homeRoute = role ? (ROLE_PERMISSIONS[role]?.homeRoute ?? '/dashboard') : '/dashboard';
 
     try {
-      const token = data.session?.access_token;
+      const token = loginJson.data.accessToken;
       if (token) {
         const res = await fetch(`${API_BASE_URL}/my/permissions`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
-          const json = await res.json() as { data: { homeRoute?: string } };
+          const json = (await res.json()) as { data: { homeRoute?: string } };
           homeRoute = json.data?.homeRoute ?? homeRoute;
         }
       }
@@ -53,8 +57,9 @@ export default function LoginPage() {
       // use fallback
     }
 
-    router.refresh();
-    router.push(homeRoute);
+    // Full navigation so Set-Cookie from /api/auth/login is always sent on the next
+    // document request. Client router.push + refresh can race RSC before cookies exist.
+    window.location.assign(homeRoute);
   }
 
   return (

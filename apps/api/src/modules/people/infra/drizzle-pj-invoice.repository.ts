@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { eq, and, inArray, desc } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
 import { pjInvoices } from '../../../database/schema/pj-invoices';
+import { billingCompanies } from '../../../database/schema/billing-companies';
 import type {
   PjInvoiceRepository,
   PjInvoiceFilters,
@@ -16,15 +17,46 @@ export class DrizzlePjInvoiceRepository implements PjInvoiceRepository {
 
   async findById(id: string): Promise<PjInvoice | null> {
     const rows = await this.db
-      .select()
+      .select({
+        invoice: pjInvoices,
+        billingCompanyName: billingCompanies.name,
+      })
       .from(pjInvoices)
+      .leftJoin(billingCompanies, eq(pjInvoices.billingCompanyId, billingCompanies.id))
       .where(eq(pjInvoices.id, id))
       .limit(1);
 
     const row = rows[0];
     if (!row) return null;
 
-    return PjInvoiceMapper.toDomain(row);
+    return PjInvoiceMapper.toDomain(row.invoice, row.billingCompanyName);
+  }
+
+  async findByCollaboratorAndPeriod(
+    collaboratorId: string,
+    referenceMonth: number,
+    referenceYear: number,
+  ): Promise<PjInvoice | null> {
+    const rows = await this.db
+      .select({
+        invoice: pjInvoices,
+        billingCompanyName: billingCompanies.name,
+      })
+      .from(pjInvoices)
+      .leftJoin(billingCompanies, eq(pjInvoices.billingCompanyId, billingCompanies.id))
+      .where(
+        and(
+          eq(pjInvoices.collaboratorId, collaboratorId),
+          eq(pjInvoices.referenceMonth, referenceMonth),
+          eq(pjInvoices.referenceYear, referenceYear),
+        ),
+      )
+      .limit(1);
+
+    const row = rows[0];
+    if (!row) return null;
+
+    return PjInvoiceMapper.toDomain(row.invoice, row.billingCompanyName);
   }
 
   async findByFilters(
@@ -52,8 +84,12 @@ export class DrizzlePjInvoiceRepository implements PjInvoiceRepository {
       conditions.length > 0 ? and(...conditions) : undefined;
 
     const rows = await this.db
-      .select()
+      .select({
+        invoice: pjInvoices,
+        billingCompanyName: billingCompanies.name,
+      })
       .from(pjInvoices)
+      .leftJoin(billingCompanies, eq(pjInvoices.billingCompanyId, billingCompanies.id))
       .where(whereClause)
       .orderBy(desc(pjInvoices.referenceYear), desc(pjInvoices.referenceMonth));
 
@@ -64,7 +100,9 @@ export class DrizzlePjInvoiceRepository implements PjInvoiceRepository {
     const paginatedRows = rows.slice(offset, offset + pageSize);
 
     return {
-      invoices: paginatedRows.map((row) => PjInvoiceMapper.toDomain(row)),
+      invoices: paginatedRows.map((row) =>
+        PjInvoiceMapper.toDomain(row.invoice, row.billingCompanyName),
+      ),
       total,
     };
   }
@@ -84,16 +122,20 @@ export class DrizzlePjInvoiceRepository implements PjInvoiceRepository {
     if (!row) {
       throw new Error('Failed to create pj_invoice');
     }
-    return PjInvoiceMapper.toDomain(row);
+    return PjInvoiceMapper.toDomain(row, null);
   }
 
   async findOverdue(): Promise<PjInvoice[]> {
     const rows = await this.db
-      .select()
+      .select({
+        invoice: pjInvoices,
+        billingCompanyName: billingCompanies.name,
+      })
       .from(pjInvoices)
+      .leftJoin(billingCompanies, eq(pjInvoices.billingCompanyId, billingCompanies.id))
       .where(eq(pjInvoices.status, 'overdue'));
 
-    return rows.map((row) => PjInvoiceMapper.toDomain(row));
+    return rows.map((row) => PjInvoiceMapper.toDomain(row.invoice, row.billingCompanyName));
   }
 
   async update(

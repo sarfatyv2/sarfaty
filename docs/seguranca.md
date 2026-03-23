@@ -1,7 +1,7 @@
 # Seguranca — Plataforma Sarfaty
 
-**Versao:** 1.0  
-**Data:** 14 de Fevereiro de 2026  
+**Versao:** 1.1  
+**Data:** 22 de Marco de 2026  
 **Status:** Implementado  
 
 ---
@@ -45,7 +45,7 @@ A plataforma Sarfaty adota uma estrategia de seguranca em multiplas camadas, com
 | NestJS API:                                               |
 |   - @fastify/helmet (HTTP security headers)               |
 |   - @nestjs/throttler (rate limiting: 100 req/min)        |
-|   - AuthGuard global (JWT via Supabase)                   |
+|   - AuthGuard global (JWT local via TokenService — HS256)    |
 |   - RbacGuard global (RBAC por action)                    |
 |   - ZodValidationPipe (validacao por rota)                |
 |   - AuditInterceptor (trail de auditoria)                 |
@@ -272,7 +272,7 @@ Rotas de autenticacao possuem throttling dedicado:
 Request
   |
   v
-AuthGuard (JWT validation via Supabase)
+AuthGuard (JWT local — HS256 via TokenService)
   |
   v
 ThrottlerGuard (rate limiting)
@@ -286,7 +286,7 @@ Controller
 
 | Guard | Arquivo | Funcao |
 |-------|---------|--------|
-| `AuthGuard` | `apps/api/src/common/guards/auth.guard.ts` | Valida JWT Bearer token via `supabaseAdmin.auth.getUser()`. Rotas `@Public()` sao isentas. |
+| `AuthGuard` | `apps/api/src/common/guards/auth.guard.ts` | Valida JWT Bearer token via `TokenService.verifyAccessToken()` (HS256 local, sem consulta ao banco por requisicao). Rotas `@Public()` sao isentas. |
 | `ThrottlerGuard` | `@nestjs/throttler` | Limita requisicoes por IP. |
 | `RbacGuard` | `apps/api/src/common/guards/rbac.guard.ts` | Verifica se o role do usuario tem permissao para a action requerida via `@RequireActions()`. Usa `ROLE_PERMISSIONS` de `@nexus/types`. |
 
@@ -294,6 +294,8 @@ Controller
 - `POST /api/auth/login`
 - `POST /api/auth/refresh`
 - `GET /api/health`
+
+> **Migracao (Mar/2026):** autenticacao migrada de Supabase Auth para JWT local. Senhas armazenadas como hash Argon2id em `profiles.password_hash`. Sessoes gerenciadas via tabela `refresh_tokens`. O Supabase permanece exclusivamente para Storage e Realtime. Ver detalhes completos em `/wiki/modules/auth`.
 
 ### 7.5 Validacao de Input
 
@@ -431,6 +433,10 @@ const envSchema = z.object({
   SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
+  // Autenticacao JWT local
+  JWT_SECRET: z.string().min(32),
+  JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
+  JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
 });
 ```
 
@@ -497,10 +503,10 @@ Documentado separadamente em `docs/audit_trail.md`. Resume:
 
 | Acao | Onde | Prioridade |
 |------|------|-----------|
-| Habilitar Leaked Password Protection | Supabase Dashboard > Authentication > Providers > Email | Alta |
 | Configurar `STAGING_URL` como variable do repositorio | GitHub > Settings > Variables | Media (necessario para DAST semanal) |
-| Configurar `TEST_USER_EMAIL` e `TEST_USER_PASSWORD` para DAST autenticado | GitHub > Settings > Secrets and variables > Actions | Alta |
+| Configurar `TEST_USER_EMAIL` e `TEST_USER_PASSWORD` para DAST autenticado (senha da conta de teste JWT) | GitHub > Settings > Secrets and variables > Actions | Alta |
 | Avaliar Content Security Policy (CSP) para o frontend | `apps/web-backoffice/next.config.ts` | Baixa (requer mapear todos os dominios externos) |
+| Rotacionar `JWT_SECRET` periodicamente em producao e revogar todas as sessoes ativas | Gerenciador de secrets do hosting + DELETE refresh_tokens | Alta |
 
 ---
 

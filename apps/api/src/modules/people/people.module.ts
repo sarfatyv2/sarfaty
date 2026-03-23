@@ -3,10 +3,16 @@ import { CollaboratorsController } from './controllers/collaborators.controller'
 import { MeController } from './controllers/me.controller';
 import { DependentsController } from './controllers/dependents.controller';
 import { InvoicesController } from './controllers/invoices.controller';
+import { BillingCompaniesController } from './controllers/billing-companies.controller';
 import { ReimbursementsController } from './controllers/reimbursements.controller';
 import { ListCollaboratorsUseCase } from './use-cases/list-collaborators.use-case';
 import { GetCollaboratorUseCase } from './use-cases/get-collaborator.use-case';
 import { UpdateCollaboratorUseCase } from './use-cases/update-collaborator.use-case';
+import { SyncFlashCollaboratorsUseCase } from './use-cases/sync-flash-collaborators.use-case';
+import { RegisterCollaboratorToFlashUseCase } from './use-cases/register-collaborator-to-flash.use-case';
+import { DeactivateFlashCollaboratorUseCase } from './use-cases/deactivate-flash-collaborator.use-case';
+import { ReactivateFlashCollaboratorUseCase } from './use-cases/reactivate-flash-collaborator.use-case';
+import { FlashAdapter } from './integrations/flash/flash.adapter';
 import { GetMyProfileUseCase } from './use-cases/get-my-profile.use-case';
 import { UpdateMyProfileUseCase } from './use-cases/update-my-profile.use-case';
 import { ListDependentsUseCase } from './use-cases/list-dependents.use-case';
@@ -30,16 +36,22 @@ import { UploadReceiptUseCase } from './use-cases/upload-receipt.use-case';
 import { GetReceiptUrlUseCase } from './use-cases/get-receipt-url.use-case';
 import { UploadAvatarUseCase } from './use-cases/upload-avatar.use-case';
 import { GenerateMonthlyPjInvoicesUseCase } from './use-cases/generate-monthly-pj-invoices.use-case';
+import { AssignInvoiceBillingCompaniesUseCase } from './use-cases/assign-invoice-billing-companies.use-case';
+import { ListBillingCompaniesUseCase } from './use-cases/list-billing-companies.use-case';
+import { CreateBillingCompanyUseCase } from './use-cases/create-billing-company.use-case';
+import { UpdateBillingCompanyUseCase } from './use-cases/update-billing-company.use-case';
 import { PjInvoiceCronService } from './pj-invoice-cron.service';
 import { DrizzleCollaboratorRepository } from './infra/drizzle-collaborator.repository';
 import { DrizzleDependentRepository } from './infra/drizzle-dependent.repository';
 import { DrizzlePjInvoiceRepository } from './infra/drizzle-pj-invoice.repository';
 import { DrizzleReimbursementRepository } from './infra/drizzle-reimbursement.repository';
+import { DrizzleBillingCompanyRepository } from './infra/drizzle-billing-company.repository';
 import { PeopleStorageService } from './infra/people-storage.service';
 import { COLLABORATOR_REPOSITORY } from './domain/collaborator.repository';
 import { DEPENDENT_REPOSITORY } from './domain/dependent.repository';
 import { PJ_INVOICE_REPOSITORY } from './domain/pj-invoice.repository';
 import { REIMBURSEMENT_REPOSITORY } from './domain/reimbursement.repository';
+import { BILLING_COMPANY_REPOSITORY } from './domain/billing-company.repository';
 
 @Module({
   controllers: [
@@ -47,6 +59,7 @@ import { REIMBURSEMENT_REPOSITORY } from './domain/reimbursement.repository';
     MeController,
     DependentsController,
     InvoicesController,
+    BillingCompaniesController,
     ReimbursementsController,
   ],
   providers: [
@@ -54,6 +67,11 @@ import { REIMBURSEMENT_REPOSITORY } from './domain/reimbursement.repository';
     ListCollaboratorsUseCase,
     GetCollaboratorUseCase,
     UpdateCollaboratorUseCase,
+    FlashAdapter,
+    SyncFlashCollaboratorsUseCase,
+    RegisterCollaboratorToFlashUseCase,
+    DeactivateFlashCollaboratorUseCase,
+    ReactivateFlashCollaboratorUseCase,
     GetMyProfileUseCase,
     UpdateMyProfileUseCase,
     ListDependentsUseCase,
@@ -77,12 +95,17 @@ import { REIMBURSEMENT_REPOSITORY } from './domain/reimbursement.repository';
     GetReceiptUrlUseCase,
     UploadAvatarUseCase,
     GenerateMonthlyPjInvoicesUseCase,
+    AssignInvoiceBillingCompaniesUseCase,
+    ListBillingCompaniesUseCase,
+    CreateBillingCompanyUseCase,
+    UpdateBillingCompanyUseCase,
     PjInvoiceCronService,
     // Repositories
     { provide: COLLABORATOR_REPOSITORY, useClass: DrizzleCollaboratorRepository },
     { provide: DEPENDENT_REPOSITORY, useClass: DrizzleDependentRepository },
     { provide: PJ_INVOICE_REPOSITORY, useClass: DrizzlePjInvoiceRepository },
     { provide: REIMBURSEMENT_REPOSITORY, useClass: DrizzleReimbursementRepository },
+    { provide: BILLING_COMPANY_REPOSITORY, useClass: DrizzleBillingCompanyRepository },
     PeopleStorageService,
   ],
 })

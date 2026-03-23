@@ -1,4 +1,5 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
+import { ACCESS_TOKEN_COOKIE } from '@/lib/auth/constants';
 
 const API_BASE_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
@@ -13,7 +14,8 @@ interface ApiResponse<T> {
 }
 
 function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
-  const url = new URL(`${API_BASE_URL}${path}`);
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const url = new URL(`${API_BASE_URL}${normalizedPath}`);
 
   if (params) {
     for (const [key, value] of Object.entries(params)) {
@@ -30,9 +32,8 @@ export async function serverFetch<T>(
   path: string,
   params?: Record<string, string | number | boolean | undefined>,
 ): Promise<ApiResponse<T>> {
-  const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
 
   const url = buildUrl(path, params);
 

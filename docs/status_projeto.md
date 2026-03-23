@@ -371,7 +371,8 @@ src/app/
 - [ ] Redis (Upstash) + BullMQ
 - [x] Módulo `credit/vadu` — adapters VADU (consulta CNPJ/CPF síncrona) + CreditBox (relatório assíncrono com polling e PDF). Ver `vadu_integracao.md`
 - [x] Módulo `credit/compliance` — 9 verificações automáticas: CGU (CEIS/CNEP/CEPIM), PGFN, CNDT, PEP, Sanções (OFAC), Trabalho Escravo, Validação de Endereço (ViaCEP), Mídia Negativa (OSINT via Gemini API + Google Search Grounding), Presença Digital (DNS + HTTP probe). Disparadas automaticamente via eventos, exibidas na aba Bureau. Ver `compliance_checks_integracao.md`
-- [ ] Módulo `credit` — adapters de bureaus adicionais (CERC, Upminer, Allcheck) com circuit breaker
+- [x] Módulo `credit` — CERC (validação de duplicata mercantil + extração NF-e via Gemini) e upMiner (batch, dossier, PDF na API). UI dedicada: `credit/cerc` no backoffice; upMiner sem UI no momento. Ver `cerc_integracao.md`, `upminer_integracao.md`
+- [ ] Módulo `credit` — circuit breaker e resiliência unificada nos adapters de integrações externas
 - [ ] Módulo `compliance` — adapters comerciais (Neoway, idwall, BigData, Judit)
 - [ ] Módulo `approval` — mesa aprovadora
 - [ ] Módulo `legal` — contratos + extrajudiciais

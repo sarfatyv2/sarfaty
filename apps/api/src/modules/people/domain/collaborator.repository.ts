@@ -23,7 +23,10 @@ export interface PaginatedCollaborators {
 
 export interface CollaboratorRepository {
   findById(id: string): Promise<Collaborator | null>;
+  findByIds(ids: string[]): Promise<Collaborator[]>;
   findByProfileId(profileId: string): Promise<Collaborator | null>;
+  findByCpfs(cpfs: string[]): Promise<Collaborator[]>;
+  findCollaboratorsWithCpfNotNull(): Promise<Collaborator[]>;
   findByFilters(filters: CollaboratorFilters): Promise<PaginatedCollaborators>;
   update(id: string, data: Record<string, unknown>): Promise<Collaborator | null>;
 }

@@ -1,6 +1,7 @@
 export interface CollaboratorProps {
   id: string;
   profileId: string | null;
+  flashEmployeeId: string | null;
   isActive: boolean;
   registrationNumber: string | null;
   badgeNumber: string | null;
@@ -116,6 +117,7 @@ const SENSITIVE_FIELDS = new Set<string>([
 export class Collaborator {
   readonly id: string;
   readonly profileId: string | null;
+  readonly flashEmployeeId: string | null;
   readonly isActive: boolean;
   readonly registrationNumber: string | null;
   readonly badgeNumber: string | null;
@@ -180,6 +182,7 @@ export class Collaborator {
   private constructor(props: CollaboratorProps) {
     this.id = props.id;
     this.profileId = props.profileId;
+    this.flashEmployeeId = props.flashEmployeeId;
     this.isActive = props.isActive;
     this.registrationNumber = props.registrationNumber;
     this.badgeNumber = props.badgeNumber;
@@ -291,6 +294,7 @@ export class Collaborator {
     return {
       id: this.id,
       profileId: this.profileId,
+      flashEmployeeId: this.flashEmployeeId,
       isActive: this.isActive,
       registrationNumber: this.registrationNumber,
       badgeNumber: this.badgeNumber,

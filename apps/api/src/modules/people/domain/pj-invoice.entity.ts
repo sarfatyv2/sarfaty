@@ -3,6 +3,8 @@ import type { PjInvoiceStatus } from '@nexus/utils';
 export interface PjInvoiceProps {
   id: string;
   collaboratorId: string;
+  billingCompanyId: string | null;
+  billingCompanyName: string | null;
   referenceMonth: number;
   referenceYear: number;
   invoiceNumber: string | null;
@@ -25,6 +27,7 @@ export interface PjInvoiceProps {
   rejectionReason: string | null;
   reminderSentAt: Date | null;
   reminderCount: number;
+  emailNotifiedAt: Date | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -32,6 +35,8 @@ export interface PjInvoiceProps {
 export class PjInvoice {
   readonly id: string;
   readonly collaboratorId: string;
+  readonly billingCompanyId: string | null;
+  readonly billingCompanyName: string | null;
   readonly referenceMonth: number;
   readonly referenceYear: number;
   readonly invoiceNumber: string | null;
@@ -54,12 +59,15 @@ export class PjInvoice {
   readonly rejectionReason: string | null;
   readonly reminderSentAt: Date | null;
   readonly reminderCount: number;
+  readonly emailNotifiedAt: Date | null;
   readonly createdAt: Date | null;
   readonly updatedAt: Date | null;
 
   constructor(props: PjInvoiceProps) {
     this.id = props.id;
     this.collaboratorId = props.collaboratorId;
+    this.billingCompanyId = props.billingCompanyId;
+    this.billingCompanyName = props.billingCompanyName;
     this.referenceMonth = props.referenceMonth;
     this.referenceYear = props.referenceYear;
     this.invoiceNumber = props.invoiceNumber;
@@ -82,6 +90,7 @@ export class PjInvoice {
     this.rejectionReason = props.rejectionReason;
     this.reminderSentAt = props.reminderSentAt;
     this.reminderCount = props.reminderCount;
+    this.emailNotifiedAt = props.emailNotifiedAt;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
   }
@@ -106,6 +115,8 @@ export class PjInvoice {
     return {
       id: this.id,
       collaboratorId: this.collaboratorId,
+      billingCompanyId: this.billingCompanyId,
+      billingCompanyName: this.billingCompanyName,
       referenceMonth: this.referenceMonth,
       referenceYear: this.referenceYear,
       invoiceNumber: this.invoiceNumber,
@@ -128,6 +139,7 @@ export class PjInvoice {
       rejectionReason: this.rejectionReason,
       reminderSentAt: this.reminderSentAt?.toISOString() ?? null,
       reminderCount: this.reminderCount,
+      emailNotifiedAt: this.emailNotifiedAt?.toISOString() ?? null,
       createdAt: this.createdAt?.toISOString() ?? null,
       updatedAt: this.updatedAt?.toISOString() ?? null,
     };

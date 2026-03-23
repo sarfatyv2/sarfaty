@@ -23,7 +23,6 @@ Este documento descreve a implementação do módulo comercial: cadastro de clie
 
 ### 1.2 Escopo Pendente
 
-- Atividades comerciais (página stub em `/activities`)
 - Dashboard do comercial (página stub em `/dashboard`)
 
 ---

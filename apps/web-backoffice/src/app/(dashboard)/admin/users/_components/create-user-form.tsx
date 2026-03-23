@@ -5,7 +5,7 @@ import { useForm, Controller, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createUserSchema, type CreateUserDto } from '@nexus/validators';
 import { ROLES } from '@nexus/types';
-import { createClient } from '@/lib/supabase/client';
+import { api, ApiError } from '@/lib/api';
 import { toast } from 'sonner';
 import {
   Button,
@@ -97,7 +97,6 @@ function SectionGrid({ children }: { children: React.ReactNode }) {
 
 export function CreateUserForm() {
   const router = useRouter();
-  const supabase = createClient();
 
   const {
     register,
@@ -125,35 +124,17 @@ export function CreateUserForm() {
   const employmentType = watch('employmentType');
 
   async function onSubmit(data: CreateUserDto) {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const accessToken = sessionData.session?.access_token;
-
-    if (!accessToken) {
-      toast.error('Sessão expirada. Faça login novamente.');
-      router.push('/login');
-      return;
+    try {
+      await api.post('/users', data);
+      toast.success('Usuário criado com sucesso!');
+      router.push('/admin/users');
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message || 'Erro ao criar usuário');
+        return;
+      }
+      toast.error('Erro ao criar usuário');
     }
-
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
-
-    const response = await fetch(`${apiUrl}/users`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.json().catch(() => null);
-      const message = errorBody?.error?.message ?? errorBody?.message ?? 'Erro ao criar usuário';
-      toast.error(message);
-      return;
-    }
-
-    toast.success('Usuário criado com sucesso!');
-    router.push('/admin/users');
   }
 
   const tabHasErrors = (fields: string[]) =>

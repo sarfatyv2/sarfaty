@@ -13,6 +13,7 @@ export const profiles = pgTable('profiles', {
   teamId: uuid('team_id').references(() => teams.id),
   regionId: uuid('region_id').references(() => regions.id),
   isActive: boolean('is_active').default(true),
+  passwordHash: text('password_hash'),
   avatarUrl: text('avatar_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),

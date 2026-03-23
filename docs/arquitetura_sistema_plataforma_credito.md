@@ -867,6 +867,8 @@ export async function delinquencyEscalationWorkflow(clientId: string): Promise<v
 
 ## 6. Adapters de Bureaus e Compliance
 
+**Documentação de implementação (código real, env, rotas):** `docs/vadu_integracao.md`, `docs/compliance_checks_integracao.md`, `docs/cerc_integracao.md`, `docs/upminer_integracao.md`. O pseudo-código abaixo é ilustrativo; os adapters atuais seguem os caminhos indicados nesses arquivos.
+
 ### 6.1 Interface Comum (Adapter Pattern)
 
 Cada bureau/fornecedor implementa a mesma interface. Isso permite trocar fornecedores sem mudar o fluxo:

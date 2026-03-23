@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createRealtimeClient } from '@/lib/supabase/realtime-client';
 import { toast } from 'sonner';
 
 interface UseNotificationRealtimeOptions {
@@ -10,12 +10,12 @@ interface UseNotificationRealtimeOptions {
 }
 
 export function useNotificationRealtime({ userId, onNewNotification }: UseNotificationRealtimeOptions) {
-  const channelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null);
+  const channelRef = useRef<ReturnType<ReturnType<typeof createRealtimeClient>['channel']> | null>(null);
 
   useEffect(() => {
     if (!userId) return;
 
-    const supabase = createClient();
+    const supabase = createRealtimeClient();
 
     const channel = supabase
       .channel(`notifications:${userId}`)

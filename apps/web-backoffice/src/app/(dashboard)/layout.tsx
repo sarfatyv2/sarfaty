@@ -1,32 +1,41 @@
 import { redirect } from 'next/navigation';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 import { DashboardShell } from '@/components/dashboard-shell';
 import { fetchRoleConfig } from '@/lib/fetch-role-config';
 import { ROLES, type Role } from '@nexus/types';
+import { ACCESS_TOKEN_COOKIE } from '@/lib/auth/constants';
+import { serverFetch } from '@/lib/api-server';
 
 export default async function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
 
-  if (!user) {
+  if (!accessToken) {
     redirect('/login');
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, full_name, avatar_url')
-    .eq('id', user.id)
-    .maybeSingle();
+  const meResponse = await serverFetch<{
+    id: string;
+    fullName: string;
+    email: string;
+    role: string;
+    avatarUrl: string | null;
+  }>('/auth/me').catch(() => null);
 
-  const rawRole = (profile?.role ?? user.user_metadata?.role) as string | undefined;
+  const profile = meResponse?.data;
+  if (!profile) {
+    redirect('/login');
+  }
+
+  const rawRole = profile.role as string | undefined;
   const role: Role = rawRole && ROLES.includes(rawRole as Role) ? (rawRole as Role) : 'employee';
-  const fullName = (profile?.full_name as string) ?? (user.user_metadata?.full_name as string) ?? user.email ?? '';
-  const avatarUrl = (profile?.avatar_url as string) ?? undefined;
+  const fullName = profile.fullName ?? '';
+  const avatarUrl = profile.avatarUrl ?? undefined;
 
   const roleConfig = await fetchRoleConfig(role);
 
   return (
-    <DashboardShell role={role} roleConfig={roleConfig} fullName={fullName} email={user.email ?? ''} avatarUrl={avatarUrl}>
+    <DashboardShell role={role} roleConfig={roleConfig} fullName={fullName} email={profile.email ?? ''} avatarUrl={avatarUrl}>
       {children}
     </DashboardShell>
   );

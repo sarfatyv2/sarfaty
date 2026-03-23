@@ -5,6 +5,7 @@ function createCollaboratorFactory(overrides: Partial<CollaboratorProps> = {}): 
   return Collaborator.reconstitute({
     id: `collab-${Date.now()}`,
     profileId: `profile-${Date.now()}`,
+    flashEmployeeId: null,
     isActive: true,
     registrationNumber: '12345',
     badgeNumber: 'B001',

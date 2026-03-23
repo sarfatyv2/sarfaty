@@ -1,7 +1,7 @@
 # Implementação do Módulo People — Colaboradores, Reembolsos e NFs PJ
 
-**Versão:** 1.1  
-**Data:** 14 de Fevereiro de 2026  
+**Versão:** 1.2  
+**Data:** 21 de Março de 2026  
 **Status:** Em progresso  
 **Referência:** `spec_modulo_people.md`  
 
@@ -164,6 +164,132 @@ Compartilhado por reembolsos e NFs PJ:
 
 ---
 
+## 9b. Empresas Faturadoras (Billing Companies)
+
+### 9b.1 Contexto
+
+Em determinado momento do mês, o DP precisa informar a quais empresas cada colaborador PJ deve emitir a nota fiscal. Essa empresa pode variar mês a mês (ex: empresa A, B ou C conforme o contrato vigente). Para isso, foi criado o cadastro dinâmico de **Empresas Faturadoras** e o fluxo de **Atribuição de NFs**.
+
+### 9b.2 Schema — Novas Tabelas e Colunas
+
+**Nova tabela:** `billing_companies`
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `id` | `uuid` PK | Identificador único |
+| `name` | `text` NOT NULL | Razão social |
+| `trade_name` | `text` | Nome fantasia |
+| `cnpj` | `text` UNIQUE NOT NULL | CNPJ (somente dígitos) |
+| `is_active` | `boolean` DEFAULT `true` | Ativo/inativo |
+| `created_at` | `timestamptz` | Data de criação |
+| `updated_at` | `timestamptz` | Última atualização |
+
+**Colunas adicionadas em `pj_invoices`:**
+
+| Coluna | Tipo | Descrição |
+|--------|------|-----------|
+| `billing_company_id` | `uuid` FK → `billing_companies.id` | Empresa faturadora atribuída |
+| `email_notified_at` | `timestamptz` | Quando o e-mail de notificação foi enviado |
+
+**Migration:** `apps/api/src/database/migrations/0003_billing_companies_pj_invoices.sql`
+
+### 9b.3 Backend — Estrutura DDD
+
+#### Domain
+- **Entidade:** `BillingCompany` — `apps/api/src/modules/people/domain/billing-company.entity.ts`
+- **Repositório (interface):** `BillingCompanyRepository` — `apps/api/src/modules/people/domain/billing-company.repository.ts`
+
+#### Infra
+- **Repositório (Drizzle):** `DrizzleBillingCompanyRepository` — `apps/api/src/modules/people/infra/drizzle-billing-company.repository.ts`
+
+#### Use Cases
+| Arquivo | Descrição |
+|---------|-----------|
+| `list-billing-companies.use-case.ts` | Lista empresas; aceita flag `includeInactive` |
+| `create-billing-company.use-case.ts` | Cria empresa; normaliza CNPJ para dígitos; valida CNPJ |
+| `update-billing-company.use-case.ts` | Atualiza empresa; lança `NotFoundException` se não existir |
+| `assign-invoice-billing-companies.use-case.ts` | Atribuição de empresas a NFs e disparo de e-mails |
+
+#### Controller
+- **`BillingCompaniesController`** — `apps/api/src/modules/people/controllers/billing-companies.controller.ts`
+
+### 9b.4 Fluxo de Atribuição (`AssignInvoiceBillingCompaniesUseCase`)
+
+1. Recebe `month`, `year` e um array de `assignments` (`billingCompanyId` + lista de `collaboratorIds`).
+2. Valida que todos os colaboradores existem e são do tipo PJ.
+3. Para cada colaborador, garante que existe uma `pj_invoice` no período (cria se não existir).
+4. Atualiza `billing_company_id` na NF correspondente.
+5. Dispara e-mail via `EmailService` (SendGrid) para cada colaborador com instruções de emissão.
+6. Registra `email_notified_at` na NF após envio.
+
+**Método privados extraídos para controle de complexidade:**
+- `persistAssignments` — loop de persistência
+- `assertCollaboratorEligible` — valida tipo PJ e existência
+- `sendAssignmentEmails` — orquestra envio em lote
+- `sendOneAssignmentEmail` — monta e envia e-mail individual
+
+### 9b.5 E-mail (SendGrid)
+
+**Módulo:** `EmailModule` — `apps/api/src/modules/email/`  
+**Serviço:** `EmailService` — suporta template dinâmico SendGrid ou HTML inline como fallback.
+
+**Template de e-mail:** `apps/api/src/modules/people/templates/pj-invoice-assignment-email.template.ts`  
+Conteúdo: instruções de emissão, dados da empresa (nome, CNPJ formatado), período (mês/ano).
+
+**Variáveis de ambiente necessárias:**
+
+| Variável | Obrigatório | Descrição |
+|----------|-------------|-----------|
+| `SENDGRID_API_KEY` | Sim | Chave de API do SendGrid |
+| `SENDGRID_FROM_EMAIL` | Sim | E-mail remetente verificado |
+| `SENDGRID_INVOICE_TEMPLATE_ID` | Não | ID de template dinâmico (usa HTML se ausente) |
+
+### 9b.6 Shared Packages
+
+**`@nexus/types`** — `packages/types/src/billing-company.ts`
+```typescript
+interface BillingCompany {
+  id: string;
+  name: string;
+  tradeName?: string;
+  cnpj: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+```
+
+**`@nexus/validators`** — `packages/validators/src/billing-company.schema.ts`
+
+| Schema | Uso |
+|--------|-----|
+| `createBillingCompanySchema` | POST `/people/billing-companies` |
+| `updateBillingCompanySchema` | PATCH `/people/billing-companies/:id` |
+| `assignInvoiceBillingCompaniesSchema` | POST `/people/invoices/assign-companies` |
+
+### 9b.7 Frontend — Novas Telas
+
+**Empresas Faturadoras (`/people/dp/billing-companies`)**
+- Arquivo: `apps/web-backoffice/src/app/(dashboard)/people/dp/billing-companies/page.tsx`
+- Tabela com nome, nome fantasia, CNPJ formatado e status (ativo/inativo).
+- Dialog unificado para criar e editar (react-hook-form + MaskedInput para CNPJ).
+- Toggle para exibir empresas inativas.
+
+**Atribuição de NFs (`/people/dp/invoices/assign`)**
+- Arquivo: `apps/web-backoffice/src/app/(dashboard)/people/dp/invoices/assign/page.tsx`
+- Seletor de período (mês/ano).
+- Grupos dinâmicos: cada grupo tem uma empresa faturadora selecionada + multi-select de colaboradores PJ.
+- Resumo da atribuição antes do envio.
+- Submit chama `POST /people/invoices/assign-companies` e dispara os e-mails.
+
+**Tela de NFs do DP (`/people/dp/invoices`) — atualizada**
+- Coluna "Empresa destino" exibe o `billingCompanyName` atribuído à NF.
+
+**Tela de NFs do colaborador (`/people/me/invoices`) — atualizada**
+- Coluna "Tomador (NF)" exibe o `billingCompanyName` para o colaborador saber para quem emitir.
+
+---
+
 ## 10. Rotas People Implementadas
 
 ```
@@ -177,6 +303,8 @@ Compartilhado por reembolsos e NFs PJ:
 /people/dp/reimbursements     → Reembolsos (fila DP)
 /people/dp/invoices           → Notas Fiscais PJ
 /people/dp/invoices/overdue   → NFs atrasadas
+/people/dp/invoices/assign    → Atribuir empresas faturadoras + enviar e-mails
+/people/dp/billing-companies  → CRUD de Empresas Faturadoras
 ```
 
 ---
@@ -220,3 +348,12 @@ Compartilhado por reembolsos e NFs PJ:
 | POST | `/people/invoices/:id/pay` | Marcar como paga |
 | POST | `/people/invoices/generate-monthly` | Gerar NFs do mês (DP) |
 | POST | `/people/invoices/send-reminders` | Enviar lembretes |
+| POST | `/people/invoices/assign-companies` | Atribuir empresas faturadoras + disparar e-mails |
+
+### Empresas Faturadoras
+
+| Método | Endpoint | Uso |
+|--------|----------|-----|
+| GET | `/people/billing-companies` | Listar (aceita `?includeInactive=true`) |
+| POST | `/people/billing-companies` | Criar empresa |
+| PATCH | `/people/billing-companies/:id` | Atualizar empresa |

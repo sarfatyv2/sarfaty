@@ -1,33 +1,35 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
+import { profiles } from '../../../database/schema/profiles';
 
 @Injectable()
 export class GetProfileUseCase {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
   async execute(userId: string) {
-    const result = await this.db.execute<{
-      id: string;
-      full_name: string;
-      email: string;
-      role: string;
-      avatar_url: string | null;
-    }>(
-      // raw query since schema may not be defined yet
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { sql: 'SELECT id, full_name, email, role, avatar_url FROM profiles WHERE id = $1', params: [userId] } as any,
-    );
+    const rows = await this.db
+      .select({
+        id: profiles.id,
+        fullName: profiles.fullName,
+        email: profiles.email,
+        role: profiles.role,
+        avatarUrl: profiles.avatarUrl,
+      })
+      .from(profiles)
+      .where(eq(profiles.id, userId))
+      .limit(1);
 
-    const profile = result[0];
+    const profile = rows[0];
 
     return {
       data: profile
         ? {
             id: profile.id,
-            fullName: profile.full_name,
+            fullName: profile.fullName,
             email: profile.email,
             role: profile.role,
-            avatarUrl: profile.avatar_url,
+            avatarUrl: profile.avatarUrl,
           }
         : null,
     };

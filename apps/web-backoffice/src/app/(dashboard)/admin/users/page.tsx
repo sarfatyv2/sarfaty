@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { Button } from '@nexus/ui';
 import { Plus } from 'lucide-react';
+import { serverFetch } from '@/lib/api-server';
 import { UsersTable } from './_components/users-table';
 
 export const metadata: Metadata = {
@@ -10,24 +10,48 @@ export const metadata: Metadata = {
   description: 'Gerenciamento de usuários da plataforma',
 };
 
-interface ProfileRow {
+interface UserListItem {
   id: string;
-  full_name: string;
+  fullName: string;
   email: string;
   role: string;
-  is_active: boolean | null;
-  created_at: string | null;
+  isActive: boolean | null;
+  createdAt: string | null;
 }
 
 export default async function AdminUsersPage() {
-  const supabase = await createServerSupabaseClient();
+  let users: UserListItem[] = [];
+  let error: string | null = null;
 
-  const { data: users, error } = await supabase
-    .from('profiles')
-    .select('id, full_name, email, role, is_active, created_at')
-    .order('created_at', { ascending: false });
-
-  const profileRows: ProfileRow[] = (users ?? []) as ProfileRow[];
+  try {
+    const result = await serverFetch<UserListItem[]>('/users', {
+      page: 1,
+      pageSize: 100,
+      sortBy: 'fullName',
+      sortOrder: 'asc',
+    });
+    const raw = result.data as unknown;
+    if (Array.isArray(raw)) {
+      users = raw.map((u) => {
+        const row = u as Record<string, unknown>;
+        return {
+          id: String(row.id),
+          fullName: String(row.fullName ?? ''),
+          email: String(row.email ?? ''),
+          role: String(row.role ?? ''),
+          isActive: (row.isActive as boolean | null) ?? null,
+          createdAt:
+            row.createdAt != null
+              ? typeof row.createdAt === 'string'
+                ? row.createdAt
+                : new Date(row.createdAt as Date).toISOString()
+              : null,
+        };
+      });
+    }
+  } catch (err) {
+    error = err instanceof Error ? err.message : 'Falha ao carregar usuários';
+  }
 
   return (
     <div className="space-y-8">
@@ -48,10 +72,10 @@ export default async function AdminUsersPage() {
 
       {error ? (
         <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">
-          Erro ao carregar usuários: {error.message}
+          {error}
         </div>
       ) : (
-        <UsersTable users={profileRows} />
+        <UsersTable users={users} />
       )}
     </div>
   );

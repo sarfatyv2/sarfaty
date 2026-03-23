@@ -110,3 +110,12 @@ As verificações cobrem: CGU (CEIS/CNEP/CEPIM), PGFN (Dívida Ativa), CNDT (Cer
 Os resultados são exibidos junto com os dados VADU/CreditBox na aba **Bureau** do detalhe do cliente, em cards expansíveis separados (Compliance e Validação de Endereço).
 
 **Documentação completa:** `docs/compliance_checks_integracao.md`
+
+---
+
+## 7. Outros bureaus — CERC e upMiner
+
+Integrações complementares à análise de crédito:
+
+- **CERC** (validação de duplicatas mercantis e extração de NF-e com Gemini): `docs/cerc_integracao.md`
+- **upMiner** (análise PF/PJ, batch e dossier via API): `docs/upminer_integracao.md`

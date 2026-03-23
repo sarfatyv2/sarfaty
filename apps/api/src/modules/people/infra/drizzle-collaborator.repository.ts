@@ -1,11 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq, ilike, or, count, asc, desc, and, type SQL } from 'drizzle-orm';
+import { eq, ilike, or, count, asc, desc, and, inArray, isNotNull, ne, type SQL } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../../../database/database.module';
 import { collaborators } from '../../../database/schema/collaborators';
 import { profiles } from '../../../database/schema/profiles';
 import { collaboratorCltData } from '../../../database/schema/collaborator-clt-data';
 import { collaboratorPjData } from '../../../database/schema/collaborator-pj-data';
-import { supabaseAdmin } from '../../../config/supabase';
 import type {
   CollaboratorRepository,
   CollaboratorFilters,
@@ -43,6 +42,41 @@ export class DrizzleCollaboratorRepository implements CollaboratorRepository {
     return CollaboratorMapper.toDomain(row, cltRow ?? null, pjRow ?? null);
   }
 
+  async findByIds(ids: string[]): Promise<Collaborator[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    const uniqueIds = [...new Set(ids)];
+    const rows = await this.db
+      .select()
+      .from(collaborators)
+      .where(inArray(collaborators.id, uniqueIds));
+
+    if (rows.length === 0) {
+      return [];
+    }
+
+    const cltRows = await this.db
+      .select()
+      .from(collaboratorCltData)
+      .where(inArray(collaboratorCltData.collaboratorId, uniqueIds));
+    const pjRows = await this.db
+      .select()
+      .from(collaboratorPjData)
+      .where(inArray(collaboratorPjData.collaboratorId, uniqueIds));
+
+    const cltByCollaboratorId = new Map(cltRows.map((r) => [r.collaboratorId, r]));
+    const pjByCollaboratorId = new Map(pjRows.map((r) => [r.collaboratorId, r]));
+
+    return rows.map((row) =>
+      CollaboratorMapper.toDomain(
+        row,
+        cltByCollaboratorId.get(row.id) ?? null,
+        pjByCollaboratorId.get(row.id) ?? null,
+      ),
+    );
+  }
+
   async findByProfileId(profileId: string): Promise<Collaborator | null> {
     const rows = await this.db
       .select()
@@ -66,6 +100,75 @@ export class DrizzleCollaboratorRepository implements CollaboratorRepository {
       .limit(1);
 
     return CollaboratorMapper.toDomain(row, cltRow ?? null, pjRow ?? null);
+  }
+
+  async findByCpfs(cpfs: string[]): Promise<Collaborator[]> {
+    const uniqueCpfs = [...new Set(cpfs.filter((c) => c && String(c).trim().length > 0))];
+    if (uniqueCpfs.length === 0) {
+      return [];
+    }
+
+    const rows = await this.db
+      .select()
+      .from(collaborators)
+      .where(inArray(collaborators.cpf, uniqueCpfs));
+
+    if (rows.length === 0) {
+      return [];
+    }
+
+    const ids = rows.map((r) => r.id);
+    const cltRows = await this.db
+      .select()
+      .from(collaboratorCltData)
+      .where(inArray(collaboratorCltData.collaboratorId, ids));
+    const pjRows = await this.db
+      .select()
+      .from(collaboratorPjData)
+      .where(inArray(collaboratorPjData.collaboratorId, ids));
+
+    const cltByCollaboratorId = new Map(cltRows.map((r) => [r.collaboratorId, r]));
+    const pjByCollaboratorId = new Map(pjRows.map((r) => [r.collaboratorId, r]));
+
+    return rows.map((row) =>
+      CollaboratorMapper.toDomain(
+        row,
+        cltByCollaboratorId.get(row.id) ?? null,
+        pjByCollaboratorId.get(row.id) ?? null,
+      ),
+    );
+  }
+
+  async findCollaboratorsWithCpfNotNull(): Promise<Collaborator[]> {
+    const rows = await this.db
+      .select()
+      .from(collaborators)
+      .where(and(isNotNull(collaborators.cpf), ne(collaborators.cpf, '')));
+
+    if (rows.length === 0) {
+      return [];
+    }
+
+    const ids = rows.map((r) => r.id);
+    const cltRows = await this.db
+      .select()
+      .from(collaboratorCltData)
+      .where(inArray(collaboratorCltData.collaboratorId, ids));
+    const pjRows = await this.db
+      .select()
+      .from(collaboratorPjData)
+      .where(inArray(collaboratorPjData.collaboratorId, ids));
+
+    const cltByCollaboratorId = new Map(cltRows.map((r) => [r.collaboratorId, r]));
+    const pjByCollaboratorId = new Map(pjRows.map((r) => [r.collaboratorId, r]));
+
+    return rows.map((row) =>
+      CollaboratorMapper.toDomain(
+        row,
+        cltByCollaboratorId.get(row.id) ?? null,
+        pjByCollaboratorId.get(row.id) ?? null,
+      ),
+    );
   }
 
   async findByFilters(filters: CollaboratorFilters): Promise<PaginatedCollaborators> {
@@ -223,10 +326,6 @@ export class DrizzleCollaboratorRepository implements CollaboratorRepository {
           .update(profiles)
           .set({ role: roleToUpdate, updatedAt: new Date() })
           .where(eq(profiles.id, collabRow.profileId));
-
-        await supabaseAdmin.auth.admin.updateUserById(collabRow.profileId, {
-          user_metadata: { role: roleToUpdate },
-        });
       }
     }
 

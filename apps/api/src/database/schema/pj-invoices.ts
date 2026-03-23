@@ -1,10 +1,12 @@
 import { pgTable, uuid, text, integer, numeric, timestamp, index, unique } from 'drizzle-orm/pg-core';
 import { collaborators } from './collaborators';
 import { profiles } from './profiles';
+import { billingCompanies } from './billing-companies';
 
 export const pjInvoices = pgTable('pj_invoices', {
   id: uuid('id').primaryKey().defaultRandom(),
   collaboratorId: uuid('collaborator_id').references(() => collaborators.id),
+  billingCompanyId: uuid('billing_company_id').references(() => billingCompanies.id),
   referenceMonth: integer('reference_month').notNull(),
   referenceYear: integer('reference_year').notNull(),
   invoiceNumber: text('invoice_number'),
@@ -27,6 +29,7 @@ export const pjInvoices = pgTable('pj_invoices', {
   rejectionReason: text('rejection_reason'),
   reminderSentAt: timestamp('reminder_sent_at', { withTimezone: true }),
   reminderCount: integer('reminder_count').default(0),
+  emailNotifiedAt: timestamp('email_notified_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
@@ -35,4 +38,5 @@ export const pjInvoices = pgTable('pj_invoices', {
   statusIdx: index('idx_pj_invoices_status').on(table.status),
   referenceIdx: index('idx_pj_invoices_reference').on(table.referenceYear, table.referenceMonth),
   statusPeriodIdx: index('idx_pj_inv_status_period').on(table.status, table.referenceYear, table.referenceMonth),
+  billingCompanyIdx: index('idx_pj_invoices_billing_company').on(table.billingCompanyId),
 }));

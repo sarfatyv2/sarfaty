@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import {
   Avatar,
   AvatarImage,
@@ -29,7 +28,6 @@ interface UserMenuProps {
 
 export function UserMenu({ fullName, email, avatarUrl }: Readonly<UserMenuProps>) {
   const router = useRouter();
-  const supabase = createClient();
   const config = useRoleConfig();
 
   const initials = fullName
@@ -44,7 +42,7 @@ export function UserMenu({ fullName, email, avatarUrl }: Readonly<UserMenuProps>
   );
 
   async function handleLogout() {
-    await supabase.auth.signOut();
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     router.refresh();
     router.push('/login');
   }

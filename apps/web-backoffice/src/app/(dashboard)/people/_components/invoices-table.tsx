@@ -24,6 +24,7 @@ import { PayInvoiceDialog } from './pay-invoice-dialog';
 interface PjInvoice {
   id: string;
   collaboratorId?: string;
+  billingCompanyName?: string | null;
   referenceMonth: number;
   referenceYear: number;
   status: string;
@@ -100,6 +101,8 @@ export function InvoicesTable({
               <TableHeader>
                 <TableRow>
                   {mode === 'dp' && <TableHead>Colaborador</TableHead>}
+                  {mode === 'dp' && <TableHead>Empresa destino</TableHead>}
+                  {mode === 'me' && <TableHead>Tomador (NF)</TableHead>}
                   <TableHead>Período</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Valor</TableHead>
@@ -117,6 +120,16 @@ export function InvoicesTable({
                           {inv.collaboratorId
                             ? collaboratorNames[inv.collaboratorId] ?? '—'
                             : '—'}
+                        </TableCell>
+                      )}
+                      {mode === 'dp' && (
+                        <TableCell className="max-w-[220px] truncate" title={inv.billingCompanyName ?? undefined}>
+                          {inv.billingCompanyName ?? '—'}
+                        </TableCell>
+                      )}
+                      {mode === 'me' && (
+                        <TableCell className="max-w-[220px] truncate" title={inv.billingCompanyName ?? undefined}>
+                          {inv.billingCompanyName ?? '—'}
                         </TableCell>
                       )}
                       <TableCell className="font-medium">{periodLabel}</TableCell>

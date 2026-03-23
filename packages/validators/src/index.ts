@@ -243,6 +243,16 @@ export {
   type BatchEvaluateReceivablesDto,
 } from './cnab.schema';
 
+// People — billing companies & PJ invoice assignment
+export {
+  createBillingCompanySchema,
+  updateBillingCompanySchema,
+  assignInvoiceBillingCompaniesSchema,
+  type CreateBillingCompanyDto,
+  type UpdateBillingCompanyDto,
+  type AssignInvoiceBillingCompaniesDto,
+} from './billing-company.schema';
+
 // Communication schemas
 export {
   createAnnouncementSchema,

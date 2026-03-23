@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { createClient } from '@/lib/supabase/client';
+import { decodeJwt } from 'jose';
+import { getAccessTokenFromDocument } from '@/lib/auth/cookies';
 import { useNotificationRealtime } from '@/hooks/use-notification-realtime';
 import {
   DropdownMenu,
@@ -53,10 +54,18 @@ export function NotificationBell() {
 
   // Resolve userId for Realtime subscription
   useEffect(() => {
-    const supabase = createClient();
-    void supabase.auth.getUser().then(({ data }) => {
-      setUserId(data.user?.id ?? null);
-    });
+    const token = getAccessTokenFromDocument();
+    if (token) {
+      try {
+        const payload = decodeJwt(token);
+        const sub = typeof payload.sub === 'string' ? payload.sub : null;
+        setUserId(sub);
+      } catch {
+        setUserId(null);
+      }
+    } else {
+      setUserId(null);
+    }
   }, []);
 
   const fetchUnreadCount = useCallback(async () => {
