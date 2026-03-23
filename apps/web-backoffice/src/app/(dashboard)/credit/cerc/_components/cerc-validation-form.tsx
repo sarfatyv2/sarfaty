@@ -211,11 +211,11 @@ export function CercValidationForm({ isSubmitting, onSubmit }: Readonly<CercVali
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="numeroDuplicata" className="text-xs">
-                Número da Duplicata <span className="text-destructive">*</span>
+                Nº da Parcela <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="numeroDuplicata"
-                placeholder="Ex: 12811-2"
+                placeholder="Ex: 001"
                 value={fields.numeroDuplicata}
                 onChange={handleField('numeroDuplicata')}
                 required
@@ -252,7 +252,7 @@ export function CercValidationForm({ isSubmitting, onSubmit }: Readonly<CercVali
 
           <div className="space-y-1.5">
             <Label htmlFor="valor" className="text-xs">
-              Valor (R$) <span className="text-destructive">*</span>
+              Valor da Duplicata (R$) <span className="text-destructive">*</span>
             </Label>
             <Input
               id="valor"
