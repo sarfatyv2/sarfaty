@@ -1,6 +1,14 @@
-import { Body, Controller, Get, Param, Post, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { RequestCercValidationUseCase } from '../use-cases/request-cerc-validation.use-case';
@@ -45,11 +53,21 @@ export class CercController {
 
   @Post('extract-nfe')
   @Roles(...CERC_ROLES)
-  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
   async extractNfe(
-    @UploadedFile() file: { buffer: Buffer; originalname: string; mimetype: string },
+    @Req() req: { body: Record<string, { toBuffer?: () => Promise<Buffer>; filename?: string; mimetype?: string }> },
   ) {
-    const data = await this.nfeGeminiService.extract(file.buffer, file.mimetype);
+    const body = req.body;
+    if (!body) {
+      throw new BadRequestException('Request body is required');
+    }
+    const filePart = body.file;
+    if (!filePart?.toBuffer) {
+      throw new BadRequestException('File is required');
+    }
+    const buffer = await filePart.toBuffer();
+    const mimetype = filePart.mimetype ?? 'application/octet-stream';
+    const data = await this.nfeGeminiService.extract(buffer, mimetype);
     return { data };
   }
 
