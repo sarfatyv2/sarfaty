@@ -140,6 +140,16 @@ export { allcheckDraweeResults } from './allcheck-drawee-results';
 
 // upMiner
 export { upminerResults } from './upminer-results';
+export { upminerDossiers, upminerDossierSources } from './upminer-dossiers';
+export {
+  upminerReceitaFederalPj,
+  upminerReceitaSecundarias,
+  upminerQsa,
+  upminerQsaSocios,
+  upminerCadeProcessos,
+  upminerCadeProtocolos,
+  upminerCadeAndamentos,
+} from './upminer-receita-qsa-cade';
 
 // CERC
 export { cercValidations } from './cerc-validations';

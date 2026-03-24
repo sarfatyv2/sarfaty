@@ -1,4 +1,5 @@
 import { UpminerResult } from '../domain/upminer-result.entity';
+import { UPMINER_RELATIONAL_DOSSIERS_DATA_MARKER } from '../infra/upminer-relational.constants';
 import { SyncUpminerBatchUseCase } from './sync-upminer-batch.use-case';
 
 const CLIENT_ID = 'client-uuid-123';
@@ -27,6 +28,10 @@ function createMocks() {
     getBatchDossiers: vi.fn(),
   };
 
+  const upminerDossierPersistence = {
+    persistForResult: vi.fn(),
+  };
+
   const upminerRepository = {
     save: vi.fn(),
     update: vi.fn(),
@@ -36,9 +41,13 @@ function createMocks() {
     getPending: vi.fn(),
   };
 
-  const useCase = new SyncUpminerBatchUseCase(upminerRepository as any, upminerAdapter as any);
+  const useCase = new SyncUpminerBatchUseCase(
+    upminerRepository as any,
+    upminerAdapter as any,
+    upminerDossierPersistence as any,
+  );
 
-  return { useCase, upminerAdapter, upminerRepository };
+  return { useCase, upminerAdapter, upminerRepository, upminerDossierPersistence };
 }
 
 describe('SyncUpminerBatchUseCase', () => {
@@ -91,8 +100,8 @@ describe('SyncUpminerBatchUseCase', () => {
     expect(upminerRepository.update).toHaveBeenCalledTimes(1);
   });
 
-  it('should mark as PROCESSED and fetch dossiers when API returns "processed"', async () => {
-    const { useCase, upminerRepository, upminerAdapter } = createMocks();
+  it('should mark as PROCESSED and persist dossiers when API returns "processed"', async () => {
+    const { useCase, upminerRepository, upminerAdapter, upminerDossierPersistence } = createMocks();
     const existing = makeResult({ status: 'QUEUED' });
     upminerRepository.getLatestByClientId.mockResolvedValue(existing);
     upminerRepository.update.mockResolvedValue(undefined);
@@ -103,12 +112,18 @@ describe('SyncUpminerBatchUseCase', () => {
 
     const mockDossiers = { id: BATCH_ID, status: 'processed', dossiers: [] };
     upminerAdapter.getBatchDossiers.mockResolvedValue(mockDossiers);
+    upminerDossierPersistence.persistForResult.mockResolvedValue(undefined);
 
     const result = await useCase.execute(CLIENT_ID);
 
     expect(result?.status).toBe('PROCESSED');
-    expect(result?.dossiersData).toEqual(mockDossiers);
+    expect(result?.dossiersData).toEqual(UPMINER_RELATIONAL_DOSSIERS_DATA_MARKER);
     expect(upminerAdapter.getBatchDossiers).toHaveBeenCalledWith(BATCH_ID);
+    expect(upminerDossierPersistence.persistForResult).toHaveBeenCalledWith(
+      'result-uuid',
+      BATCH_ID,
+      mockDossiers,
+    );
     expect(upminerRepository.update).toHaveBeenCalledTimes(1);
   });
 
@@ -127,6 +142,24 @@ describe('SyncUpminerBatchUseCase', () => {
 
     expect(result?.status).toBe('ERROR');
     expect(result?.errorMessage).toContain('Dossier fetch failed');
+  });
+
+  it('should mark as ERROR when fetch succeeds but relational persist fails', async () => {
+    const { useCase, upminerRepository, upminerAdapter, upminerDossierPersistence } = createMocks();
+    const existing = makeResult({ status: 'QUEUED' });
+    upminerRepository.getLatestByClientId.mockResolvedValue(existing);
+    upminerRepository.update.mockResolvedValue(undefined);
+
+    upminerAdapter.getBatchStatus.mockResolvedValue([
+      { batch_id: BATCH_ID, in_queue: false, status: 'processed', parent_batch_id: null },
+    ]);
+    upminerAdapter.getBatchDossiers.mockResolvedValue({ id: BATCH_ID, dossiers: [] });
+    upminerDossierPersistence.persistForResult.mockRejectedValue(new Error('DB error'));
+
+    const result = await useCase.execute(CLIENT_ID);
+
+    expect(result?.status).toBe('ERROR');
+    expect(result?.errorMessage).toContain('Dossier persist failed');
   });
 
   it('should transition from QUEUED to PROCESSING when batch is still running', async () => {

@@ -16,6 +16,7 @@ import { RequestUpminerBatchUseCase } from '../use-cases/request-upminer-batch.u
 import { SyncUpminerBatchUseCase } from '../use-cases/sync-upminer-batch.use-case';
 import { GetUpminerResultUseCase } from '../use-cases/get-upminer-result.use-case';
 import { GetUpminerDossierUseCase } from '../use-cases/get-upminer-dossier.use-case';
+import { GetUpminerDossiersDataUseCase } from '../use-cases/get-upminer-dossiers-data.use-case';
 import { RequestUpminerPdfUseCase } from '../use-cases/request-upminer-pdf.use-case';
 import { UpminerAdapter } from '../bureaus/upminer/upminer.adapter';
 import { CreditboxReportMapper } from '../infra/mappers/creditbox-report.mapper';
@@ -43,6 +44,7 @@ export class CreditController {
     private readonly syncUpminerBatchUseCase: SyncUpminerBatchUseCase,
     private readonly getUpminerResultUseCase: GetUpminerResultUseCase,
     private readonly getUpminerDossierUseCase: GetUpminerDossierUseCase,
+    private readonly getUpminerDossiersDataUseCase: GetUpminerDossiersDataUseCase,
     private readonly requestUpminerPdfUseCase: RequestUpminerPdfUseCase,
     private readonly upminerAdapter: UpminerAdapter,
   ) {}
@@ -222,6 +224,21 @@ export class CreditController {
   async getUpminerHistory(@Param('clientId') clientId: string) {
     const results = await this.getUpminerResultUseCase.executeAll(clientId);
     return { data: results.map(UpminerResultMapper.toPersistence) };
+  }
+
+  @Get('upminer/dossiers-data')
+  @Roles(
+    'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
+    'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
+    'legal', 'risk_manager', 'recovery', 'litigation', 'admin',
+  )
+  async getUpminerDossiersData(@Param('clientId') clientId: string) {
+    const result = await this.getUpminerResultUseCase.execute(clientId);
+    if (result?.status !== 'PROCESSED') {
+      return { data: null };
+    }
+    const dossiersData = await this.getUpminerDossiersDataUseCase.execute(result.id);
+    return { data: dossiersData };
   }
 
   @Get('upminer/profiles')
