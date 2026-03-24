@@ -13,6 +13,7 @@ import { SlaveLaborAdapter } from './bureaus/slave-labor/slave-labor.adapter';
 import { NegativeMediaAdapter } from './bureaus/negative-media/negative-media.adapter';
 import { DigitalPresenceAdapter } from './bureaus/digital-presence/digital-presence.adapter';
 import { UpminerAdapter } from './bureaus/upminer/upminer.adapter';
+import { UpminerDossierPersistenceService } from './infra/upminer-dossier-persistence.service';
 import { CercAdapter } from './bureaus/cerc/cerc.adapter';
 import { NfeGeminiService } from './infra/gemini/nfe-gemini.service';
 import { DrizzleVaduRepository } from './infra/drizzle/drizzle-vadu.repository';
@@ -89,6 +90,7 @@ import { RequestUpminerBatchUseCase } from './use-cases/request-upminer-batch.us
 import { SyncUpminerBatchUseCase } from './use-cases/sync-upminer-batch.use-case';
 import { GetUpminerResultUseCase } from './use-cases/get-upminer-result.use-case';
 import { GetUpminerDossierUseCase } from './use-cases/get-upminer-dossier.use-case';
+import { GetUpminerDossiersDataUseCase } from './use-cases/get-upminer-dossiers-data.use-case';
 import { RequestUpminerPdfUseCase } from './use-cases/request-upminer-pdf.use-case';
 import { RequestCercValidationUseCase } from './use-cases/request-cerc-validation.use-case';
 import { SyncCercValidationUseCase } from './use-cases/sync-cerc-validation.use-case';
@@ -133,6 +135,7 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     NegativeMediaAdapter,
     DigitalPresenceAdapter,
     UpminerAdapter,
+    UpminerDossierPersistenceService,
     CercAdapter,
     NfeGeminiService,
 
@@ -201,6 +204,7 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     SyncUpminerBatchUseCase,
     GetUpminerResultUseCase,
     GetUpminerDossierUseCase,
+    GetUpminerDossiersDataUseCase,
     RequestUpminerPdfUseCase,
 
     // CERC use cases

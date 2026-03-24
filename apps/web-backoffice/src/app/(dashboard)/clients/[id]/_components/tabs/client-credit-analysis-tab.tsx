@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
 import { ExpandableContent, RotatingChevron } from '../motion-wrapper';
 import { AllcheckSection } from './allcheck-section';
+import { UpminerSection } from './upminer-section';
 
 type BadgeType = 'success' | 'danger' | 'warning' | 'neutral';
 
@@ -1556,22 +1557,26 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
     );
   }
 
-  if (!data || (!data.company && data.persons.length === 0 && !compliance && !serasa)) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center space-y-2">
-        <FileText className="h-10 w-10 text-muted-foreground/40" />
-        <p className="text-sm text-muted-foreground">
-          Nenhuma análise de crédito encontrada para este cliente.
-        </p>
-        <p className="text-xs text-muted-foreground">
-          A análise será solicitada automaticamente no envio dos documentos.
-        </p>
-      </div>
-    );
-  }
+  const vaduData = data ?? { company: null, persons: [] as VaduPersonResult[] };
+  const hasLegacyBureauBlock =
+    vaduData.company ||
+    vaduData.persons.length > 0 ||
+    !!compliance ||
+    !!serasa;
 
   return (
     <div className="space-y-4">
+    {hasLegacyBureauBlock ? null : (
+      <div className="flex flex-col items-center justify-center py-8 text-center space-y-2 rounded-lg border border-dashed bg-muted/20">
+        <FileText className="h-10 w-10 text-muted-foreground/40" />
+        <p className="text-sm text-muted-foreground">
+          Nenhuma análise automática (VADU/Serasa/Compliance) encontrada para este cliente.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          A análise pode ser solicitada no envio dos documentos. Consulte upMiner e Allcheck abaixo.
+        </p>
+      </div>
+    )}
     {/* Serasa Card */}
     <Card className="overflow-hidden">
       <ExpandableHeader
@@ -1606,7 +1611,7 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
       />
       <ExpandableContent isOpen={vaduExpanded}>
         <VaduSection
-          data={data}
+          data={vaduData}
           creditbox={creditbox}
           viewRaw={viewRaw}
           toggleRaw={toggleRaw}
@@ -1669,6 +1674,8 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
         </ExpandableContent>
       </Card>
     )}
+
+    <UpminerSection clientId={clientId} />
 
     {/* Allcheck Localizador */}
     <AllcheckSection entityId={clientId} entityType="client" />

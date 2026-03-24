@@ -15,11 +15,26 @@ export interface UpminerAuthResponse {
 
 // --- Batch ---
 
+/** Banco Central: CRSFN — Ementas e Acórdãos (`exato` is boolean per API). */
+export interface UpminerBancoCentralCrsfnBatchParameterization {
+  parameters: {
+    exato: boolean;
+  };
+}
+
+/** Optional keys per capture/source (e.g. `cade`, `bancoCentralCrsfnEmentasAcordaos`). */
+export interface UpminerCreateBatchParameterization {
+  bancoCentralCrsfnEmentasAcordaos?: UpminerBancoCentralCrsfnBatchParameterization;
+  cade?: { parameters: Record<string, unknown> };
+  [key: string]: { parameters?: Record<string, unknown> } | undefined;
+}
+
 export interface UpminerCreateBatchRequest {
   inputs: string[];
   input_type: number;
   search_profile_id: number;
   break_batches: boolean;
+  parameterization?: UpminerCreateBatchParameterization;
 }
 
 export interface UpminerCreateBatchResponse {

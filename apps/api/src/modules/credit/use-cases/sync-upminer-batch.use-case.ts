@@ -2,6 +2,8 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { UpminerAdapter } from '../bureaus/upminer/upminer.adapter';
 import { type UpminerResult } from '../domain/upminer-result.entity';
 import { type UpminerResultRepository, UPMINER_RESULT_REPOSITORY } from '../domain/upminer-result.repository';
+import { UpminerDossierPersistenceService } from '../infra/upminer-dossier-persistence.service';
+import { UPMINER_RELATIONAL_DOSSIERS_DATA_MARKER } from '../infra/upminer-relational.constants';
 
 const PROCESSED_STATUS = 'processed';
 
@@ -13,6 +15,7 @@ export class SyncUpminerBatchUseCase {
     @Inject(UPMINER_RESULT_REPOSITORY)
     private readonly upminerRepository: UpminerResultRepository,
     private readonly upminerAdapter: UpminerAdapter,
+    private readonly upminerDossierPersistence: UpminerDossierPersistenceService,
   ) {}
 
   async execute(clientId: string): Promise<UpminerResult | null> {
@@ -60,12 +63,20 @@ export class SyncUpminerBatchUseCase {
 
         try {
           const dossiersResponse = await this.upminerAdapter.getBatchDossiers(batchId);
-          result.markAsProcessed(dossiersResponse);
-        } catch (dossierError) {
+          try {
+            await this.upminerDossierPersistence.persistForResult(result.id, batchId, dossiersResponse);
+            result.markAsProcessed(UPMINER_RELATIONAL_DOSSIERS_DATA_MARKER);
+          } catch (persistError) {
+            this.logger.error(
+              `Failed to persist upMiner dossiers for batch ${batchId}: ${String(persistError)}`,
+            );
+            result.markAsError(`Dossier persist failed: ${(persistError as Error).message}`);
+          }
+        } catch (fetchError) {
           this.logger.error(
-            `Failed to fetch upMiner dossiers for batch ${batchId}: ${String(dossierError)}`,
+            `Failed to fetch upMiner dossiers for batch ${batchId}: ${String(fetchError)}`,
           );
-          result.markAsError(`Dossier fetch failed: ${(dossierError as Error).message}`);
+          result.markAsError(`Dossier fetch failed: ${(fetchError as Error).message}`);
         }
 
         await this.upminerRepository.update(result);

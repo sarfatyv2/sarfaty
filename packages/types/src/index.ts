@@ -198,3 +198,24 @@ export {
   type ClientDrawee,
 } from './trade-receivable';
 export { type BillingCompany } from './billing-company';
+export {
+  UPMINER_PERSISTED_SCHEMA_VERSION,
+  type UpminerBatchDossierCriterionPersisted,
+  type UpminerBatchDossierListItemPersisted,
+  type UpminerBatchDossiersListPersisted,
+  type UpminerDossierSourceItemPersisted,
+  type UpminerDossierDetailPersisted,
+  type UpminerReceitaFederalPjActivity,
+  type UpminerReceitaFederalPjPayload,
+  type UpminerQsaSocioPersisted,
+  type UpminerBaseEmpresasPayload,
+  type UpminerCadeAutuacaoPersisted,
+  type UpminerCadeProtocoloPersisted,
+  type UpminerCadeAndamentoPersisted,
+  type UpminerCadeProcessoDadosPersisted,
+  type UpminerCadeProcessoItemPersisted,
+  type UpminerCadePayload,
+  type UpminerWellKnownSourceMethod,
+  type UpminerPersistedDossiersDataV1,
+  isUpminerPersistedDossiersDataV1,
+} from './upminer';
