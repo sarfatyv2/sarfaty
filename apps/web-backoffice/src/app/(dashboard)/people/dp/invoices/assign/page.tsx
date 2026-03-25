@@ -87,19 +87,26 @@ export default function AssignPjInvoicesPage() {
   const loadMeta = useCallback(async () => {
     setLoadingMeta(true);
     try {
-      const [bcRes, collabRes] = await Promise.all([
-        api.get<BillingCompanyRow[]>('/people/billing-companies'),
-        api.get<Array<{ id: string; fullName: string }>>('/people/collaborators', {
-          page: 1,
-          pageSize: 500,
-          employmentType: 'pj',
-          isActive: true,
-        }),
-      ]);
-      const bc = bcRes.data ?? [];
-      const coll = collabRes.data ?? [];
-      setBillingCompanies(bc);
-      setCollaborators(coll.map((c) => ({ id: c.id, fullName: c.fullName })));
+      const PAGE_SIZE = 100;
+
+      const bcRes = await api.get<BillingCompanyRow[]>('/people/billing-companies');
+      setBillingCompanies(bcRes.data ?? []);
+
+      const allCollaborators: Array<{ id: string; fullName: string }> = [];
+      let page = 1;
+      let totalPages = 1;
+
+      do {
+        const res = await api.get<Array<{ id: string; fullName: string }>>(
+          '/people/collaborators',
+          { page, pageSize: PAGE_SIZE, employmentType: 'pj', isActive: true },
+        );
+        allCollaborators.push(...(res.data ?? []));
+        totalPages = res.pagination?.totalPages ?? 1;
+        page++;
+      } while (page <= totalPages);
+
+      setCollaborators(allCollaborators.map((c) => ({ id: c.id, fullName: c.fullName })));
     } catch {
       toast.error('Erro ao carregar empresas e colaboradores');
       setBillingCompanies([]);
