@@ -476,6 +476,7 @@ O frontend consome esse mapa e renderiza por composição — zero condicionais 
 | `audit_trail.md` | Sistema de auditoria centralizado: interceptor, tabela, correlação | ~300 |
 | `governance_communication_implementacao.md` | Módulos Governance (comitês, reuniões, atas, ações) e Communication (wiki, intranet): domínio, banco, endpoints, CRON, frontend, RBAC | ~400 |
 | `vadu_integracao.md` | Integração VADU: consulta CNPJ/CPF síncrona + CreditBox assíncrono (polling, PDF, JSON). Adapters, domínio, persistência, frontend | ~100 |
+| `cerc_integracao.md` | Integração CERC: validação de duplicatas mercantis, resultados por algoritmo (`cerc_validation_resultados`), autenticação OAuth, endpoints internos, frontend, env vars, resiliência | ~220 |
 | `compliance_checks_integracao.md` | Verificações de compliance: 9 fontes (CGU, PGFN, CNDT, PEP, Sanções, Trabalho Escravo, ViaCEP, Mídia Negativa/OSINT, Presença Digital). Arquitetura, adapters, use cases, cálculo de risco, testes | ~300 |
 
 ---

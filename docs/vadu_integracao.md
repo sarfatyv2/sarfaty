@@ -117,5 +117,5 @@ Os resultados são exibidos junto com os dados VADU/CreditBox na aba **Bureau** 
 
 Integrações complementares à análise de crédito:
 
-- **CERC** (validação de duplicatas mercantis e extração de NF-e com Gemini): `docs/cerc_integracao.md`
+- **CERC** (validação de duplicatas mercantis, resultados de análise por algoritmo e extração de NF-e com Gemini): `docs/cerc_integracao.md`
 - **upMiner** (análise PF/PJ, batch e dossier via API): `docs/upminer_integracao.md`
