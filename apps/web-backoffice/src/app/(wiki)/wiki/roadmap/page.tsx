@@ -19,6 +19,12 @@ import {
   Scale,
   GraduationCap,
   ArrowRightLeft,
+  BookOpen,
+  Landmark,
+  MessageSquare,
+  FileSpreadsheet,
+  ScanSearch,
+  Package,
 } from 'lucide-react';
 
 interface DeliveryItem {
@@ -166,11 +172,70 @@ const delivery2: DeliveryItem[] = [
     icon: Scale,
   },
   {
+    label: 'Pipeline Comercial e Metas',
+    description:
+      'Funil visual com 7 estágios, métricas de conversão, metas por nível (individual, equipe, região) e ranking de performance entre comerciais.',
+    status: 'in_progress',
+    icon: BarChart2,
+  },
+  {
+    label: 'Plataforma de Aprendizagem (LMS)',
+    description:
+      'Cursos com módulos e vídeo-aulas, matrículas automáticas em obrigatórios, trilhas de progresso e quiz — base para treinamento dos novos processos.',
+    status: 'done',
+    icon: BookOpen,
+  },
+  {
     label: 'Treinamento e Implantação',
     description:
       'Programa de treinamento por role, documentação de uso e rollout faseado para todas as áreas da empresa.',
     status: 'planned',
     icon: GraduationCap,
+  },
+];
+
+const delivery3: DeliveryItem[] = [
+  {
+    label: 'Mapeamento de Produtos — Gravame e Nota Comercial',
+    description:
+      'Modelagem e cadastro dos produtos de crédito estruturados (gravame, nota comercial), com regras de elegibilidade, parâmetros de pricing e vínculo ao portfólio de posições.',
+    status: 'planned',
+    icon: Package,
+  },
+  {
+    label: 'Automação de Duplicatas (CNAB)',
+    description:
+      'Aprovação e reprovação em lote de recebíveis comerciais via CNAB, com recálculo automático de valor aprovado na operação e rastreabilidade por título.',
+    status: 'in_progress',
+    icon: FileSpreadsheet,
+  },
+  {
+    label: 'Integração CERC',
+    description:
+      'Validação de duplicata mercantil via API CERC com OAuth, criação de lote, sincronização de constatações/eventos/partes e extração de NFe via Gemini.',
+    status: 'in_progress',
+    icon: ArrowRightLeft,
+  },
+  {
+    label: 'Análise Automática de Sacados',
+    description:
+      'Compliance completo automatizado por sacado: PEP, sanções, PGFN, CNDT, CGU, trabalho escravo, presença digital e mídia negativa — com tabelas dedicadas por tipo de risco.',
+    status: 'in_progress',
+    icon: ScanSearch,
+  },
+  {
+    label: 'Governança — Comitês de Crédito',
+    description:
+      'Comitês com reuniões, atas em rich text, itens de ação com responsáveis e prazos, atualizações de status e lembretes automáticos via CRON.',
+    status: 'in_progress',
+    icon: Landmark,
+  },
+  {
+    label: 'Comunicação Interna (Wiki + Intranet)',
+    description:
+      'Wiki corporativa com categorias e artigos em rich text para base de conhecimento, e intranet de comunicados oficiais para toda a empresa.',
+    status: 'in_progress',
+    icon: MessageSquare,
   },
 ];
 
@@ -296,7 +361,7 @@ export default function RoadmapPage() {
             Roadmap da Plataforma
           </h1>
           <p className="text-[hsl(35,20%,40%)] text-base leading-relaxed max-w-xl">
-            Planejamento de entregas da Plataforma Sarfaty em duas fases. A primeira entrega foca na fundação operacional; a segunda expande para inteligência comercial, jurídico e integrações externas.
+            Planejamento de entregas da Plataforma Sarfaty em três fases. A primeira foca na fundação operacional; a segunda expande para inteligência comercial e jurídico; a terceira aprofunda produtos de crédito, automações e governança.
           </p>
         </div>
       </section>
@@ -321,12 +386,27 @@ export default function RoadmapPage() {
         <div>
           <SectionHeading
             title="Entrega 2 — Expansão Comercial e Integrações"
-            subtitle="Finalização da área comercial com dashboards e IA, enriquecimento do RH, integração Netfactor, módulo jurídico e programa de treinamento para rollout."
+            subtitle="Finalização da área comercial com dashboards e IA, pipeline e metas, LMS, enriquecimento do RH, integração Netfactor, módulo jurídico e programa de treinamento."
             badge="Fase 2"
           />
           <DeliveryStats items={delivery2} />
           <div className="grid grid-cols-1 gap-3">
             {delivery2.map((item, i) => (
+              <DeliveryCard key={item.label} item={item} index={i} />
+            ))}
+          </div>
+        </div>
+
+        {/* Entrega 3 */}
+        <div>
+          <SectionHeading
+            title="Entrega 3 — Produtos, Automação e Governança"
+            subtitle="Mapeamento de gravame e nota comercial, automação de duplicatas via CNAB, integração CERC, análise automática de sacados, comitês de crédito e comunicação interna."
+            badge="Fase 3"
+          />
+          <DeliveryStats items={delivery3} />
+          <div className="grid grid-cols-1 gap-3">
+            {delivery3.map((item, i) => (
               <DeliveryCard key={item.label} item={item} index={i} />
             ))}
           </div>
