@@ -43,7 +43,7 @@ export default function CommercialModulePage() {
           { name: 'client_addresses', description: 'Endereços (comercial, entrega, cobrança).', keyColumns: ['client_id', 'type', 'cep', 'street'] },
           { name: 'client_bank_accounts', description: 'Contas bancárias do cliente.', keyColumns: ['client_id', 'bank', 'agency', 'account'] },
           { name: 'client_authorized_persons', description: 'Sócios e procuradores autorizados.', keyColumns: ['client_id', 'cpf', 'name', 'role'] },
-          { name: 'client_commercial_reports', description: 'Relatórios de visita comercial.', keyColumns: ['client_id', 'author_id', 'content', 'visited_at'] },
+          { name: 'client_commercial_reports', description: 'Relatórios de visita comercial (formulário estruturado + filhas: propostas, avalistas, imóveis).', keyColumns: ['client_id', 'created_by', 'visit_date', 'report_date'] },
           { name: 'sales_goals', description: 'Metas de vendas por nível (individual / equipe / região).', keyColumns: ['level', 'target_id', 'amount', 'period'] },
           { name: 'segments', description: 'Segmentos de mercado dos clientes.', keyColumns: ['id', 'name', 'code'] },
           { name: 'credit_products', description: 'Produtos de crédito disponíveis.', keyColumns: ['id', 'name', 'code', 'type'] },

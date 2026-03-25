@@ -922,7 +922,7 @@ A página do cliente (`/clients/:id`) é a mesma URL para todos. O que muda são
 |-----------|------|-----------|---------|
 | `overview` | Visão Geral | Dados básicos, status, timeline de eventos, segmento | Todos |
 | `documents` | Documentos | Checklist dinâmico, uploads, status de validação | Comercial, Supervisor, Gerente, Backoffice |
-| `activities` | Atividades | Visitas, ligações, reuniões registradas | Comercial, Supervisor, Gerente |
+| `activities` | Atividades / Visitas | Rota global `/activities`: painel de **visitas comerciais** (ciclo 90 dias). No detalhe do cliente, aba **Visitas** lista `client_commercial_reports` e permite novo registro. | Comercial, Supervisor, Gerente |
 | `assignment-history` | Histórico de Atribuição | Reatribuições do cliente entre comerciais | Supervisor, Gerente, Diretor |
 | `financial-data` | Dados Financeiros | Dados extraídos dos documentos (faturamento, balanço) | Crédito, Mesa, Risco |
 | `bureau-results` | Bureaus | Resultado de cada bureau consultado | Crédito, Mesa |

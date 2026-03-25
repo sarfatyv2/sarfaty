@@ -1006,42 +1006,150 @@ Pessoas autorizadas a representar o cliente (socios, procuradores, representante
 
 ### 41. client_commercial_reports
 
-Relatorios comerciais e de visita estruturados. Parseados do arquivo Excel `.xlsx` enviado pelo comercial.
+Relatorios comerciais alinhados ao formulario Excel "Relatorio Comercial" (visitas). Podem ser preenchidos manualmente no backoffice, via parse de `.xlsx` ou pela API. A **data da visita** operacional e `visit_date`; o painel de visitas usa o **MAX(`visit_date`)** por cliente (ciclo 90 dias, limiar 15 dias — ver `@nexus/utils` `computeVisitStatusFromDate`).
 
 | Coluna | Tipo | Null | Default | Descricao |
 |--------|------|------|---------|-----------|
 | `id` | uuid | NO | gen_random_uuid() | PK |
 | `client_id` | uuid | NO | — | FK -> clients.id |
-| `created_by` | uuid | NO | — | FK -> profiles.id |
+| `created_by` | uuid | NO | — | FK -> profiles.id (autor do registro) |
 | `visit_date` | date | YES | — | Data da visita |
 | `report_date` | date | YES | — | Data do relatorio |
-| `proposal_type` | text | YES | — | Tipo de proposta |
+| `proposal_type` | text | YES | — | Tipo de proposta (ex.: Prospecao) |
 | `installed_capacity` | text | YES | — | Capacidade instalada |
 | `utilized_capacity` | text | YES | — | Capacidade utilizada |
 | `productive_capacity` | text | YES | — | Capacidade produtiva |
-| `inventory` | text | YES | — | Estoques |
-| `main_clients` | text | YES | — | Principais clientes |
-| `main_suppliers` | text | YES | — | Principais fornecedores |
-| `gross_payroll` | numeric | YES | — | FOPAG Bruta |
-| `accounts_receivable` | numeric | YES | — | Contas a receber |
-| `available_cash` | numeric | YES | — | Disponivel / Caixa |
-| `advances_to_suppliers` | numeric | YES | — | Adiantamentos a fornecedores |
-| `advances_from_clients` | numeric | YES | — | Adiantamentos de clientes |
-| `sales_percentage_cash` | numeric | YES | — | % Vendas a vista |
-| `sales_percentage_term` | numeric | YES | — | % Vendas a prazo |
-| `internal_market_percentage` | numeric | YES | — | % Mercado interno |
-| `external_market_percentage` | numeric | YES | — | % Mercado externo |
+| `main_clients` | text | YES | — | Principais clientes (texto livre / legado) |
+| `main_suppliers` | text | YES | — | Principais fornecedores (texto livre / legado) |
+| `inventory` | text | YES | — | Estoques (descricao textual) |
+| `gross_payroll` | numeric(15,2) | YES | — | FOPAG bruta |
+| `accounts_receivable` | numeric(15,2) | YES | — | Contas a receber |
+| `available_cash` | numeric(15,2) | YES | — | Disponivel / caixa |
+| `advances_to_suppliers` | numeric(15,2) | YES | — | Adiantamentos a fornecedores |
+| `advances_from_clients` | numeric(15,2) | YES | — | Adiantamentos de clientes |
+| `concentration` | numeric(5,2) | YES | — | Concentracao (%) |
+| `concentration_drawee` | numeric(5,2) | YES | — | Concentracao sacado (%) |
+| `sales_percentage_cash` | numeric(5,2) | YES | — | % vendas a vista |
+| `sales_percentage_term` | numeric(5,2) | YES | — | % vendas a prazo |
+| `internal_market_percentage` | numeric(5,2) | YES | — | % mercado interno |
+| `external_market_percentage` | numeric(5,2) | YES | — | % mercado externo |
+| `average_payment_term` | integer | YES | — | Prazo medio pagamento (dias) |
+| `average_receipt_term` | integer | YES | — | Prazo medio recebimento / PMR (dias) |
 | `average_delivery_time` | integer | YES | — | Prazo medio entrega (dias) |
 | `transport_type` | text | YES | — | Tipo de transporte |
-| `tac_value` | numeric | YES | — | TAC |
-| `ted_value` | numeric | YES | — | TED |
-| `boleto_tariff` | numeric | YES | — | Tarifa de boleto |
-| `notary_term` | integer | YES | — | Prazo de cartorio |
-| `commercial_defense` | text | YES | — | Parecer / Historico |
+| `delivered_percentage` | numeric(5,2) | YES | — | % entregue |
+| `shipped_percentage` | numeric(5,2) | YES | — | % embarcado |
+| `delivery_proof_type` | text | YES | — | Tipo comprovante de entrega |
+| `has_carrier_site_access` | boolean | YES | — | Acesso ao site da transportadora |
+| `payment_methods` | text | YES | — | Formas de pagamento (texto livre) |
+| `receipt_methods` | text | YES | — | Formas de recebimento (texto livre) |
+| `tac_value` | numeric(15,2) | YES | — | TAC |
+| `ted_value` | numeric(15,2) | YES | — | TED |
+| `boleto_tariff` | numeric(15,2) | YES | — | Tarifa boleto |
+| `notary_term` | integer | YES | — | Prazo cartorio |
+| `expired_title_tariff` | numeric(15,2) | YES | — | Tarifa titulo vencido |
+| `protested_title_tariff` | numeric(15,2) | YES | — | Tarifa titulo protestado |
+| `sustained_title_tariff` | numeric(15,2) | YES | — | Tarifa titulo sustado |
+| `commercial_defense` | text | YES | — | Defesa comercial / parecer / impressoes da visita |
+| `employee_count` | integer | YES | — | Funcionarios (cabecalho) |
+| `referral_source` | text | YES | — | Fonte de indicacao |
+| `average_ticket` | text | YES | — | Ticket medio |
+| `operation_notes` | text | YES | — | Observacoes da operacao |
+| `serasa_notes` | text | YES | — | Restricoes SERASA (justificativas) |
+| `partners_notes` | text | YES | — | Observacoes sobre socios (cadastro detalhado permanece em `client_authorized_persons`) |
+| `related_companies_notes` | text | YES | — | Observacoes sobre empresas ligadas |
+| `main_products` | text | YES | — | Principais produtos e/ou servicos |
+| `anticipa_grandes_redes` | boolean | YES | — | Antecipa com grandes redes |
+| `anticipa_grandes_redes_list` | text | YES | — | Quais redes |
+| `pre_billing_percentage` | numeric(5,2) | YES | — | % pre-faturamento |
+| `cte_days` | integer | YES | — | Prazo comprovante CTE (dias) |
+| `sales_south_percentage` | numeric(5,2) | YES | — | % vendas Sul |
+| `sales_southeast_percentage` | numeric(5,2) | YES | — | % vendas Sudeste |
+| `sales_north_percentage` | numeric(5,2) | YES | — | % vendas Norte |
+| `sales_northeast_percentage` | numeric(5,2) | YES | — | % vendas Nordeste |
+| `sales_midwest_percentage` | numeric(5,2) | YES | — | % vendas Centro-Oeste |
+| `inventory_value` | numeric(15,2) | YES | — | Estoques em R$ (meios circulantes gerencial) |
+| `banks_balance` | numeric(15,2) | YES | — | Bancos CP (passivo) |
+| `funds_balance` | numeric(15,2) | YES | — | Fundos (passivo) |
+| `suppliers_balance` | numeric(15,2) | YES | — | Fornecedores passivo |
+| `receipt_methods_detail` | jsonb | YES | — | Mercado interno estruturado (array: forma, PMR, % vendas) |
+| `external_receipt_methods_detail` | jsonb | YES | — | Mercado externo (mesmo formato) |
+| `suppliers_detail` | jsonb | YES | — | Fornecedores: forma pgto., % compras, prazo medio |
 | `created_at` | timestamptz | NO | now() | |
 | `updated_at` | timestamptz | NO | now() | |
 
-**Constraints:** FK(client_id, created_by)
+**Constraints:** FK(`client_id` -> clients), FK(`created_by` -> profiles). **RLS:** politica `service_role` (aplicacao escopa acesso).
+
+**Filhas (1:N, ON DELETE CASCADE):**
+
+- `commercial_report_proposals` — linhas da tabela "Proposta comercial" (modalidade, limite, garantia, taxas por linha).
+- `commercial_report_guarantors` — avalistas (nome, CPF).
+- `commercial_report_properties` — estrutura operacional / imoveis (areas, avaliacao).
+
+Ver subsecao 41.1 a 41.3.
+
+---
+
+### 41.1 commercial_report_proposals
+
+Linhas de proposta comercial vinculadas a um relatorio.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `report_id` | uuid | NO | — | FK -> client_commercial_reports.id |
+| `modality` | text | YES | — | Modalidade |
+| `limit_amount` | numeric(15,2) | YES | — | Limite (R$) |
+| `guarantee` | text | YES | — | Garantia |
+| `rate` | text | YES | — | Taxa |
+| `concentration_pct` | numeric(5,2) | YES | — | Concentracao (%) |
+| `term` | text | YES | — | Prazo (ex.: 180 DIAS) |
+| `tranche` | text | YES | — | Tranche |
+| `tac_value` | numeric(15,2) | YES | — | TAC |
+| `boleto_tariff` | numeric(15,2) | YES | — | Tar. boleto |
+| `ted_value` | numeric(15,2) | YES | — | TED |
+| `serasa` | text | YES | — | Serasa |
+| `sort_order` | integer | NO | 0 | Ordem de exibicao |
+| `created_at` | timestamptz | YES | now() | |
+
+**Indice:** `report_id`. **RLS:** `service_role`.
+
+---
+
+### 41.2 commercial_report_guarantors
+
+Avalistas do relatorio.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `report_id` | uuid | NO | — | FK -> client_commercial_reports.id |
+| `full_name` | text | NO | — | Nome |
+| `cpf` | text | YES | — | CPF |
+| `sort_order` | integer | NO | 0 | Ordem |
+| `created_at` | timestamptz | YES | now() | |
+
+**Indice:** `report_id`. **RLS:** `service_role`.
+
+---
+
+### 41.3 commercial_report_properties
+
+Imoveis / estrutura operacional.
+
+| Coluna | Tipo | Null | Default | Descricao |
+|--------|------|------|---------|-----------|
+| `id` | uuid | NO | gen_random_uuid() | PK |
+| `report_id` | uuid | NO | — | FK -> client_commercial_reports.id |
+| `property_name` | text | YES | — | Imovel |
+| `situation` | text | YES | — | Situacao |
+| `total_area` | text | YES | — | Area total |
+| `built_area` | text | YES | — | Area construida |
+| `appraised_value` | numeric(15,2) | YES | — | Avaliacao do imovel |
+| `sort_order` | integer | NO | 0 | Ordem |
+| `created_at` | timestamptz | YES | now() | |
+
+**Indice:** `report_id`. **RLS:** `service_role`.
 
 ---
 

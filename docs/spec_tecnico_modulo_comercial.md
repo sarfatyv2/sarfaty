@@ -650,6 +650,8 @@ CREATE INDEX idx_activities_profile ON commercial_activities(profile_id);
 CREATE INDEX idx_activities_scheduled ON commercial_activities(scheduled_at);
 ```
 
+**Implementação atual (plataforma):** a tabela `commercial_activities` acima permanece na especificação; **na versão entregue**, o acompanhamento operacional de **visitas comerciais** (ciclo 90 dias, painel por cliente) utiliza **`client_commercial_reports.visit_date`** e os endpoints `GET /visits/overview` e `GET /visits/team-overview`, com a mesma regra de status no backend e no frontend via `@nexus/utils` (`computeVisitStatusFromDate`). O cadastro de relatório cobre o layout do Excel corporativo (incluindo propostas em linhas, avalistas e imóveis em tabelas filhas). Ver `docs/comercial_implementacao.md` seção 19 e `docs/dicionario_dados.md` seções 41–41.3.
+
 ---
 
 ## 4. Row Level Security (RLS)

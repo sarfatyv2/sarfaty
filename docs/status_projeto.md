@@ -136,7 +136,7 @@ sarfaty/
 | 33 | `client-authorized-persons.ts` | `client_authorized_persons` | Comercial |
 | 34 | `sales-goals.ts` | `sales_goals` (individual/equipe/região) | Comercial |
 | 35 | `notifications.ts` | `notifications` | Comercial |
-| 36 | `client-commercial-reports.ts` | `client_commercial_reports` (Relatórios parseados) | Comercial |
+| 36 | `client-commercial-reports.ts` + `commercial-report-*.ts` | `client_commercial_reports` (v2 + propostas, avalistas, imóveis) | Comercial |
 | 37 | `drawees.ts` | `drawees` (PJ e PF) | Sacados |
 | 37 | `drawee-contacts.ts` | `drawee_contacts` | Sacados |
 | 38 | `drawee-addresses.ts` | `drawee_addresses` (com campos billing legados) | Sacados |

@@ -1,7 +1,7 @@
 # Implementação do Módulo Comercial — Cadastro de Cliente e Documentação
 
-**Versão:** 3.0  
-**Data:** 20 de Fevereiro de 2026  
+**Versão:** 3.1  
+**Data:** 25 de Março de 2026  
 **Status:** Backend + Frontend completos  
 **Referência:** `spec_tecnico_modulo_comercial.md`  
 
@@ -20,6 +20,8 @@ Este documento descreve a implementação do módulo comercial: cadastro de clie
 - **Frontend completo** — lista de clientes (cards), formulário multi-step, detalhe com checklist de documentos
 - **Utilitários compartilhados** — pipeline de status com fases, ícones, cores e helpers (`@nexus/utils`)
 - **Automação de Relatórios (Excel)** — endpoint para parse de arquivos `.xlsx` de Relatório de Visita (`visit_report`), extração estruturada de dados e modal de revisão no frontend antes do salvamento da entidade `client_commercial_reports`.
+- **Relatório comercial v2** — campos adicionais no registro (cabeçalho, observações, regiões, meios circulantes estendidos, JSONB para mercado interno/externo e fornecedores) e três tabelas filhas: `commercial_report_proposals`, `commercial_report_guarantors`, `commercial_report_properties`. Contrato compartilhado: `createCommercialReportSchema` em `@nexus/validators`.
+- **Painel de visitas** — endpoints `GET /api/visits/overview` e `GET /api/visits/team-overview`; UI em `/activities` (backoffice). Regra de status (90 / 15 dias): **uma única implementação** em `@nexus/utils` (`computeVisitStatusFromDate`, tipo `VisitStatus`); o backend reexporta via `visit-status.helper.ts` e o front importa do package.
 
 ### 1.2 Escopo Pendente
 
@@ -789,3 +791,43 @@ drawees/
 | GET | `/api/pipeline/metrics` | (mesmo acima) | Contagem e valor por fase do funil |
 
 **Frontend (`pipeline/page.tsx`):** Board kanban com colunas por fase do pipeline, cards de clientes arrastáveis, métricas de contagem e valor total por fase no topo.
+
+---
+
+## 19. Relatório comercial v2, visitas e migrações
+
+### 19.1 Banco (Supabase e Drizzle)
+
+- **Supabase:** migration `supabase/migrations/20260325000000_commercial_report_v2.sql` — `ALTER TABLE client_commercial_reports` (colunas v2) + criação das tabelas filhas + RLS `service_role` (mesmo padrão da tabela pai).
+- **Drizzle (API):** schemas em `apps/api/src/database/schema/` — `client-commercial-reports.ts` (campos v2), `commercial-report-proposals.ts`, `commercial-report-guarantors.ts`, `commercial-report-properties.ts`. Migration gerada: `apps/api/src/database/migrations/0005_glorious_amazoness.sql` (apenas delta comercial v2 no repositório).
+- **Baseline:** em projetos onde `client_commercial_reports` ainda não existia no remoto, aplicar antes a migration `20260320000001_client_commercial_reports.sql` (ou equivalente). O MCP Supabase do Cursor (`apply_migration`) pode aplicar DDL no projeto linkado; a URL da API usa `DATABASE_URL` em `apps/api/.env.local`.
+
+### 19.2 Migrações locais (mesma URL da API)
+
+Na pasta `apps/api`:
+
+```bash
+pnpm db:migrate
+```
+
+Script: `scripts/drizzle-migrate.sh` (carrega `.env.local` ou `.env` e executa `drizzle-kit migrate`). Se o banco foi provisionado só pelo Supabase e o histórico Drizzle estiver desalinhado, ajustar baseline ou aplicar SQL via Supabase conforme o ambiente.
+
+### 19.3 API — relatórios e visitas
+
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | `/api/clients/:clientId/commercial-reports` | Corpo: `CreateCommercialReportDto` (inclui `proposals`, `guarantors`, `properties`, campos v2). |
+| GET | `/api/clients/:clientId/commercial-reports` | Lista relatorios com filhas; `?latest=true` para o mais recente. |
+| GET | `/api/visits/overview` | Resumo de visitas por cliente (comercial). |
+| GET | `/api/visits/team-overview` | Agregado por representante (perfis de gestão). |
+
+Persistência: `DrizzleCommercialReportRepository` insere a linha pai em transação e em seguida as linhas das tabelas filhas.
+
+### 19.4 Frontend
+
+- Formulário completo: `apps/web-backoffice/.../commercial-report-dialog.tsx` (react-hook-form + `useFieldArray` para linhas dinâmicas).
+- Aba visitas do cliente: `client-visits-tab.tsx` — status com `computeVisitStatusFromDate` e maior `visit_date` entre relatorios.
+
+### 19.5 Documentação de dados
+
+Dicionário atualizado em `docs/dicionario_dados.md` (tabelas 41, 41.1–41.3).

@@ -7,3 +7,4 @@ export * from './learning-status';
 export * from './permissions';
 export * from './goal-helpers';
 export * from './pipeline-helpers';
+export * from './visit-status';
