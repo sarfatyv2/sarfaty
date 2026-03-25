@@ -10,9 +10,21 @@ import {
   SelectValue,
   Skeleton,
   Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@nexus/ui';
 import { PJ_INVOICE_STATUS_LABELS } from '@nexus/utils';
-import { Bell } from 'lucide-react';
+import {
+  AlertTriangle,
+  Bell,
+  Building2,
+  FileOutput,
+  FilePlus2,
+  MoreHorizontal,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { InvoicesTable } from '../../_components/invoices-table';
@@ -52,7 +64,7 @@ export default function DpInvoicesPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [yearFilter, setYearFilter] = useState<number>(CURRENT_YEAR);
-  const [monthFilter, setMonthFilter] = useState<number | ''>('');
+  const [monthFilter, setMonthFilter] = useState<number | ''>(new Date().getMonth() + 1);
   const [sendingReminders, setSendingReminders] = useState(false);
   const [generating, setGenerating] = useState(false);
 
@@ -152,33 +164,56 @@ export default function DpInvoicesPage() {
             Fila de notas fiscais para conferência e pagamento
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/people/dp/invoices/assign">Atribuir NFs</Link>
-          </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/people/dp/billing-companies">Empresas faturadoras</Link>
-          </Button>
+        <div className="flex flex-wrap items-center gap-2">
           <Button
-            variant="outline"
             size="sm"
             onClick={handleGenerateMonthly}
             disabled={generating}
           >
-            Gerar NFs do mês
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSendReminders}
-            disabled={sendingReminders}
-          >
-            <Bell size={14} className="mr-2" />
-            Enviar lembretes
+            <FilePlus2 size={16} className="mr-2" />
+            {generating ? 'Gerando…' : 'Gerar NFs do mês'}
           </Button>
           <Button variant="outline" size="sm" asChild>
-            <Link href="/people/dp/invoices/overdue">Atrasadas</Link>
+            <Link href="/people/dp/invoices/assign">
+              <FileOutput size={16} className="mr-2" />
+              Atribuir NFs
+            </Link>
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="px-2.5"
+                aria-label="Mais ações"
+              >
+                <MoreHorizontal size={18} className="shrink-0" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[14rem]">
+              <DropdownMenuItem asChild>
+                <Link href="/people/dp/billing-companies" className="flex cursor-pointer items-center">
+                  <Building2 size={16} className="mr-2 shrink-0" />
+                  Empresas faturadoras
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={sendingReminders}
+                onClick={() => void handleSendReminders()}
+                className="cursor-pointer"
+              >
+                <Bell size={16} className="mr-2 shrink-0" />
+                Enviar lembretes
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/people/dp/invoices/overdue" className="flex cursor-pointer items-center">
+                  <AlertTriangle size={16} className="mr-2 shrink-0" />
+                  NFs atrasadas
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
