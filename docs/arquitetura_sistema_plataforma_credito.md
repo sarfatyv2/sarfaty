@@ -1,7 +1,7 @@
 # Arquitetura do Sistema — Plataforma Sarfaty
 
-**Versão:** 1.1  
-**Data:** Fevereiro 2026  
+**Versão:** 1.2  
+**Data:** Março 2026  
 **Status:** Draft  
 
 ---
@@ -15,7 +15,7 @@
 | Estrutura do projeto | Monorepo (Turborepo) | Compartilha tipos, validações, configs. Deploy independente por app |
 | Backend framework | NestJS (TypeScript) + Fastify | DI, módulos, guards, decorators. Fastify 2-3x mais rápido que Express, schema validation nativa |
 | Frontend framework | Next.js 15 (App Router) | SSR, Server Components, middleware de auth, otimização automática |
-| Banco principal | Supabase (PostgreSQL 15+) | RLS nativo, Auth, Storage, Realtime, Edge Functions, hosting managed |
+| Banco principal | Supabase (PostgreSQL 15+) | RLS, Storage; hospedagem gerenciada; Auth do produto é JWT na API (não Supabase Auth no login) |
 | ORM | Drizzle ORM | Type-safe, SQL-first, migrations programáticas, performance superior ao Prisma |
 | Validação | Zod | Schema compartilhado entre front e back via monorepo |
 | Orquestração de workflows | Temporal.io | State machine durável, retries, compensações, visibilidade do fluxo |
@@ -28,7 +28,7 @@
 | Comunicação inter-serviços | Events (pgmq/BullMQ) + HTTP (sincrono) | Event-driven para async, HTTP para queries síncronas |
 | Cache | Redis (Upstash) | Sessões, rate limiting, cache de consultas, filas BullMQ |
 | Storage de arquivos | Supabase Storage (S3) | Upload direto do frontend, RLS nos buckets, CDN integrado |
-| Auth | Supabase Auth + custom RBAC | JWT, refresh tokens, MFA. RBAC via tabela profiles + RLS |
+| Auth | JWT local (API) + refresh em Postgres | Access JWT HS256 (`JWT_SECRET`); hash de senha em `profiles`; sessões em `refresh_tokens`; RBAC dinâmico (`roles` / `role_permissions`) + claim `role` no token |
 | Deploy | Vercel (frontends) + Railway/Fly.io (NestJS) + Supabase (DB) | Deploy automático, preview environments, escala automática |
 | CI/CD | GitHub Actions + Turborepo | Build/test/deploy por workspace afetado, não rebuilda tudo |
 | Monitoramento | Grafana Cloud + Sentry + OpenTelemetry | Métricas, logs, traces, error tracking, tracing distribuído |
@@ -180,490 +180,151 @@ Request → Correlation ID Middleware → Pino Logger → OpenTelemetry Tracer
 
 Cada request carrega um `correlationId` que aparece em logs, traces e métricas. Quando algo falha, um ID conecta tudo.
 
+### 1.8 Autenticação (JWT) e RBAC na API
+
+- **Login:** `POST /auth/login` valida e-mail/senha contra `profiles` (`password_hash`). A API emite **access token** (curta duração, padrão `15m`) e **refresh token** opaco persistido com hash em `refresh_tokens`.
+- **API:** `AuthGuard` valida o Bearer com `@nestjs/jwt` (`TokenService`). `RbacGuard` resolve features do papel via `roles` + `role_permissions` (cache); `@Roles()` / `RolesGuard` restringe endpoints pontuais. UI do backoffice obtém layout em `GET /my/permissions`, com fallback para `ROLE_PERMISSIONS` em `@nexus/types`.
+- **Backoffice:** cookies de access/refresh; `middleware.ts` valida JWT com `jose` (mesmo segredo); expirado chama `POST /auth/refresh` e renova cookies.
+
+```mermaid
+sequenceDiagram
+  participant Browser
+  participant Next as Next_Backoffice
+  participant API as NestJS_API
+  participant DB as Postgres
+
+  Browser->>Next: POST /api/auth/login
+  Next->>API: POST /auth/login
+  API->>DB: profiles + password verify
+  API-->>Next: access + refresh
+  Next-->>Browser: Set-Cookie
+  Browser->>Next: Rota protegida
+  Next->>API: Authorization Bearer + cookies
+  API->>API: AuthGuard + RbacGuard
+  API->>DB: Drizzle (service role)
+```
+
 ---
 
 ## 2. Estrutura do Monorepo
 
+Visão condensada alinhada ao repositório. O **portal do cliente** (`apps/web-client`) está na especificação do produto; **no monorepo atual o app Next.js é o backoffice** (`apps/web-backoffice`).
+
 ```
-nexus/
+Sarfaty/
 ├── apps/
-│   ├── web-client/                  # Portal do Cliente (Next.js)
-│   │   ├── app/
-│   │   │   ├── (auth)/
-│   │   │   │   ├── login/
-│   │   │   │   └── register/
-│   │   │   ├── (portal)/
-│   │   │   │   ├── dashboard/
-│   │   │   │   ├── documents/
-│   │   │   │   │   └── upload/
-│   │   │   │   ├── operation/
-│   │   │   │   │   └── [id]/
-│   │   │   │   └── contracts/
-│   │   │   │       └── sign/
-│   │   │   ├── layout.tsx
-│   │   │   └── page.tsx
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── lib/
-│   │   ├── next.config.ts
-│   │   ├── tailwind.config.ts
-│   │   └── package.json
+│   ├── api/                          # NestJS + Fastify + Drizzle
+│   │   └── src/
+│   │       ├── app.module.ts
+│   │       ├── common/               # guards, interceptors, pipes, audit module
+│   │       ├── database/schema/      # Drizzle (~127 tabelas exportadas em index.ts)
+│   │       └── modules/              # feature modules (tabela abaixo)
 │   │
-│   ├── web-backoffice/              # Backoffice Interno (Next.js)
-│   │   ├── app/
-│   │   │   ├── (auth)/
-│   │   │   │   └── login/
-│   │   │   ├── (dashboard)/
-│   │   │   │   ├── layout.tsx       # Sidebar + header + RBAC guard
-│   │   │   │   ├── overview/        # Dashboard executivo
-│   │   │   │   ├── commercial/
-│   │   │   │   │   ├── clients/
-│   │   │   │   │   │   ├── page.tsx           # Lista + pipeline
-│   │   │   │   │   │   ├── new/page.tsx       # Novo cliente
-│   │   │   │   │   │   └── [id]/
-│   │   │   │   │   │       ├── page.tsx       # Detalhe do cliente
-│   │   │   │   │   │       ├── documents/     # Docs + checklist
-│   │   │   │   │   │       └── activities/    # Histórico de atividades
-│   │   │   │   │   ├── pipeline/
-│   │   │   │   │   ├── goals/
-│   │   │   │   │   └── team/
-│   │   │   │   ├── credit/
-│   │   │   │   │   ├── queue/               # Fila de análise
-│   │   │   │   │   ├── reports/             # Relatórios do agente
-│   │   │   │   │   └── [id]/               # Análise individual
-│   │   │   │   ├── compliance/
-│   │   │   │   │   ├── screening/
-│   │   │   │   │   ├── alerts/
-│   │   │   │   │   └── monitoring/
-│   │   │   │   ├── approval/
-│   │   │   │   │   ├── queue/               # Fila da mesa
-│   │   │   │   │   └── [id]/               # Tela de aprovação
-│   │   │   │   ├── legal/
-│   │   │   │   │   ├── contracts/
-│   │   │   │   │   │   ├── queue/           # Fila do jurídico
-│   │   │   │   │   │   ├── generate/        # Gerar contrato
-│   │   │   │   │   │   └── [id]/           # Revisão do contrato
-│   │   │   │   │   ├── extrajudicial/
-│   │   │   │   │   └── regulations/
-│   │   │   │   ├── backoffice/
-│   │   │   │   │   ├── homologation/
-│   │   │   │   │   └── operations/
-│   │   │   │   ├── risk/
-│   │   │   │   │   ├── management/
-│   │   │   │   │   ├── recovery/
-│   │   │   │   │   └── litigation/
-│   │   │   │   └── admin/
-│   │   │   │       ├── users/
-│   │   │   │       ├── segments/            # CRUD de segmentos + docs
-│   │   │   │       ├── regions/
-│   │   │   │       ├── teams/
-│   │   │   │       └── settings/
-│   │   │   └── layout.tsx
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── lib/
-│   │   └── package.json
-│   │
-│   ├── api/                          # API Backend (NestJS + Fastify)
-│   │   ├── src/
-│   │   │   ├── main.ts               # Bootstrap com FastifyAdapter + Pino
-│   │   │   ├── app.module.ts
-│   │   │   │
-│   │   │   ├── common/               # Infra cross-cutting (não é domínio)
-│   │   │   │   ├── guards/
-│   │   │   │   │   ├── auth.guard.ts
-│   │   │   │   │   ├── roles.guard.ts
-│   │   │   │   │   └── rbac.guard.ts
-│   │   │   │   ├── decorators/
-│   │   │   │   │   ├── roles.decorator.ts
-│   │   │   │   │   ├── current-user.decorator.ts
-│   │   │   │   │   └── public.decorator.ts
-│   │   │   │   ├── interceptors/
-│   │   │   │   │   ├── audit-trail.interceptor.ts
-│   │   │   │   │   ├── logging.interceptor.ts
-│   │   │   │   │   └── timeout.interceptor.ts
-│   │   │   │   ├── filters/
-│   │   │   │   │   └── domain-exception.filter.ts  # Mapeia DomainException → HTTP
-│   │   │   │   ├── pipes/
-│   │   │   │   │   └── zod-validation.pipe.ts
-│   │   │   │   ├── middleware/
-│   │   │   │   │   ├── correlation-id.middleware.ts
-│   │   │   │   │   └── rate-limit.middleware.ts
-│   │   │   │   └── logger/
-│   │   │   │       └── pino-logger.service.ts      # Structured logging com Pino
-│   │   │   │
-│   │   │   ├── modules/
-│   │   │   │   ├── auth/
-│   │   │   │   │   ├── auth.module.ts
-│   │   │   │   │   ├── controllers/
-│   │   │   │   │   │   └── auth.controller.ts
-│   │   │   │   │   ├── use-cases/
-│   │   │   │   │   │   ├── login.use-case.ts
-│   │   │   │   │   │   └── refresh-token.use-case.ts
-│   │   │   │   │   └── strategies/
-│   │   │   │   │       ├── supabase.strategy.ts
-│   │   │   │   │       └── jwt.strategy.ts
-│   │   │   │   │
-│   │   │   │   ├── clients/               # Exemplo de módulo com DDD leve
-│   │   │   │   │   ├── clients.module.ts
-│   │   │   │   │   ├── controllers/
-│   │   │   │   │   │   └── clients.controller.ts
-│   │   │   │   │   ├── use-cases/
-│   │   │   │   │   │   ├── create-client.use-case.ts
-│   │   │   │   │   │   ├── submit-client.use-case.ts
-│   │   │   │   │   │   └── reassign-client.use-case.ts
-│   │   │   │   │   ├── domain/
-│   │   │   │   │   │   ├── client.entity.ts        # Regras de negócio
-│   │   │   │   │   │   ├── client.repository.ts    # Interface (contrato)
-│   │   │   │   │   │   ├── events/
-│   │   │   │   │   │   │   ├── client-submitted.event.ts
-│   │   │   │   │   │   │   └── client-approved.event.ts
-│   │   │   │   │   │   └── exceptions/
-│   │   │   │   │   │       ├── client-not-found.exception.ts
-│   │   │   │   │   │       └── invalid-status-transition.exception.ts
-│   │   │   │   │   ├── infra/
-│   │   │   │   │   │   ├── drizzle-client.repository.ts  # Implementação
-│   │   │   │   │   │   └── mappers/
-│   │   │   │   │   │       └── client.mapper.ts    # DB row ↔ Domain entity
-│   │   │   │   │   └── dto/
-│   │   │   │   │       ├── create-client.dto.ts    # Zod schema
-│   │   │   │   │       ├── update-client.dto.ts
-│   │   │   │   │       └── submit-client.dto.ts
-│   │   │   │   │
-│   │   │   │   ├── documents/
-│   │   │   │   │   ├── documents.module.ts
-│   │   │   │   │   ├── controllers/
-│   │   │   │   │   │   └── documents.controller.ts
-│   │   │   │   │   ├── use-cases/
-│   │   │   │   │   │   ├── upload-document.use-case.ts
-│   │   │   │   │   │   └── get-checklist.use-case.ts
-│   │   │   │   │   ├── domain/
-│   │   │   │   │   │   ├── document.entity.ts
-│   │   │   │   │   │   ├── document-checklist.ts   # Value object
-│   │   │   │   │   │   ├── document.repository.ts
-│   │   │   │   │   │   └── exceptions/
-│   │   │   │   │   │       └── invalid-document.exception.ts
-│   │   │   │   │   └── infra/
-│   │   │   │   │       └── drizzle-document.repository.ts
-│   │   │   │   │
-│   │   │   │   ├── segments/
-│   │   │   │   │   ├── segments.module.ts
-│   │   │   │   │   ├── controllers/
-│   │   │   │   │   │   └── segments.controller.ts
-│   │   │   │   │   ├── domain/
-│   │   │   │   │   │   └── segment.repository.ts
-│   │   │   │   │   └── infra/
-│   │   │   │   │       └── drizzle-segment.repository.ts
-│   │   │   │   │
-│   │   │   │   ├── pipeline/
-│   │   │   │   │   ├── pipeline.module.ts
-│   │   │   │   │   ├── controllers/
-│   │   │   │   │   │   └── pipeline.controller.ts
-│   │   │   │   │   └── use-cases/
-│   │   │   │   │       └── get-pipeline-metrics.use-case.ts
-│   │   │   │   │
-│   │   │   │   ├── goals/
-│   │   │   │   │   ├── goals.module.ts
-│   │   │   │   │   ├── controllers/
-│   │   │   │   │   │   └── goals.controller.ts
-│   │   │   │   │   ├── domain/
-│   │   │   │   │   │   └── goal.entity.ts
-│   │   │   │   │   └── use-cases/
-│   │   │   │   │       └── update-goal-achievement.use-case.ts
-│   │   │   │   │
-│   │   │   │   ├── credit/
-│   │   │   │   │   ├── credit.module.ts
-│   │   │   │   │   ├── controllers/
-│   │   │   │   │   │   └── credit.controller.ts
-│   │   │   │   │   ├── use-cases/
-│   │   │   │   │   │   └── run-credit-analysis.use-case.ts
-│   │   │   │   │   ├── domain/
-│   │   │   │   │   │   ├── bureau-result.entity.ts
-│   │   │   │   │   │   └── bureau.adapter.ts       # Interface (port)
-│   │   │   │   │   └── infra/
-│   │   │   │   │       └── adapters/               # Implementações (adapters)
-│   │   │   │   │           ├── cerc.adapter.ts
-│   │   │   │   │           ├── vadu.adapter.ts
-│   │   │   │   │           ├── upminer.adapter.ts
-│   │   │   │   │           ├── allcheck.adapter.ts
-│   │   │   │   │           └── bureau-circuit-breaker.ts
-│   │   │   │   │
-│   │   │   │   ├── compliance/
-│   │   │   │   │   ├── compliance.module.ts
-│   │   │   │   │   ├── use-cases/
-│   │   │   │   │   │   └── run-compliance-check.use-case.ts
-│   │   │   │   │   ├── domain/
-│   │   │   │   │   │   └── compliance-provider.adapter.ts  # Interface (port)
-│   │   │   │   │   └── infra/
-│   │   │   │   │       └── adapters/
-│   │   │   │   │           ├── neoway.adapter.ts
-│   │   │   │   │           ├── idwall.adapter.ts
-│   │   │   │   │           ├── bigdata.adapter.ts
-│   │   │   │   │           └── judit.adapter.ts
-│   │   │   │   │
-│   │   │   │   ├── approval/
-│   │   │   │   │   ├── approval.module.ts
-│   │   │   │   │   ├── controllers/
-│   │   │   │   │   │   └── approval.controller.ts
-│   │   │   │   │   ├── domain/
-│   │   │   │   │   │   └── approval-decision.entity.ts
-│   │   │   │   │   └── use-cases/
-│   │   │   │   │       ├── approve-credit.use-case.ts
-│   │   │   │   │       └── reject-credit.use-case.ts
-│   │   │   │   │
-│   │   │   │   ├── legal/
-│   │   │   │   │   ├── legal.module.ts
-│   │   │   │   │   ├── controllers/
-│   │   │   │   │   │   └── contracts.controller.ts
-│   │   │   │   │   └── use-cases/
-│   │   │   │   │       ├── generate-contract.use-case.ts
-│   │   │   │   │       └── generate-extrajudicial.use-case.ts
-│   │   │   │   │
-│   │   │   │   ├── communication/
-│   │   │   │   │   ├── communication.module.ts
-│   │   │   │   │   └── infra/
-│   │   │   │   │       ├── email.service.ts
-│   │   │   │   │       ├── whatsapp.service.ts
-│   │   │   │   │       └── notification.service.ts
-│   │   │   │   │
-│   │   │   │   ├── cnpj/
-│   │   │   │   │   ├── cnpj.module.ts
-│   │   │   │   │   ├── controllers/
-│   │   │   │   │   │   └── cnpj.controller.ts
-│   │   │   │   │   └── infra/
-│   │   │   │   │       └── brasil-api.service.ts    # BrasilAPI + cache Redis
-│   │   │   │   │
-│   │   │   │   └── audit/
-│   │   │   │       ├── audit.module.ts
-│   │   │   │       └── infra/
-│   │   │   │           └── audit.service.ts         # Append-only log
-│   │   │   │
-│   │   │   ├── workflows/                           # Temporal.io workflows
-│   │   │   │   ├── credit-analysis.workflow.ts
-│   │   │   │   ├── document-validation.workflow.ts
-│   │   │   │   ├── homologation.workflow.ts
-│   │   │   │   ├── contract-generation.workflow.ts
-│   │   │   │   ├── delinquency-escalation.workflow.ts
-│   │   │   │   └── activities/
-│   │   │   │       ├── bureau.activities.ts
-│   │   │   │       ├── compliance.activities.ts
-│   │   │   │       ├── notification.activities.ts
-│   │   │   │       └── document.activities.ts
-│   │   │   │
-│   │   │   └── database/
-│   │   │       ├── drizzle.config.ts
-│   │   │       ├── schema/                          # Drizzle table definitions
-│   │   │       │   ├── index.ts
-│   │   │       │   ├── clients.ts
-│   │   │       │   ├── documents.ts
-│   │   │       │   ├── segments.ts
-│   │   │       │   ├── profiles.ts
-│   │   │       │   ├── regions.ts
-│   │   │       │   ├── teams.ts
-│   │   │       │   ├── goals.ts
-│   │   │       │   ├── notifications.ts
-│   │   │       │   └── audit.ts
-│   │   │       └── migrations/
-│   │   ├── test/
-│   │   │   ├── unit/                                # Testes de domain entities
-│   │   │   ├── integration/                         # Testes de use-cases + repos
-│   │   │   └── e2e/                                 # Testes de endpoints
-│   │   └── package.json
-│   │
-│   └── workers/                       # Workers de IA (Python)
-│       ├── document_validator/
-│       │   ├── main.py
-│       │   ├── ocr.py
-│       │   ├── extractor.py
-│       │   └── validator.py
-│       ├── credit_report/
-│       │   ├── main.py
-│       │   ├── consolidator.py
-│       │   └── report_generator.py
-│       ├── contract_generator/
-│       │   ├── main.py
-│       │   ├── templates/
-│       │   └── generator.py
-│       ├── extrajudicial_generator/
-│       │   ├── main.py
-│       │   └── generator.py
-│       ├── shared/
-│       │   ├── llm_client.py
-│       │   ├── queue_consumer.py
-│       │   └── supabase_client.py
-│       ├── requirements.txt
-│       └── Dockerfile
+│   └── web-backoffice/               # Next.js 15 — App Router
+│       └── src/
+│           ├── app/
+│           │   ├── (auth)/           # login
+│           │   ├── (dashboard)/      # sidebar adaptativa, módulos internos
+│           │   ├── (wiki)/           # wiki de documentação / produto
+│           │   └── api/auth/         # login, refresh, logout (cookies)
+│           ├── lib/                  # serverFetch, fetch-role-config
+│           └── middleware.ts         # JWT (jose), rotação via /auth/refresh
 │
 ├── packages/
-│   ├── types/                         # Tipos TypeScript compartilhados
-│   │   ├── src/
-│   │   │   ├── client.ts
-│   │   │   ├── document.ts
-│   │   │   ├── segment.ts
-│   │   │   ├── profile.ts
-│   │   │   ├── pipeline.ts
-│   │   │   ├── goal.ts
-│   │   │   ├── notification.ts
-│   │   │   └── index.ts
-│   │   └── package.json
-│   │
-│   ├── validators/                    # Schemas Zod compartilhados
-│   │   ├── src/
-│   │   │   ├── client.schema.ts
-│   │   │   ├── document.schema.ts
-│   │   │   ├── segment.schema.ts
-│   │   │   ├── auth.schema.ts
-│   │   │   └── index.ts
-│   │   └── package.json
-│   │
-│   ├── ui/                            # Componentes UI compartilhados (design system)
-│   │   ├── src/
-│   │   │   ├── button.tsx
-│   │   │   ├── input.tsx
-│   │   │   ├── modal.tsx
-│   │   │   ├── data-table.tsx
-│   │   │   ├── file-upload.tsx
-│   │   │   ├── status-badge.tsx
-│   │   │   ├── pipeline-kanban.tsx
-│   │   │   ├── progress-bar.tsx
-│   │   │   └── index.ts
-│   │   └── package.json
-│   │
-│   ├── config/                        # Configs compartilhadas
-│   │   ├── eslint/
-│   │   ├── typescript/
-│   │   └── tailwind/
-│   │
-│   └── utils/                         # Funções utilitárias
-│       ├── src/
-│       │   ├── format.ts              # formatCNPJ, formatCurrency, etc.
-│       │   ├── permissions.ts         # canView, canEdit, canReassign
-│       │   ├── status.ts             # mapas de status → labels
-│       │   └── index.ts
-│       └── package.json
+│   ├── types/          # ROLE_PERMISSIONS, RoleConfig
+│   ├── validators/     # Zod
+│   ├── ui/             # @nexus/ui
+│   ├── config/
+│   └── utils/
 │
-├── infra/                             # Infraestrutura
-│   ├── docker/
-│   │   ├── docker-compose.yml         # Dev local
-│   │   ├── docker-compose.prod.yml
-│   │   ├── api.Dockerfile
-│   │   └── workers.Dockerfile
-│   ├── terraform/                     # IaC (se AWS/GCP)
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── modules/
-│   └── k8s/                           # Kubernetes manifests (se necessário)
-│       ├── api/
-│       ├── workers/
-│       └── temporal/
-│
-├── .github/
-│   └── workflows/
-│       ├── ci.yml                     # Lint + test + typecheck
-│       ├── deploy-client.yml          # Deploy portal do cliente
-│       ├── deploy-backoffice.yml      # Deploy backoffice
-│       ├── deploy-api.yml             # Deploy API
-│       └── deploy-workers.yml         # Deploy workers Python
-│
-├── turbo.json                         # Turborepo pipeline config
-├── package.json                       # Root workspace
-├── pnpm-workspace.yaml
-└── README.md
+├── docs/               # especificações (pt-BR)
+├── turbo.json
+└── pnpm-workspace.yaml
 ```
+
+### 2.1 Módulos NestJS (`apps/api/src/modules`)
+
+| Módulo | Responsabilidade |
+|--------|-------------------|
+| Auth | Login, refresh, perfil; JWT HS256; `refresh_tokens` |
+| Users | CRUD/listagem de usuários (credenciais locais) |
+| Roles | Papéis, `role_permissions`, cache, `GET /my/permissions` |
+| People | Colaboradores, reembolsos, NFs PJ, empresas de faturamento, Flash |
+| Clients | Cliente, documentos, relatório comercial, IRPF/faturamento/dívida |
+| Drawees | Sacados e sub-recursos |
+| Credit | Vadu, Serasa, Creditbox, CGU, PEP, PGFN, CNDT, ViaCEP, sanções, trabalho escravo, mídia negativa, presença digital, Allcheck, Upminer, CERC |
+| Cnab | Remessa, operações, recebíveis, vínculo cliente–sacado |
+| Pipeline | Funil comercial |
+| Goals | Metas e ranking |
+| Learning | Cursos, matrículas, progresso |
+| Notifications | Notificações in-app |
+| Governance | Comitês, reuniões, atas, itens de ação |
+| Communication | Anúncios, wiki interna (categorias/artigos) |
+| Chat | Chat de contexto do cliente (Gemini) |
+| AuditTrail | Listagem de auditoria persistida |
+| Health | Readiness |
+
+Serviços globais: `DatabaseModule`, `EmailModule`, `AuditModule` (common).
 
 ---
 
-## 3. Diagrama de Arquitetura (C4 — Container Level)
+## 3. Diagrama de Arquitetura (nível de containers)
 
+```mermaid
+flowchart TB
+  subgraph clients [Clients]
+    BO[web_backoffice_Nextjs]
+    WC[web_client_planejado]
+  end
+
+  subgraph edge [Edge]
+    GW[API_Gateway_ou_Vercel]
+  end
+
+  subgraph app [Backend]
+    API[NestJS_Fastify]
+  end
+
+  subgraph data [Data_and_Infra]
+    PG[(PostgreSQL_Supabase)]
+    ST[Supabase_Storage]
+    RD[(Redis_Upstash)]
+  end
+
+  subgraph external [Integrações]
+    BUR[CERC_Vadu_Upminer_Gemini_outros]
+  end
+
+  BO --> GW
+  WC -.-> GW
+  GW --> API
+  API --> PG
+  API --> ST
+  API --> RD
+  API --> BUR
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                              CLIENTS                                     │
-│                                                                          │
-│   ┌──────────────┐          ┌───────────────────┐                       │
-│   │ Portal       │          │ Backoffice         │                       │
-│   │ do Cliente   │          │ (Comercial, Mesa,  │                       │
-│   │ (Next.js)    │          │  Jurídico, etc.)   │                       │
-│   │              │          │ (Next.js)          │                       │
-│   └──────┬───────┘          └────────┬───────────┘                       │
-│          │                           │                                    │
-└──────────┼───────────────────────────┼────────────────────────────────────┘
-           │          HTTPS            │
-           ▼                           ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│                           API GATEWAY                                     │
-│                    (Vercel Edge / Kong)                                    │
-│              Rate Limiting · Auth · CORS · WAF                            │
-└──────────────────────────┬───────────────────────────────────────────────┘
-                           │
-                           ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│                         API BACKEND (NestJS)                              │
-│                                                                           │
-│  ┌─────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────────┐    │
-│  │ Clients │ │Documents │ │ Credit   │ │Compliance│ │ Approval    │    │
-│  │ Module  │ │ Module   │ │ Module   │ │ Module   │ │ Module      │    │
-│  └────┬────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └──────┬──────┘    │
-│       │           │            │             │              │            │
-│  ┌────┴────┐ ┌────┴─────┐ ┌───┴──────┐ ┌───┴──────┐ ┌─────┴──────┐    │
-│  │ Legal   │ │Pipeline  │ │  Goals   │ │ Comms    │ │  Audit     │    │
-│  │ Module  │ │ Module   │ │ Module   │ │ Module   │ │  Module    │    │
-│  └─────────┘ └──────────┘ └──────────┘ └──────────┘ └────────────┘    │
-│                                                                           │
-│  ┌──────────────────────────────────────────────────────────────────┐    │
-│  │                    Temporal.io Client                              │    │
-│  │         (Workflows: credit, docs, homologation, etc.)             │    │
-│  └──────────────────────────────┬───────────────────────────────────┘    │
-└─────────────────────────────────┼────────────────────────────────────────┘
-                                  │
-          ┌───────────────────────┼───────────────────────┐
-          │                       │                       │
-          ▼                       ▼                       ▼
-┌──────────────────┐  ┌──────────────────┐  ┌──────────────────────────┐
-│   Temporal.io    │  │     Redis        │  │    Supabase              │
-│   Server         │  │   (Upstash)      │  │                          │
-│                  │  │                  │  │  ┌──────────────────┐    │
-│  Workflows:      │  │  • Cache         │  │  │  PostgreSQL 15+  │    │
-│  • Credit        │  │  • Sessions      │  │  │  + RLS Policies  │    │
-│  • Documents     │  │  • Rate Limit    │  │  └──────────────────┘    │
-│  • Homologation  │  │  • BullMQ Jobs   │  │  ┌──────────────────┐    │
-│  • Contract      │  │                  │  │  │  Storage (S3)    │    │
-│  • Escalation    │  │                  │  │  │  Docs / PDFs     │    │
-│                  │  │                  │  │  └──────────────────┘    │
-└────────┬─────────┘  └──────────────────┘  │  ┌──────────────────┐    │
-         │                                   │  │  Auth             │    │
-         │                                   │  │  JWT + MFA        │    │
-         ▼                                   │  └──────────────────┘    │
-┌──────────────────────────────────────┐    │  ┌──────────────────┐    │
-│        Workers Python (FastAPI)       │    │  │  Realtime         │    │
-│                                       │    │  │  WebSockets       │    │
-│  ┌──────────────┐ ┌───────────────┐  │    │  └──────────────────┘    │
-│  │ Document     │ │ Credit Report │  │    │  ┌──────────────────┐    │
-│  │ Validator    │ │ Generator     │  │    │  │  Edge Functions   │    │
-│  │ (OCR + LLM) │ │ (LLM)        │  │    │  │  CNPJ, Webhooks   │    │
-│  └──────────────┘ └───────────────┘  │    │  └──────────────────┘    │
-│  ┌──────────────┐ ┌───────────────┐  │    └──────────────────────────┘
-│  │ Contract     │ │ Extrajudicial │  │
-│  │ Generator    │ │ Generator     │  │
-│  │ (LLM)       │ │ (LLM)        │  │
-│  └──────────────┘ └───────────────┘  │
-└────────────────┬─────────────────────┘
-                 │
-                 ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│                        EXTERNAL SERVICES                                  │
-│                                                                           │
-│  ┌────────┐ ┌────────┐ ┌─────────┐ ┌────────┐ ┌──────────┐            │
-│  │ CERC   │ │ VADU   │ │Upminer  │ │Allcheck│ │ Neoway   │            │
-│  └────────┘ └────────┘ └─────────┘ └────────┘ └──────────┘            │
-│  ┌────────┐ ┌────────┐ ┌─────────┐ ┌────────┐ ┌──────────┐            │
-│  │ idwall │ │BigData │ │ Judit   │ │ Egea   │ │ DataJud  │            │
-│  └────────┘ └────────┘ └─────────┘ └────────┘ └──────────┘            │
-│  ┌────────────┐ ┌───────────┐ ┌──────────────┐                         │
-│  │ Twilio     │ │ Clicksign │ │ BrasilAPI    │                         │
-│  │ (WhatsApp) │ │ (Assinat.)│ │ (CNPJ)       │                         │
-│  └────────────┘ └───────────┘ └──────────────┘                         │
-└──────────────────────────────────────────────────────────────────────────┘
+
+Fluxo de autenticação (resumo):
+
+```mermaid
+flowchart LR
+  subgraph backoffice [Backoffice]
+    MW[middleware_jose]
+    RH[Route_Handler_login]
+  end
+
+  subgraph api [API]
+    LG[AuthController]
+    G1[AuthGuard]
+    G2[RbacGuard]
+  end
+
+  RH --> LG
+  MW --> G1
+  G1 --> G2
 ```
+
+> **Nota:** Partes do diagrama legado (Temporal dedicado, workers Python isolados, módulos `documents`/`approval`/`legal` como pacotes separados) permanecem como **direção de produto**; o código pode consolidar fluxos dentro de `clients`, `credit`, `cnab`, etc. Consulte o código em `apps/api/src/modules` como fonte da verdade.
 
 ---
 
@@ -1251,7 +912,7 @@ jobs:
 
 ### 10.1 Gestão de Usuários — Sem Signup Público
 
-**Não existe cadastro público.** Todo acesso à plataforma é criado por um admin ou pelo RH durante o processo de admissão (onboarding). O signup do Supabase Auth é **desabilitado** (Authentication > Providers > Email > "Allow new users to sign up" = false).
+**Não existe cadastro público.** Contas são criadas por processos internos (admin/RH). O **login** não passa pelo Supabase Auth: credenciais ficam em `public.profiles` (`password_hash`, papel em `role` + opcional `role_id`).
 
 **Quem pode criar usuários:**
 
@@ -1260,86 +921,49 @@ jobs:
 | `admin` | Qualquer tipo de usuário | Gestão geral da plataforma |
 | `hr` / `hr_admin` | Colaboradores + usuários internos | Fluxo de admissão (onboarding) |
 
-**Fluxo de criação de usuário:**
+**Fluxo de criação (API):** endpoint protegido no módulo `users` (ex.: `POST /users`), com validação Zod e `@Roles` / `@RequireActions` conforme política. O backend cria `profiles` com hash de senha (Argon2id) e define `role` / vínculo a `roles`.
+
+**Cadeia de dados típica (People):**
 
 ```
-1. Admin/RH cadastra o colaborador (tabela collaborators)
-2. Na mesma operação, marca "criar acesso à plataforma"
-3. Backend NestJS chama supabase.auth.admin.createUser() (server-side, service_role key)
-4. Trigger on_auth_user_created gera automaticamente o profile
-5. O profile_id é vinculado ao collaborator
-6. Colaborador recebe email/convite para definir senha
-```
-
-**Decisão:** A criação de usuários será feita via endpoint do NestJS (`POST /api/users`), protegido por `@Roles('admin', 'hr', 'hr_admin')`. Não será usada Edge Function para isso — o NestJS permite encapsular tudo num UseCase com transação (criar auth user + profile + link ao collaborator), guards de autorização, validação Zod compartilhada, e rollback em caso de falha.
-
-**Trigger automático no banco:**
-
-```sql
--- Quando auth.users recebe um INSERT, cria profile automaticamente
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (id, full_name, email, role)
-  VALUES (
-    NEW.id,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'role', 'employee')
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
-
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
-```
-
-**Cadeia de dados:**
-
-```
-auth.users (Supabase Auth)
-    ↓ profiles.id REFERENCES auth.users(id) — criado via trigger automático
-profiles
-    ↓ collaborators.profile_id REFERENCES profiles(id) — vinculado pelo backend
+profiles (UUID próprio; login da aplicação não depende de auth.users)
+    ↓ collaborators.profile_id → profiles.id
 collaborators
 ```
 
-> **Nota:** Nem todo usuário é um collaborator. Um auditor externo pode ter profile + login mas não ter registro em collaborators. O vínculo profile → collaborator é controlado pelo backend.
+> Nem todo `profile` tem `collaborator`. O vínculo é controlado pelo domínio People.
 
 ### 10.2 Fluxo de Autenticação
 
 ```
-Browser → Supabase Auth (login) → JWT + Refresh Token
+Browser → Backoffice /api/auth/login → API POST /auth/login
   │
-  ├── Frontend: JWT no header Authorization
+  ├── Cookies: access (JWT HS256) + refresh (opaco, httpOnly)
   │
-  └── API NestJS: 
-      ├── AuthGuard valida JWT com Supabase
-      ├── RbacGuard verifica role no profiles
-      └── AuditInterceptor loga toda ação
+  └── API NestJS:
+      ├── AuthGuard valida JWT via TokenService (sem round-trip Supabase Auth)
+      ├── RbacGuard resolve features em role_permissions (com cache)
+      └── AuditInterceptor / trail onde aplicável
 ```
 
 ### 10.3 Proteção entre Camadas
 
 ```
-Internet ──▶ Vercel Edge (WAF + Rate Limit)
+Internet ──▶ Edge (WAF + Rate Limit)
                │
                ▼
-          Frontend (Next.js)
-               │ Server Components chamam API
+          Frontend (Next.js) — middleware JWT (jose)
+               │ Server Components / RSC chamam API com Bearer
                ▼
-          API NestJS
-               │ AuthGuard + RbacGuard + AuditInterceptor
+          API NestJS — AuthGuard + Throttler + RbacGuard
+               │
                ▼
-          Supabase (RLS filtra dados)
-               │ Mesmo que API tenha bug, RLS protege
+          PostgreSQL (Supabase) — RLS onde houver acesso anon/PostgREST; API usa service_role + autorização na camada app
                ▼
           Dados
 ```
 
-A segurança opera em 4 camadas independentes. Se uma falhar, as outras seguram: (1) sem signup público — só admin/RH criam usuários, (2) o AuthGuard no NestJS valida o JWT, (3) o RbacGuard verifica se o role tem permissão pra aquele endpoint, e (4) o RLS do Supabase filtra os dados mesmo que o backend passe a query errada. Cinto, suspensório, airbag e capacete.
+Camadas combinadas: controles de acesso na rota, validação de input (Zod), segredos só em env, RLS onde o modelo de acesso direto ao banco existir.
 
 ---
 

@@ -19,9 +19,10 @@ Este documento descreve a implementação do módulo comercial: cadastro de clie
 - **Tipos e validações compartilhados** — `@nexus/types` e `@nexus/validators`
 - **Frontend completo** — lista de clientes (cards), formulário multi-step, detalhe com checklist de documentos
 - **Utilitários compartilhados** — pipeline de status com fases, ícones, cores e helpers (`@nexus/utils`)
-- **Automação de Relatórios (Excel)** — endpoint para parse de arquivos `.xlsx` de Relatório de Visita (`visit_report`), extração estruturada de dados e modal de revisão no frontend antes do salvamento da entidade `client_commercial_reports`.
+- **Relatórios comerciais (Excel)** — API de parse e persistência em `client_commercial_reports` permanece disponível; o item de checklist **Relatório de Visita** (`visit_report`) e o fluxo de upload/modal ligados a ele foram **removidos** do cadastro documental do cliente. **Parecer do Superintendente** (`superintendent_opinion`) também saiu do checklist. **Faturamento** no checklist passou a ser **três anos civis rolantes** (ano atual e dois anteriores). **Curva ABC** (`abc_curve`) figura como **opcional** (`is_required = false`). Ver migration `supabase/migrations/20260326000000_adjust_document_checklist.sql` e `BASE_DOCUMENT_TYPES` em `@nexus/types`.
 - **Relatório comercial v2** — campos adicionais no registro (cabeçalho, observações, regiões, meios circulantes estendidos, JSONB para mercado interno/externo e fornecedores) e três tabelas filhas: `commercial_report_proposals`, `commercial_report_guarantors`, `commercial_report_properties`. Contrato compartilhado: `createCommercialReportSchema` em `@nexus/validators`.
 - **Painel de visitas** — endpoints `GET /api/visits/overview` e `GET /api/visits/team-overview`; UI em `/activities` (backoffice). Regra de status (90 / 15 dias): **uma única implementação** em `@nexus/utils` (`computeVisitStatusFromDate`, tipo `VisitStatus`); o backend reexporta via `visit-status.helper.ts` e o front importa do package.
+- **Vínculo operacional cliente–sacado** — tabela `client_drawees` (N:N entre `clients` e `drawees`, métricas de exposição e status). Documentação de colunas: `docs/dicionario_dados.md` (índice complementar). API: módulo `cnab` / rotas de relacionamento conforme implementação.
 
 ### 1.2 Escopo Pendente
 

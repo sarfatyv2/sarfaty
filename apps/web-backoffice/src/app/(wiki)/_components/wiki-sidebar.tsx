@@ -26,6 +26,9 @@ import {
   MessageSquare,
   FileSearch,
   ShieldCheck,
+  KeyRound,
+  FileSpreadsheet,
+  Bot,
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@nexus/ui';
 
@@ -43,6 +46,7 @@ const navGroups = [
     label: 'Módulos',
     items: [
       { href: '/wiki/modules/auth', label: 'Autenticação', icon: ShieldCheck },
+      { href: '/wiki/modules/roles', label: 'RBAC / Roles', icon: KeyRound },
       { href: '/wiki/modules/commercial', label: 'Comercial', icon: Briefcase },
       { href: '/wiki/modules/credit', label: 'Crédito', icon: CreditCard },
       { href: '/wiki/modules/drawees', label: 'Sacados', icon: Building2 },
@@ -53,7 +57,9 @@ const navGroups = [
       { href: '/wiki/modules/learning', label: 'Aprendizagem', icon: BookOpen },
       { href: '/wiki/modules/notifications', label: 'Notificações', icon: Bell },
       { href: '/wiki/modules/governance', label: 'Governança', icon: Landmark },
-      { href: '/wiki/modules/communication', label: 'Communication', icon: MessageSquare },
+      { href: '/wiki/modules/communication', label: 'Comunicação', icon: MessageSquare },
+      { href: '/wiki/modules/cnab', label: 'CNAB', icon: FileSpreadsheet },
+      { href: '/wiki/modules/chat', label: 'Chat (IA)', icon: Bot },
       { href: '/wiki/modules/irpf', label: 'IRPF (Agente IA)', icon: FileSearch },
     ],
   },
@@ -99,7 +105,7 @@ function SidebarContent() {
         </Link>
         <div className="mt-2.5 flex items-center justify-center gap-1.5">
           <span className="text-[10px] font-medium text-white/40 uppercase tracking-wider">Documentação</span>
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-[hsl(45,50%,88%)]/20 text-[hsl(45,50%,88%)]">v1.0</span>
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-[hsl(45,50%,88%)]/20 text-[hsl(45,50%,88%)]">v1.1</span>
         </div>
       </div>
 

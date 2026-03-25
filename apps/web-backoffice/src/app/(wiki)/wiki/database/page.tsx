@@ -11,19 +11,24 @@ const DatabaseErd = dynamic(
 );
 
 const domains = [
-  { name: 'Core', tables: 5, color: 'bg-emerald-500', desc: 'profiles, regions, teams, notifications, audit_logs' },
-  { name: 'Comercial', tables: 14, color: 'bg-blue-500', desc: 'clients, documents, guarantees, goals, segments' },
-  { name: 'Crédito / Integrações', tables: 3, color: 'bg-purple-500', desc: 'vadu_company_results, vadu_person_results, creditbox_reports' },
-  { name: 'Sacados', tables: 8, color: 'bg-sky-500', desc: 'drawees, contacts, addresses, bank_accounts, groups' },
+  { name: 'Core', tables: 6, color: 'bg-emerald-500', desc: 'profiles, regions, teams, notifications, audit_logs, onboarding_templates' },
+  { name: 'Auth & RBAC', tables: 3, color: 'bg-slate-500', desc: 'refresh_tokens, roles, role_permissions' },
+  { name: 'Comercial', tables: 20, color: 'bg-blue-500', desc: 'clients, client_drawees, documents, guarantees, relatórios, faturamento' },
+  { name: 'Crédito / Bureaus', tables: 14, color: 'bg-purple-500', desc: 'vadu, creditbox, serasa, allcheck, upminer, cerc, vadu_drawee_*' },
+  { name: 'Sacados', tables: 8, color: 'bg-sky-500', desc: 'drawees, contacts, documents, grupos, produtos' },
+  { name: 'Compliance Sacados', tables: 8, color: 'bg-sky-600', desc: 'pep, pgfn, sanctions, slave_labor, checks diversos' },
   { name: 'Grupos Econômicos', tables: 4, color: 'bg-sky-400', desc: 'economic_groups, members, persons, bank_accounts' },
   { name: 'Financeiro', tables: 5, color: 'bg-teal-500', desc: 'financial_accounts, transactions, pendencies, settlements' },
-  { name: 'Portfólio', tables: 4, color: 'bg-cyan-500', desc: 'portfolio_positions, market_rates, iof_rates, ir_rates' },
+  { name: 'Portfólio / Taxas', tables: 6, color: 'bg-cyan-500', desc: 'portfolio_positions, market_rates, iof_rates, ir_rates, investments' },
+  { name: 'CNAB / Recebíveis', tables: 3, color: 'bg-teal-600', desc: 'cnab_remittance_files, cnab_operations, trade_receivables' },
   { name: 'Debêntures', tables: 6, color: 'bg-indigo-500', desc: 'issuers, issuances, series, subscriptions, valuations' },
   { name: 'Fornecedores', tables: 5, color: 'bg-orange-500', desc: 'suppliers, contacts, addresses, bank_accounts, documents' },
-  { name: 'Pessoas (RH/DP)', tables: 13, color: 'bg-rose-500', desc: 'collaborators, clt_data, pj_data, dependents, reimbursements' },
+  { name: 'Pessoas (RH/DP)', tables: 13, color: 'bg-rose-500', desc: 'collaborators, clt/pj, dependents, reimbursements, avaliações' },
   { name: 'Aprendizagem', tables: 5, color: 'bg-violet-500', desc: 'courses, modules, lessons, enrollments, completions' },
-  { name: 'Integrações', tables: 3, color: 'bg-slate-500', desc: 'vadu_company, vadu_person, creditbox_reports' },
-  { name: 'IRPF / Agente IA', tables: 2, color: 'bg-amber-500', desc: 'irpf_extractions, irpf_extraction_sources' },
+  { name: 'Pipeline & Metas', tables: 4, color: 'bg-amber-500', desc: 'pipeline_stages, pipeline_deals, sales_goals' },
+  { name: 'Governança', tables: 6, color: 'bg-indigo-400', desc: 'gov_committees, meetings, action_items' },
+  { name: 'Comunicação', tables: 3, color: 'bg-blue-400', desc: 'wiki artigos, comunicados' },
+  { name: 'IRPF / Agentes IA', tables: 4, color: 'bg-amber-600', desc: 'irpf_extractions, sources, faturamento_extractions' },
 ];
 
 export default function DatabasePage() {
@@ -47,10 +52,10 @@ export default function DatabasePage() {
           </div>
           <h1 className="text-3xl font-bold mb-3 leading-tight text-[hsl(35,35%,15%)]">Estrutura do Banco de Dados</h1>
           <p className="text-[hsl(35,20%,40%)] text-base leading-relaxed max-w-xl">
-            PostgreSQL 15 via Supabase com 84 tabelas, RLS habilitado em todas, organizadas em 13 domínios.
+            PostgreSQL 15 via Supabase com ~127 tabelas (schema Drizzle), RLS evoluindo com o schema, organizadas por domínio de negócio.
           </p>
           <div className="flex flex-wrap gap-2 mt-6">
-            <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">84 tabelas</span>
+            <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">~127 tabelas</span>
             <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">RLS habilitado</span>
             <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">Drizzle ORM</span>
             <span className="px-3 py-1 rounded-full bg-[hsl(42,45%,82%)] text-xs text-[hsl(35,35%,25%)] border border-[hsl(40,35%,75%)]">UUID v4</span>
@@ -64,7 +69,7 @@ export default function DatabasePage() {
         <div>
           <SectionHeading
             title="Domínios do Banco"
-            subtitle="84 tabelas organizadas em 13 domínios. Cada domínio segue as fronteiras do módulo de negócio correspondente."
+            subtitle="Panorama por domínio (~127 tabelas no total). Contagens são aproximadas; veja o dicionário de dados no repositório para o detalhe coluna a coluna."
             badge="Schema"
           />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
@@ -91,7 +96,7 @@ export default function DatabasePage() {
           <div className="flex items-start gap-2 mb-4 p-3 bg-[hsl(48,100%,42%)]/8 border border-[hsl(48,100%,42%)]/20 rounded-lg">
             <Info size={13} className="text-[hsl(48,80%,35%)] mt-0.5 shrink-0" />
             <p className="text-xs text-[hsl(48,60%,30%)]">
-              Este diagrama mostra as principais tabelas de cada domínio (subconjunto das 73 tabelas totais) com relacionamentos por chave estrangeira. Use os controles de zoom no canto inferior esquerdo ou o scroll do mouse para explorar.
+              Diagrama com subconjunto representativo (~127 tabelas no banco) e principais FKs. Use zoom e arraste para explorar.
             </p>
           </div>
           <DatabaseErd />

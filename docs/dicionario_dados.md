@@ -1,9 +1,10 @@
 # Dicionario de Dados — Plataforma Sarfaty
 
-**Versao:** 3.0  
-**Data:** 03 de Março de 2026  
+**Versao:** 4.0  
+**Data:** 24 de Março de 2026  
 **Banco:** Supabase PostgreSQL 15+ (schema `public`)  
-**Total de tabelas:** 83  
+**Total de tabelas:** ~127 (Drizzle `apps/api/src/database/schema/index.ts`)  
+**Fonte de verdade:** arquivos `.ts` em `apps/api/src/database/schema/` e migrations em `apps/api/src/database/migrations/`  
 
 ---
 
@@ -11,7 +12,7 @@
 
 | # | Modulo | Tabela | Descricao |
 |---|--------|--------|-----------|
-| 1 | Core | `profiles` | Usuarios do sistema (vinculado a auth.users) |
+| 1 | Core | `profiles` | Usuarios da aplicacao; login JWT local (`password_hash`, `role`, `role_id`) |
 | 2 | Core | `regions` | Regioes comerciais |
 | 3 | Core | `teams` | Times dentro de regioes |
 | 4 | Core | `notifications` | Notificacoes in-app |
@@ -75,24 +76,86 @@
 | 62 | Compliance | `address_validation_results` | Validacao de Endereco (ViaCEP) |
 | 63 | Compliance | `negative_media_results` | Resultados OSINT / Midia Negativa (Gemini) |
 | 64 | Compliance | `digital_presence_results` | Verificacao de Presenca Digital |
-| 65 | People | `collaborators` | Colaboradores (dados completos de RH) |
-| 64 | People | `collaborator_clt_data` | Dados especificos CLT |
-| 65 | People | `collaborator_pj_data` | Dados especificos PJ |
-| 66 | People | `collaborator_dependents` | Dependentes de colaboradores |
-| 67 | People | `collaborator_documents` | Documentos de colaboradores |
-| 68 | People | `collaborator_compensation` | Historico de movimentacoes salariais |
-| 69 | People | `medical_plan_entries` | Plano medico (titulares e dependentes) |
-| 70 | People | `reimbursements` | Solicitacoes de reembolso |
-| 71 | People | `pj_invoices` | Notas fiscais PJ (mensal) |
-| 72 | People | `onboarding_templates` | Templates de tarefas de onboarding |
-| 73 | People | `onboarding_tasks` | Tarefas de onboarding por colaborador |
-| 74 | People | `performance_review_cycles` | Ciclos de avaliacao de desempenho |
-| 75 | People | `performance_reviews` | Avaliacoes individuais |
-| 76 | Learning | `learning_courses` | Cursos |
-| 77 | Learning | `learning_modules` | Modulos dentro de cursos |
-| 78 | Learning | `learning_lessons` | Aulas dentro de modulos |
-| 79 | Learning | `learning_enrollments` | Matriculas de colaboradores em cursos |
-| 80 | Learning | `learning_lesson_completions` | Progresso por aula |
+| 65 | Compliance | `allcheck_results` | Resultados Allcheck (cliente) |
+| 66 | People | `collaborators` | Colaboradores (dados completos de RH) |
+| 67 | People | `collaborator_clt_data` | Dados especificos CLT |
+| 68 | People | `collaborator_pj_data` | Dados especificos PJ |
+| 69 | People | `collaborator_dependents` | Dependentes de colaboradores |
+| 70 | People | `collaborator_documents` | Documentos de colaboradores |
+| 71 | People | `collaborator_compensation` | Historico de movimentacoes salariais |
+| 72 | People | `medical_plan_entries` | Plano medico (titulares e dependentes) |
+| 73 | People | `reimbursements` | Solicitacoes de reembolso |
+| 74 | People | `pj_invoices` | Notas fiscais PJ (mensal); pode referenciar `billing_companies` |
+| 75 | People | `billing_companies` | Empresas de faturamento (PJ) |
+| 76 | People | `onboarding_templates` | Templates de tarefas de onboarding |
+| 77 | People | `onboarding_tasks` | Tarefas de onboarding por colaborador |
+| 78 | People | `performance_review_cycles` | Ciclos de avaliacao de desempenho |
+| 79 | People | `performance_reviews` | Avaliacoes individuais |
+| 80 | Learning | `learning_courses` | Cursos |
+| 81 | Learning | `learning_modules` | Modulos dentro de cursos |
+| 82 | Learning | `learning_lessons` | Aulas dentro de modulos |
+| 83 | Learning | `learning_enrollments` | Matriculas de colaboradores em cursos |
+| 84 | Learning | `learning_lesson_completions` | Progresso por aula |
+
+### Indice complementar (tabelas adicionais no schema)
+
+| Modulo | Tabela | Descricao resumida |
+|--------|--------|-------------------|
+| RBAC | `roles` | Papel dinamico (`key`, `home_route`, `is_system`) |
+| RBAC | `role_permissions` | Features por papel (`role_id`, `feature_key`) PK composta |
+| Auth | `refresh_tokens` | Sessoes refresh opacas (hash, `family_id`, revogacao) |
+| Comercial / IA | `irpf_extractions` | Extracao IRPF assistida |
+| Comercial / IA | `irpf_extraction_sources` | Fontes/arquivos da extracao IRPF |
+| Comercial / IA | `faturamento_extractions` | Extracao faturamento |
+| Comercial / IA | `faturamento_extraction_sources` | Fontes da extracao faturamento |
+| Comercial | `debt_position_items` | Itens de posicao de divida |
+| Comercial | `client_commercial_reports` | Relatorio comercial (visita) — ver secao 41 no doc |
+| Comercial | `commercial_report_proposals` | Linhas de proposta do relatorio |
+| Comercial | `commercial_report_guarantors` | Avalistas do relatorio |
+| Comercial | `commercial_report_properties` | Imoveis/estrutura do relatorio |
+| Sacados | `drawee_authorized_persons` | Representantes do sacado (espelha padrao cliente) |
+| Integracoes | `vadu_drawee_company_results` | Vadu CNPJ para sacado |
+| Integracoes | `vadu_drawee_person_results` | Vadu CPF para sacado |
+| Integracoes | `serasa_report_results` | Resultado relatorio Serasa PJ (cliente) |
+| Integracoes | `serasa_drawee_report_results` | Resultado Serasa para sacado |
+| Compliance | `allcheck_drawee_results` | Allcheck para sacado |
+| Compliance | `cgu_drawee_check_results` | CGU checks sacado |
+| Compliance | `pep_drawee_check_results` | PEP sacado |
+| Compliance | `pgfn_drawee_check_results` | PGFN sacado |
+| Compliance | `cndt_drawee_check_results` | CNDT sacado |
+| Compliance | `address_validation_drawee_results` | ViaCEP sacado |
+| Compliance | `sanctions_drawee_check_results` | Sancoes sacado |
+| Compliance | `slave_labor_drawee_check_results` | Trabalho escravo sacado |
+| Compliance | `negative_media_drawee_results` | Midia negativa sacado |
+| Compliance | `digital_presence_drawee_results` | Presenca digital sacado |
+| upMiner | `upminer_results` | Resultado agregado upMiner |
+| upMiner | `upminer_dossiers` | Dossie |
+| upMiner | `upminer_dossier_sources` | Fontes do dossie |
+| upMiner | `upminer_receita_federal_pj` | RF PJ |
+| upMiner | `upminer_receita_secundarias` | Receitas secundarias |
+| upMiner | `upminer_qsa` | QSA |
+| upMiner | `upminer_qsa_socios` | Socios QSA |
+| upMiner | `upminer_cade_processos` | CADE processos |
+| upMiner | `upminer_cade_protocolos` | CADE protocolos |
+| upMiner | `upminer_cade_andamentos` | CADE andamentos |
+| CERC | `cerc_validations` | Validacoes/registros CERC |
+| Investimentos | `investment_asset_groups` | Grupos de ativos |
+| Investimentos | `investment_assets` | Ativos |
+| Taxas | `iof_rates` | Tabela IOF |
+| Taxas | `ir_rates` | Tabela IR |
+| CNAB | `cnab_remittance_files` | Arquivos de remessa CNAB |
+| CNAB | `cnab_operations` | Operacoes derivadas do CNAB |
+| CNAB | `trade_receivables` | Titulos/recebiveis |
+| CNAB | `client_drawees` | Relacao N:N cliente-sacado com exposicao |
+| Governanca | `gov_committees` | Comites |
+| Governanca | `gov_committee_members` | Membros |
+| Governanca | `gov_meetings` | Reunioes |
+| Governanca | `gov_meeting_minutes` | Atas |
+| Governanca | `gov_action_items` | Itens de acao |
+| Governanca | `gov_action_updates` | Atualizacoes de acoes |
+| Comunicacao | `comm_announcements` | Avisos intranet |
+| Comunicacao | `comm_wiki_categories` | Categorias wiki |
+| Comunicacao | `comm_wiki_articles` | Artigos wiki |
 
 ---
 
@@ -110,24 +173,62 @@
 
 ### 1. profiles
 
-Usuarios do sistema. O `id` e o mesmo do `auth.users.id` do Supabase.
+Usuarios da aplicacao interna. Credenciais para **JWT local**: `password_hash` (Argon2id). O campo `role` (texto) permanece para claim no access token; `role_id` referencia `roles.id` quando RBAC dinamico esta amarrado ao registro.
 
 | Coluna | Tipo | Null | Default | Descricao |
 |--------|------|------|---------|-----------|
-| `id` | uuid | NO | — | PK, FK para auth.users.id |
+| `id` | uuid | NO | — | PK (gerado pela aplicacao; nao exige auth.users) |
 | `full_name` | text | NO | — | Nome completo |
 | `email` | text | NO | — | Email (UNIQUE) |
 | `phone` | text | YES | — | Telefone |
-| `role` | text | NO | — | Role do sistema (sales_rep, admin, hr, etc.) |
+| `role` | text | NO | — | Codigo do papel (sales_rep, admin, hr, etc.) |
+| `role_id` | uuid | YES | — | FK -> roles.id |
 | `is_active` | boolean | YES | true | Usuario ativo |
+| `password_hash` | text | YES | — | Hash da senha (login na API) |
 | `avatar_url` | text | YES | — | URL do avatar |
 | `team_id` | uuid | YES | — | FK -> teams.id |
 | `region_id` | uuid | YES | — | FK -> regions.id |
 | `created_at` | timestamptz | YES | now() | |
 | `updated_at` | timestamptz | YES | now() | |
 
-**Constraints:** PK(id), UNIQUE(email), FK(id -> auth.users), FK(team_id -> teams), FK(region_id -> regions)  
-**RLS:** SELECT/UPDATE onde `id = auth.uid()`
+**Constraints:** PK(id), UNIQUE(email), FK(team_id, region_id, role_id -> roles)  
+**RLS:** politicas existentes podem usar `auth.uid()` quando o cliente Supabase participa do fluxo; a API Nest usa `service_role` e aplica guards.
+
+### 1.1 refresh_tokens
+
+Sessoes de refresh (rotacao por `family_id`).
+
+| Coluna | Tipo | Null | Descricao |
+|--------|------|------|-----------|
+| `id` | uuid | NO | PK |
+| `user_id` | uuid | NO | FK -> profiles.id ON DELETE CASCADE |
+| `token_hash` | text | NO | Hash do refresh enviado ao cliente |
+| `family_id` | uuid | NO | Agrupamento para rotacao |
+| `expires_at` | timestamptz | NO | Expiracao |
+| `revoked_at` | timestamptz | YES | Revogacao |
+| `user_agent` | text | YES | |
+| `ip_address` | text | YES | |
+| `created_at` | timestamptz | NO | |
+
+### 1.2 roles
+
+| Coluna | Tipo | Null | Descricao |
+|--------|------|------|-----------|
+| `id` | uuid | NO | PK |
+| `key` | text | NO | UNIQUE — identificador estavel (ex.: admin) |
+| `label` | text | NO | Nome exibivel |
+| `home_route` | text | NO | Rota inicial padrao |
+| `is_system` | boolean | NO | Papel de sistema |
+| `is_active` | boolean | NO | |
+| `created_at` / `updated_at` | timestamptz | YES | |
+
+### 1.3 role_permissions
+
+| Coluna | Tipo | Null | Descricao |
+|--------|------|------|-----------|
+| `role_id` | uuid | NO | FK -> roles.id |
+| `feature_key` | text | NO | Chave do catalogo de features (ex.: action:foo) |
+| PK | (`role_id`, `feature_key`) | | |
 
 ---
 
@@ -684,6 +785,7 @@ Notas fiscais mensais de colaboradores PJ.
 |--------|------|------|---------|-----------|
 | `id` | uuid | NO | gen_random_uuid() | PK |
 | `collaborator_id` | uuid | NO | — | FK -> collaborators.id |
+| `billing_company_id` | uuid | YES | — | FK -> billing_companies.id |
 | `reference_month` | integer | NO | — | Mes referencia (1-12) |
 | `reference_year` | integer | NO | — | Ano referencia |
 | `invoice_number` | text | YES | — | Numero da NF |
@@ -706,11 +808,12 @@ Notas fiscais mensais de colaboradores PJ.
 | `rejection_reason` | text | YES | — | |
 | `reminder_sent_at` | timestamptz | YES | — | Ultimo lembrete |
 | `reminder_count` | integer | YES | 0 | Contagem lembretes |
+| `email_notified_at` | timestamptz | YES | — | Ultimo e-mail de notificacao enviado |
 | `created_at` | timestamptz | YES | now() | |
 | `updated_at` | timestamptz | YES | now() | |
 
 **Constraints:** UNIQUE(collaborator_id, reference_month, reference_year)  
-**RLS:** SELECT/INSERT onde `collaborator_id = auth.uid()`
+**RLS:** SELECT/INSERT onde `collaborator_id = auth.uid()` (ajustar conforme policies atuais)
 
 ---
 
@@ -985,22 +1088,33 @@ Contas bancarias de um cliente.
 
 ### 40. client_authorized_persons
 
-Pessoas autorizadas a representar o cliente (socios, procuradores, representantes legais).
+Pessoas autorizadas a representar o cliente (socios, procuradores, QSA enriquecido por bureaus).
 
 | Coluna | Tipo | Null | Default | Descricao |
 |--------|------|------|---------|-----------|
 | `id` | uuid | NO | gen_random_uuid() | PK |
 | `client_id` | uuid | NO | — | FK -> clients.id |
-| `authorization_type` | text | YES | — | Tipo (partner, attorney, legal_representative, authorized) |
-| `full_name` | text | NO | — | Nome completo |
+| `authorization_type` | text | YES | — | partner, attorney, legal_representative, authorized, administrator |
+| `full_name` | text | NO | — | Nome completo / razao |
+| `person_type` | text | NO | pf | pf ou pj |
 | `cpf` | text | YES | — | CPF |
+| `cnpj` | text | YES | — | CNPJ (parceiro PJ) |
+| `linked_client_id` | uuid | YES | — | FK -> clients.id (empresa ligada cadastrada) |
 | `phone` | text | YES | — | Telefone |
 | `email` | text | YES | — | Email |
+| `source` | text | YES | — | manual, vadu, serasa, brasilapi, creditbox |
+| `source_queried_at` | timestamptz | YES | — | Ultima consulta automatizada |
+| `joined_at` | timestamptz | YES | — | Entrada societaria / inicio mandato |
+| `mandate_end_at` | timestamptz | YES | — | Fim mandato |
+| `role` | text | YES | — | Cargo / qualificacao (QSA) |
+| `participation_percentage` | numeric(6,2) | YES | — | % participacao |
+| `capital_total_value` | numeric(20,2) | YES | — | Capital total referencia |
+| `restriction_sign` | text | YES | — | Sinalizacao restritiva (fonte bureau) |
 | `is_active` | boolean | NO | true | Ativo |
 | `created_at` | timestamptz | NO | now() | |
 | `updated_at` | timestamptz | NO | now() | |
 
-**Constraints:** FK(client_id)
+**Constraints:** FK(client_id), FK(linked_client_id)
 
 ---
 
@@ -1192,6 +1306,7 @@ Sacados (devedores de duplicatas). Suporta Pessoa Juridica (`company`) e Pessoa 
 | `trade_name` | text | YES | — | Nome fantasia |
 | `company_name` | text | NO | — | Razao social / nome |
 | `legal_name` | text | YES | — | Nome legal |
+| `founded_at` | date | YES | — | Data de fundacao (ex.: enriquecimento Serasa) |
 | `rg` | text | YES | — | RG (PF) |
 | `birth_date` | date | YES | — | Data de nascimento (PF) |
 | `gender` | text | YES | — | Genero (PF) |
@@ -2201,7 +2316,7 @@ Resultados de verificacao de presenca digital (DNS, site ativo, tipo de e-mail).
 ## Diagrama de Relacionamentos
 
 ```
-profiles (auth.users)
+profiles (login JWT local; opcional role_id -> roles)
   |
   +-- notifications (profile_id)
   +-- audit_logs (actor_id)
@@ -2238,8 +2353,10 @@ profiles (auth.users)
   |     +-- drawee_addresses (drawee_id)
   |     +-- drawee_bank_accounts (drawee_id)
   |     +-- drawee_documents (drawee_id)
+  |     +-- drawee_authorized_persons (drawee_id)
   |     +-- drawee_groups (drawee_id)
   |     +-- drawee_enabled_products (drawee_id)
+  |     +-- client_drawees (N:N clients <-> drawees)
   |     +-- financial_pendencies (drawee_id)
   |     +-- portfolio_positions (drawee_id)
   |
@@ -2257,6 +2374,10 @@ profiles (auth.users)
         +-- learning_enrollments (1:N)
               +-- learning_lesson_completions (1:N)
 
+roles
+  +-- profiles (role_id)
+  +-- role_permissions (role_id)
+
 regions
   +-- teams (region_id)
   +-- sales_goals (region_id)
@@ -2265,6 +2386,7 @@ teams
   +-- sales_goals (team_id)
 
 profiles
+  +-- refresh_tokens (user_id)
   +-- sales_goals (profile_id)
 
 segments
@@ -2316,9 +2438,10 @@ market_rates (independente — lookup de taxas por data)
 
 | Metrica | Valor |
 |---------|-------|
-| Total de tabelas | 83 |
-| Total de colunas | ~830 |
-| Tabelas com RLS | 72/81 (compliance tables pendentes) |
-| Policies ativas | 70+ (People + Comercial); restantes pendentes |
-| Foreign keys | 130+ |
-| Unique constraints | 25+ |
+| Total de tabelas (schema Drizzle exportado) | ~127 |
+| Total de colunas | ver geracao a partir de `schema/*.ts` |
+| Tabelas com RLS | variavel por ambiente; revisar migrations Supabase |
+| Foreign keys | 150+ (estimativa; conferir dump) |
+| Unique constraints | 30+ (estimativa) |
+
+Relacao **cliente–sacado** operacional: `client_drawees` (além de cadastros em `clients` / `drawees`).

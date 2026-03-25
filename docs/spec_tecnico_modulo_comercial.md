@@ -484,7 +484,7 @@ CREATE TABLE client_documents (
   -- Documento (tipo base, segmento, produto, garantia ou sócio)
   document_type TEXT NOT NULL,             -- código do tipo 
   document_category TEXT NOT NULL DEFAULT 'base' CHECK (document_category IN (
-    'base',            -- documento base exigido para todos (itens 1-9, 15-16)
+    'base',            -- documento base (ex.: faturamento por ano, balanço por ano, etc.)
     'segment',         -- documento extra do segmento (itens 10-14)
     'product',         -- documento extra do produto de crédito (item 17 - Progredir)
     'guarantee',       -- documento da garantia (item 12)
@@ -886,23 +886,23 @@ CREATE POLICY "storage_insert" ON storage.objects
 
 ## 6. Fluxo do Comercial — Passo a Passo
 
-### 6.1 Documentos Base (obrigatórios para TODOS)
+### 6.1 Documentos Base
 
-Estes documentos são exigidos independente do segmento, produto ou garantia:
+A maior parte dos itens abaixo é **obrigatória** para todos; exceções: **Curva ABC** (opcional) e itens de **sócio** gerados na categoria `partner` (ver checklist dinâmico). **Faturamento** não é mais um único item: são **três slots**, um por **ano civil**, cobrindo os **últimos 3 anos** (ano atual e os dois anteriores), calculados em SQL.
 
-| # | ID | Documento | Instrução |
-|---|-----|-----------|-----------|
-| 1 | `revenue` | Faturamento 2022, 2023, 2024 e 2025 | Faturamento mês a mês, por ano |
-| 2 | `debt_position` | Endividamento Atual (assinado) | Aberto por instituição, saldo, modalidade, garantia, % e vencimento |
-| 3 | `balance_sheet_dre` | Balanços e DRE 2023, 2024 e 2025 | Balanço patrimonial + DRE de cada exercício |
-| 4 | `balance_trial_comparative` | Balancete Comparativo | Mesmo período, ano atual vs anterior (ex: set/25 x set/24) |
-| 5 | `irpf` | IRPF dos Sócios (declaração + recibo) 2024, 2025 | Declaração completa e recibo de entrega |
-| 6 | `corporate_docs` | Documentação Societária | Ata, organograma, contrato social e alterações |
-| 7 | `partner_id` | CNH ou RG dos Sócios | Documento de identificação com foto |
-| 8 | `partner_address_proof` | Comprovante de Endereço dos Sócios | Comprovante recente (máx. 90 dias) |
-| 9 | `abc_curve` | Curva ABC — Maiores Clientes e Fornecedores | Ranking por volume dos principais clientes e fornecedores |
-| 10 | `visit_report` | Proposta / Relatório de Visita | Incluindo meios circulantes atuais |
-| 11 | `superintendent_opinion` | Parecer do Superintendente | Parecer assinado sobre a operação |
+| # | ID | Documento | Obrigatório | Instrução |
+|---|-----|-----------|:-------------:|-----------|
+| 1 | `revenue` | Faturamento (por ano) | Sim | Um envio por ano civil; período = últimos 3 anos (dinâmico via `generate_series`) |
+| 2 | `debt_position` | Endividamento Atual (assinado) | Sim | Aberto por instituição, saldo, modalidade, garantia, % e vencimento |
+| 3 | `balance_sheet_dre` | Balanços e DRE 2023, 2024 e 2025 | Sim | Balanço patrimonial + DRE por exercício (`reference_year`) |
+| 4 | `balance_trial_comparative` | Balancete Comparativo | Sim | Mesmo período, ano atual vs anterior (ex: set/25 x set/24) |
+| 5 | `irpf` | IRPF dos Sócios (por sócio e exercício) | Sim | Na prática: linhas na categoria `partner` — exercícios N-1 e N-2; declaração e/ou recibo |
+| 6 | `corporate_docs` | Documentação Societária | Sim | Ata, organograma, contrato social e alterações |
+| 7 | `partner_id` | CNH ou RG dos Sócios | Sim | Categoria `partner`: um slot por sócio PF |
+| 8 | `partner_address_proof` | Comprovante de Endereço dos Sócios | Sim | Categoria `partner`: um slot por sócio PF |
+| 9 | `abc_curve` | Curva ABC — Maiores Clientes e Fornecedores | **Não** | Ranking por volume; `is_required = false` no checklist |
+
+**Removidos do checklist de documentos do cliente:** `visit_report` (Proposta / Relatório de Visita) e `superintendent_opinion` (Parecer do Superintendente). A API de relatórios comerciais e a tabela `client_commercial_reports` podem permanecer para outros fluxos, sem item obrigatório de upload nesse checklist.
 
 ### 6.2 Documentos Condicionais
 
@@ -987,18 +987,16 @@ Ativados por flags na operação:
          │
   ┌──────┴──────────────────────────────────────────────────────────┐
   │                                                                  │
-  │  📋 DOCS BASE (11 itens — todos obrigatórios)                   │
-  │  ├─ □ Faturamento 2022, 2023, 2024, 2025                       │
+  │  📋 DOCS BASE (obrigatórios + Curva ABC opcional)                │
+  │  ├─ □ Faturamento — um arquivo por ano (últimos 3 anos civis)   │
   │  ├─ □ Endividamento atual (assinado)                            │
-  │  ├─ □ Balanços e DRE 2023, 2024, 2025                          │
+  │  ├─ □ Balanços e DRE 2023, 2024, 2025                           │
   │  ├─ □ Balancete comparativo (período atual x anterior)          │
-  │  ├─ □ IRPF dos sócios (declaração + recibo) 2024, 2025         │
+  │  ├─ □ IRPF dos sócios por exercício (ver seção sócios)           │
   │  ├─ □ Documentação societária (Ata, organograma, etc.)          │
   │  ├─ □ CNH ou RG dos sócios                                     │
   │  ├─ □ Comprovante de endereço dos sócios                       │
-  │  ├─ □ Curva ABC — maiores clientes e fornecedores              │
-  │  ├─ □ Proposta / Relatório de visita (com meios circulantes)   │
-  │  └─ □ Parecer do Superintendente                               │
+  │  └─ □ Curva ABC — maiores clientes e fornecedores (opcional)    │
   │                                                                  │
   │  🌾 DOCS DO SEGMENTO (Agro Grãos)                               │
   │  └─ □ Quadro de Safras (últimos 2 anos + atual)                │
@@ -1044,7 +1042,7 @@ Ativados por flags na operação:
 
 ### 6.7 API — Checklist Dinâmico de Documentos
 
-O frontend monta o checklist combinando **4 fontes**: base + segmento + produto + garantias + condicionais:
+O frontend monta o checklist combinando **base + sócios (`partner`) + segmento + produto + garantias + condicionais** (retorno de `get_document_checklist`):
 
 ```typescript
 // GET /api/clients/:id/document-checklist
@@ -1053,7 +1051,7 @@ interface DocumentChecklistItem {
   document_type: string;
   document_label: string;
   description: string | null;
-  category: 'base' | 'segment' | 'product' | 'guarantee' | 'conditional';
+  category: 'base' | 'segment' | 'product' | 'guarantee' | 'conditional' | 'partner';
   is_required: boolean;
   guarantee_id?: string;          // se for doc de garantia, qual garantia
   guarantee_label?: string;       // "Imóvel — Galpão Av. Paulista"
@@ -1069,152 +1067,22 @@ interface DocumentChecklistItem {
 }
 ```
 
-```sql
--- Função que monta o checklist completo combinando as 4 fontes
-CREATE OR REPLACE FUNCTION get_document_checklist(p_client_id UUID)
-RETURNS TABLE (
-  document_type TEXT,
-  document_label TEXT,
-  description TEXT,
-  category TEXT,
-  is_required BOOLEAN,
-  guarantee_id UUID,
-  status TEXT,
-  document_id UUID,
-  file_name TEXT,
-  validation_status TEXT
-) AS $$
-DECLARE
-  v_client clients%ROWTYPE;
-BEGIN
-  SELECT * INTO v_client FROM clients WHERE id = p_client_id;
+**Fonte de verdade (SQL):** a função `get_document_checklist(p_client_id uuid)` está versionada nas migrations Supabase. Ajustes recentes do checklist base: migration `20260326000000_adjust_document_checklist.sql` (sobre `expand_partner_docs_per_partner` e anteriores).
 
-  RETURN QUERY
+**Comportamento resumido da função:**
 
-  -- ========================================
-  -- 1. DOCUMENTOS BASE (todos — 11 itens)
-  -- ========================================
-  SELECT 
-    base.doc_type, base.doc_label, base.doc_desc,
-    'base'::TEXT, true, NULL::UUID,
-    COALESCE(
-      CASE WHEN cd.validation_status = 'pending' THEN 'uploaded'
-           WHEN cd.validation_status = 'processing' THEN 'validating'
-           ELSE cd.validation_status END,
-      'missing'
-    ),
-    cd.id, cd.file_name, cd.validation_status
-  FROM (VALUES
-    ('revenue',                    'Faturamento 2022, 2023, 2024 e 2025',                    'Faturamento mês a mês por ano'),
-    ('debt_position',              'Endividamento Atual (assinado)',                           'Aberto por instituição, saldo, modalidade, garantia, % e vencimento'),
-    ('balance_sheet_dre',          'Balanços e DRE 2023, 2024 e 2025',                       'Balanço patrimonial + DRE de cada exercício'),
-    ('balance_trial_comparative',  'Balancete Comparativo',                                   'Mesmo período, ano atual vs anterior'),
-    ('irpf',                       'IRPF dos Sócios (declaração + recibo) 2024, 2025',       'Declaração completa e recibo de entrega'),
-    ('corporate_docs',             'Documentação Societária',                                  'Ata, organograma, contrato social e alterações'),
-    ('partner_id',                 'CNH ou RG dos Sócios',                                    'Documento de identificação com foto'),
-    ('partner_address_proof',      'Comprovante de Endereço dos Sócios',                      'Comprovante recente (máx. 90 dias)'),
-    ('abc_curve',                  'Curva ABC — Maiores Clientes e Fornecedores',             'Ranking por volume'),
-    ('visit_report',               'Proposta / Relatório de Visita',                           'Incluindo meios circulantes atuais'),
-    ('superintendent_opinion',     'Parecer do Superintendente',                               'Parecer assinado sobre a operação')
-  ) AS base(doc_type, doc_label, doc_desc)
-  LEFT JOIN client_documents cd 
-    ON cd.client_id = p_client_id AND cd.document_type = base.doc_type AND cd.document_category = 'base'
+| Bloco | Categoria | Conteúdo |
+|-------|-----------|----------|
+| Base estática | `base` | `debt_position`, `balance_trial_comparative`, `corporate_docs` (obrigatórios); `abc_curve` com `is_required = false`. |
+| Faturamento | `base` | Vários itens `revenue` com `reference_year`: `generate_series(ano_atual - 2, ano_atual)`. |
+| Balanço / DRE | `base` | Itens `balance_sheet_dre` por ano (2023–2025) com `reference_year`. |
+| Sócios | `partner` | IRPF (N-1 e N-2 por sócio PF), `partner_id` e `partner_address_proof` por sócio PF (exclui PJ). |
+| Templates | `segment` / `product` / `guarantee` | Como nas tabelas `*_document_templates`. |
+| RJ | `conditional` | Se `is_judicial_recovery`. |
 
-  UNION ALL
+**Removidos do checklist:** `visit_report`, `superintendent_opinion`.
 
-  -- ========================================
-  -- 2. DOCUMENTOS DO SEGMENTO
-  -- ========================================
-  SELECT 
-    sdt.document_type, sdt.document_label, sdt.description,
-    'segment'::TEXT, sdt.is_required, NULL::UUID,
-    COALESCE(
-      CASE WHEN cd.validation_status = 'pending' THEN 'uploaded'
-           WHEN cd.validation_status = 'processing' THEN 'validating'
-           ELSE cd.validation_status END,
-      'missing'
-    ),
-    cd.id, cd.file_name, cd.validation_status
-  FROM segment_document_templates sdt
-  LEFT JOIN client_documents cd 
-    ON cd.client_id = p_client_id AND cd.document_type = sdt.document_type AND cd.document_category = 'segment'
-  WHERE sdt.segment_id = v_client.segment_id
-
-  UNION ALL
-
-  -- ========================================
-  -- 3. DOCUMENTOS DO PRODUTO DE CRÉDITO
-  -- ========================================
-  SELECT 
-    pdt.document_type, pdt.document_label, pdt.description,
-    'product'::TEXT, pdt.is_required, NULL::UUID,
-    COALESCE(
-      CASE WHEN cd.validation_status = 'pending' THEN 'uploaded'
-           WHEN cd.validation_status = 'processing' THEN 'validating'
-           ELSE cd.validation_status END,
-      'missing'
-    ),
-    cd.id, cd.file_name, cd.validation_status
-  FROM product_document_templates pdt
-  LEFT JOIN client_documents cd 
-    ON cd.client_id = p_client_id AND cd.document_type = pdt.document_type AND cd.document_category = 'product'
-  WHERE pdt.product_id = v_client.credit_product_id
-
-  UNION ALL
-
-  -- ========================================
-  -- 4. DOCUMENTOS CONDICIONAIS (Recuperação Judicial)
-  -- ========================================
-  SELECT 
-    cond.doc_type, cond.doc_label, cond.doc_desc,
-    'conditional'::TEXT, true, NULL::UUID,
-    COALESCE(
-      CASE WHEN cd.validation_status = 'pending' THEN 'uploaded'
-           WHEN cd.validation_status = 'processing' THEN 'validating'
-           ELSE cd.validation_status END,
-      'missing'
-    ),
-    cd.id, cd.file_name, cd.validation_status
-  FROM (VALUES
-    ('rj_plan',          'Plano de Recuperação Judicial Atual',   'Plano vigente aprovado pelo juízo'),
-    ('rj_creditors',     'Lista de Credores',                     'Lista atualizada de credores da RJ'),
-    ('rj_balance',       'Saldo Atual da Recuperação Judicial',   'Posição atualizada dos pagamentos da RJ')
-  ) AS cond(doc_type, doc_label, doc_desc)
-  LEFT JOIN client_documents cd 
-    ON cd.client_id = p_client_id AND cd.document_type = cond.doc_type AND cd.document_category = 'conditional'
-  WHERE v_client.is_judicial_recovery = true
-
-  UNION ALL
-
-  -- ========================================
-  -- 5. DOCUMENTOS DAS GARANTIAS (por garantia cadastrada)
-  -- ========================================
-  SELECT 
-    gdt.document_type, 
-    gdt.document_label || ' — ' || COALESCE(cg.description, gt.name),
-    gdt.description,
-    'guarantee'::TEXT, gdt.is_required, cg.id,
-    COALESCE(
-      CASE WHEN cd.validation_status = 'pending' THEN 'uploaded'
-           WHEN cd.validation_status = 'processing' THEN 'validating'
-           ELSE cd.validation_status END,
-      'missing'
-    ),
-    cd.id, cd.file_name, cd.validation_status
-  FROM client_guarantees cg
-  JOIN guarantee_types gt ON gt.id = cg.guarantee_type_id
-  JOIN guarantee_document_templates gdt ON gdt.guarantee_type_id = gt.id
-  LEFT JOIN client_documents cd 
-    ON cd.client_id = p_client_id 
-    AND cd.document_type = gdt.document_type 
-    AND cd.document_category = 'guarantee'
-    AND cd.client_guarantee_id = cg.id
-  WHERE cg.client_id = p_client_id AND v_client.has_guarantees = true
-
-  ORDER BY category, is_required DESC;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-```
+O retorno real inclui colunas extras (`partner_name`, `partner_cpf`, `reference_year`, `rejection_reason`, etc.) usadas pelo backoffice — ver tipo `DocumentChecklistItem` em `@nexus/types`. A função `can_submit_for_analysis` continua a considerar apenas linhas com `is_required = true`.
 
 ### 6.8 Validação: pode enviar para análise?
 

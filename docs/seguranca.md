@@ -60,11 +60,10 @@ A plataforma Sarfaty adota uma estrategia de seguranca em multiplas camadas, com
 |                   Database Layer                          |
 +----------------------------------------------------------+
 | Supabase PostgreSQL:                                      |
-|   - RLS habilitado em 100% das tabelas (36/36)           |
-|   - 70+ policies ativas                                  |
-|   - Funcoes com search_path fixo                         |
-|   - Backend usa service_role (bypass RLS)                |
-|   - Frontend usa anon key (RLS ativo)                    |
+|   - RLS conforme migrations/policies do projeto             |
+|   - Funcoes com search_path fixo (onde aplicavel)          |
+|   - Backend Nest usa service_role (bypass RLS) + guards    |
+|   - Clientes diretos PostgREST usam anon key + RLS          |
 +----------------------------------------------------------+
 ```
 
@@ -288,14 +287,16 @@ Controller
 |-------|---------|--------|
 | `AuthGuard` | `apps/api/src/common/guards/auth.guard.ts` | Valida JWT Bearer token via `TokenService.verifyAccessToken()` (HS256 local, sem consulta ao banco por requisicao). Rotas `@Public()` sao isentas. |
 | `ThrottlerGuard` | `@nestjs/throttler` | Limita requisicoes por IP. |
-| `RbacGuard` | `apps/api/src/common/guards/rbac.guard.ts` | Verifica se o role do usuario tem permissao para a action requerida via `@RequireActions()`. Usa `ROLE_PERMISSIONS` de `@nexus/types`. |
+| `RbacGuard` | `apps/api/src/common/guards/rbac.guard.ts` | Verifica `@RequireActions()`: carrega **features do papel** via repositorio `roles`/`role_permissions` (com cache), nao le `ROLE_PERMISSIONS` TS diretamente. `*` no conjunto de features libera tudo. |
 
 **Rotas publicas (sem autenticacao):**
 - `POST /api/auth/login`
 - `POST /api/auth/refresh`
 - `GET /api/health`
 
-> **Migracao (Mar/2026):** autenticacao migrada de Supabase Auth para JWT local. Senhas armazenadas como hash Argon2id em `profiles.password_hash`. Sessoes gerenciadas via tabela `refresh_tokens`. O Supabase permanece exclusivamente para Storage e Realtime. Ver detalhes completos em `/wiki/modules/auth`.
+> **Migracao (Mar/2026):** login **nao** usa Supabase Auth; a API autentica contra `profiles` com **JWT HS256** (`JWT_SECRET`), **Argon2id** em `profiles.password_hash` e **`refresh_tokens`**. Supabase continua como **Postgres hospedado**, **Storage** e demais servicos de infra conforme configurado.
+
+**Criacao de usuarios:** fluxo via **`UsersModule`** / `UsersController` (ex.: `POST /users`), com perfil persistido em `public.profiles` — sem `supabase.auth.admin.createUser()` no caminho de login da aplicacao.
 
 ### 7.5 Validacao de Input
 
@@ -339,7 +340,7 @@ Origins controladas pela env var `CORS_ORIGINS`. Em desenvolvimento: `http://loc
 
 ### 8.1 Row Level Security (RLS)
 
-**100% das tabelas publicas possuem RLS habilitado (36/36).**
+**RLS:** cobertura e policies evoluem com o schema (~127 tabelas no Drizzle); validar no Supabase para o ambiente alvo.
 
 As policies seguem 3 padroes:
 
