@@ -7,9 +7,9 @@ FROM "roles" r
 WHERE r.key IN ('credit_analyst', 'approver', 'risk_manager', 'admin')
 ON CONFLICT DO NOTHING;
 
--- Commercial roles
+-- Commercial: only sales_director sees CERC in sidebar
 INSERT INTO "role_permissions" ("role_id", "feature_key")
 SELECT r.id, 'sidebar:credit/cerc'
 FROM "roles" r
-WHERE r.key IN ('sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director')
+WHERE r.key = 'sales_director'
 ON CONFLICT DO NOTHING;
