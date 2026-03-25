@@ -172,3 +172,32 @@ export interface CercGetPartesResponse {
   validacao_id: string;
   partes: CercPartesDetail;
 }
+
+// --- Resultados de Validação ---
+
+export type CercResultadoImpacto = 'neutro' | 'alerta' | 'consistente' | 'critico';
+export type CercResultadoDimensao = 'credito' | 'fiscal' | 'logistica' | 'mercantil';
+export type CercResultadoEscopo = 'parte' | 'dfe' | 'recebivel';
+
+export interface CercResultadoAlgoritmo {
+  id: string;
+  codigo: string;
+  nome: string;
+  tipo: string;
+  dimensao: CercResultadoDimensao;
+  escopo: CercResultadoEscopo;
+}
+
+export interface CercResultado {
+  id: string;
+  codigo: string;
+  algoritmo: CercResultadoAlgoritmo;
+  mensagem: string;
+  impacto: CercResultadoImpacto;
+  dados_utilizados: string;
+  parametros_do_algoritmo: string;
+  informacoes_complementares: string;
+  data_conclusao: string;
+}
+
+export type CercGetResultadosResponse = CercResultado[];

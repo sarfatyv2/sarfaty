@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, numeric, date, timestamp, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, numeric, date, timestamp, jsonb, index, foreignKey } from 'drizzle-orm/pg-core';
 
 export const cercValidations = pgTable('cerc_validations', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -37,4 +37,39 @@ export const cercValidations = pgTable('cerc_validations', {
   validacaoIdx: index('idx_cerc_validations_validacao').on(table.validacaoId),
   statusIdx: index('idx_cerc_validations_status').on(table.status),
   requestedIdx: index('idx_cerc_validations_requested').on(table.requestedAt),
+}));
+
+export const cercValidationResultados = pgTable('cerc_validation_resultados', {
+  id: uuid('id').primaryKey().defaultRandom(),
+
+  cercValidationId: uuid('cerc_validation_id').notNull(),
+
+  resultadoCercId: text('resultado_cerc_id').notNull(),
+  codigo: text('codigo'),
+
+  algoritmoId: text('algoritmo_id'),
+  algoritmoCodigo: text('algoritmo_codigo'),
+  algoritmoNome: text('algoritmo_nome'),
+  algoritmoTipo: text('algoritmo_tipo').notNull(),
+  algoritmoDimensao: text('algoritmo_dimensao').notNull(),
+  algoritmoEscopo: text('algoritmo_escopo').notNull(),
+
+  mensagem: text('mensagem').notNull(),
+  impacto: text('impacto').notNull(),
+
+  dadosUtilizados: text('dados_utilizados'),
+  parametrosDoAlgoritmo: text('parametros_do_algoritmo'),
+  informacoesComplementares: text('informacoes_complementares'),
+
+  dataConclusao: timestamp('data_conclusao', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  cercValidationFk: foreignKey({
+    columns: [table.cercValidationId],
+    foreignColumns: [cercValidations.id],
+  }).onDelete('cascade'),
+  cercValidationIdx: index('idx_cerc_resultados_validation').on(table.cercValidationId),
+  impactoIdx: index('idx_cerc_resultados_impacto').on(table.impacto),
+  dimensaoIdx: index('idx_cerc_resultados_dimensao').on(table.algoritmoDimensao),
+  tipoIdx: index('idx_cerc_resultados_tipo').on(table.algoritmoTipo),
 }));

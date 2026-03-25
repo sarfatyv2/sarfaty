@@ -10,6 +10,7 @@ import type {
   CercGetConstatacoeResponse,
   CercGetEventosResponse,
   CercGetPartesResponse,
+  CercGetResultadosResponse,
 } from './cerc.types';
 
 const TOKEN_SAFETY_BUFFER_SECONDS = 60;
@@ -189,6 +190,13 @@ export class CercAdapter {
     return this.get<CercGetPartesResponse>(
       `/transaction-io/tio-mapper/v1/operations/validacoes/${validacaoId}/partes`,
       'cerc.getPartes',
+    );
+  }
+
+  async getResultados(validacaoId: string): Promise<CercGetResultadosResponse> {
+    return this.get<CercGetResultadosResponse>(
+      `/transaction-io/tio-mapper/v1/operations/validacoes/${validacaoId}/resultados`,
+      'cerc.getResultados',
     );
   }
 

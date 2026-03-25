@@ -87,3 +87,20 @@ export interface CercValidationRecord {
   requestedAt: string;
   processedAt: string | null;
 }
+
+export type CercResultadoImpacto = 'neutro' | 'alerta' | 'consistente' | 'critico';
+export type CercResultadoDimensao = 'credito' | 'fiscal' | 'logistica' | 'mercantil';
+
+export interface CercResultado {
+  id: string;
+  resultadoCercId: string;
+  algoritmoTipo: string;
+  algoritmoDimensao: CercResultadoDimensao;
+  algoritmoEscopo: string;
+  mensagem: string;
+  impacto: CercResultadoImpacto;
+  dadosUtilizados: string | null;
+  parametrosDoAlgoritmo: string | null;
+  informacoesComplementares: string | null;
+  dataConclusao: string;
+}

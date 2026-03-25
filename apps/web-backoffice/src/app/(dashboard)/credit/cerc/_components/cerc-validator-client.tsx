@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import { CercValidationForm } from './cerc-validation-form';
 import { CercResultsPanel } from './cerc-results-panel';
-import type { CercValidationRecord } from './cerc.types';
+import type { CercResultado, CercValidationRecord } from './cerc.types';
 
 const POLL_INTERVAL_MS = 3_000;
 const POLL_MAX_ATTEMPTS = 20;
@@ -13,6 +13,7 @@ const POLL_MAX_ATTEMPTS = 20;
 export function CercValidatorClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [record, setRecord] = useState<CercValidationRecord | null>(null);
+  const [resultados, setResultados] = useState<CercResultado[]>([]);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollAttemptsRef = useRef(0);
 
@@ -20,6 +21,15 @@ export function CercValidatorClient() {
     if (pollTimerRef.current) {
       clearTimeout(pollTimerRef.current);
       pollTimerRef.current = null;
+    }
+  }, []);
+
+  const fetchResultados = useCallback(async (validationId: string) => {
+    try {
+      const res = await api.get<CercResultado[]>(`/credit/cerc/validar/${validationId}/resultados`);
+      setResultados(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setResultados([]);
     }
   }, []);
 
@@ -36,6 +46,12 @@ export function CercValidatorClient() {
         const updated = result.data;
         setRecord(updated);
 
+        if (updated.status === 'PROCESSED') {
+          await fetchResultados(id);
+        } else if (updated.status === 'ERROR') {
+          setResultados([]);
+        }
+
         const isTerminal = updated.status === 'PROCESSED' || updated.status === 'ERROR';
         const exhausted = pollAttemptsRef.current >= POLL_MAX_ATTEMPTS;
 
@@ -46,9 +62,10 @@ export function CercValidatorClient() {
         setRecord((prev) =>
           prev ? { ...prev, status: 'ERROR', errorMessage: 'Erro ao sincronizar com a CERC.' } : prev,
         );
+        setResultados([]);
       }
     },
-    [clearPoll],
+    [clearPoll, fetchResultados],
   );
 
   const handleRefresh = useCallback(
@@ -58,11 +75,16 @@ export function CercValidatorClient() {
           `/credit/cerc/validar/${id}/sync`,
         );
         setRecord(result.data);
+        if (result.data.status === 'PROCESSED') {
+          await fetchResultados(id);
+        } else if (result.data.status === 'ERROR') {
+          setResultados([]);
+        }
       } catch {
         toast.error('Erro ao atualizar dados da validação.');
       }
     },
-    [],
+    [fetchResultados],
   );
 
   const handleSubmit = useCallback(
@@ -81,6 +103,7 @@ export function CercValidatorClient() {
       pollAttemptsRef.current = 0;
       setIsSubmitting(true);
       setRecord(null);
+      setResultados([]);
 
       try {
         const result = await api.post<CercValidationRecord>(
@@ -91,7 +114,9 @@ export function CercValidatorClient() {
         const created = result.data;
         setRecord(created);
 
-        if (created.status !== 'PROCESSED' && created.status !== 'ERROR') {
+        if (created.status === 'PROCESSED') {
+          await fetchResultados(created.id);
+        } else if (created.status !== 'ERROR') {
           pollTimerRef.current = setTimeout(() => pollSync(created.id), POLL_INTERVAL_MS);
         }
       } catch (error) {
@@ -103,7 +128,7 @@ export function CercValidatorClient() {
         setIsSubmitting(false);
       }
     },
-    [clearPoll, pollSync],
+    [clearPoll, pollSync, fetchResultados],
   );
 
   return (
@@ -112,7 +137,7 @@ export function CercValidatorClient() {
         <CercValidationForm isSubmitting={isSubmitting} onSubmit={handleSubmit} />
       </div>
       <div className="p-8 overflow-auto bg-muted/20">
-        <CercResultsPanel record={record} onRefresh={handleRefresh} />
+        <CercResultsPanel record={record} resultados={resultados} onRefresh={handleRefresh} />
       </div>
     </div>
   );
