@@ -294,7 +294,7 @@ src/app/
 
 ### 4.4 Banco de Dados e Storage (Supabase)
 
-- 91 tabelas (16 People + 36 Comercial/Sacados + 4 Grupos Econômicos + 5 Financeiro + 2 Portfólio + 6 Debêntures + 5 Fornecedores + 3 Integrações + 9 Compliance + 1 Core + 5 Learning + 6 Governance + 3 Communication) + 1 view (`collaborators_with_computed`) + trigger `on_auth_user_created`
+- 92 tabelas (16 People + 36 Comercial/Sacados + 4 Grupos Econômicos + 5 Financeiro + 2 Portfólio + 6 Debêntures + 5 Fornecedores + 3 Integrações + 9 Compliance + 1 Core + 5 Learning + 6 Governance + 3 Communication + **2 CERC**) + 1 view (`collaborators_with_computed`) + trigger `on_auth_user_created`
 - **Não existe signup público** — todo acesso criado por admin/RH
 - Cadeia: `auth.users` -> trigger -> `profiles` -> `collaborators`
 - **RLS policies (tabelas):** NENHUMA criada ainda
@@ -371,7 +371,7 @@ src/app/
 - [ ] Redis (Upstash) + BullMQ
 - [x] Módulo `credit/vadu` — adapters VADU (consulta CNPJ/CPF síncrona) + CreditBox (relatório assíncrono com polling e PDF). Ver `vadu_integracao.md`
 - [x] Módulo `credit/compliance` — 9 verificações automáticas: CGU (CEIS/CNEP/CEPIM), PGFN, CNDT, PEP, Sanções (OFAC), Trabalho Escravo, Validação de Endereço (ViaCEP), Mídia Negativa (OSINT via Gemini API + Google Search Grounding), Presença Digital (DNS + HTTP probe). Disparadas automaticamente via eventos, exibidas na aba Bureau. Ver `compliance_checks_integracao.md`
-- [x] Módulo `credit` — CERC (validação de duplicata mercantil + extração NF-e via Gemini) e upMiner (batch, dossier, PDF na API). UI dedicada: `credit/cerc` no backoffice; upMiner sem UI no momento. Ver `cerc_integracao.md`, `upminer_integracao.md`
+- [x] Módulo `credit` — CERC (validação de duplicata mercantil + extração NF-e via Gemini; resultados de análise por algoritmo persistidos em `cerc_validation_resultados` com endpoint `GET /validar/:id/resultados`; UI com seção "Resultados de Análise" com filtro por dimensão e agrupamento por impacto: crítico → alerta → consistente → neutro) e upMiner (batch, dossier, PDF na API). UI dedicada: `credit/cerc` no backoffice; upMiner sem UI no momento.
 - [ ] Módulo `credit` — circuit breaker e resiliência unificada nos adapters de integrações externas
 - [ ] Módulo `compliance` — adapters comerciais (Neoway, idwall, BigData, Judit)
 - [ ] Módulo `approval` — mesa aprovadora

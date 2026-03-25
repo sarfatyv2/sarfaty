@@ -96,6 +96,7 @@ import { RequestCercValidationUseCase } from './use-cases/request-cerc-validatio
 import { SyncCercValidationUseCase } from './use-cases/sync-cerc-validation.use-case';
 import { GetCercValidationUseCase } from './use-cases/get-cerc-validation.use-case';
 import { ListCercValidationsUseCase } from './use-cases/list-cerc-validations.use-case';
+import { GetCercValidationResultadosUseCase } from './use-cases/get-cerc-validation-resultados.use-case';
 import { ALLCHECK_RESULT_REPOSITORY } from './domain/allcheck-result.repository';
 import { ALLCHECK_DRAWEE_RESULT_REPOSITORY } from './domain/allcheck-drawee-result.repository';
 import { DrizzleAllcheckResultRepository } from './infra/drizzle/drizzle-allcheck-result.repository';
@@ -104,6 +105,8 @@ import { UPMINER_RESULT_REPOSITORY } from './domain/upminer-result.repository';
 import { DrizzleUpminerResultRepository } from './infra/drizzle/drizzle-upminer-result.repository';
 import { CERC_VALIDATION_REPOSITORY } from './domain/cerc-validation.repository';
 import { DrizzleCercValidationRepository } from './infra/drizzle/drizzle-cerc-validation.repository';
+import { CERC_VALIDATION_RESULTADO_REPOSITORY } from './domain/cerc-validation-resultado.repository';
+import { DrizzleCercValidationResultadoRepository } from './infra/drizzle/drizzle-cerc-validation-resultado.repository';
 import { VADU_DRAWEE_REPOSITORY } from './domain/vadu-drawee.repository';
 import { SERASA_DRAWEE_REPORT_REPOSITORY } from './domain/serasa-drawee-report.repository';
 import { CGU_DRAWEE_CHECK_REPOSITORY } from './domain/cgu-drawee-check.repository';
@@ -171,6 +174,7 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     { provide: UPMINER_RESULT_REPOSITORY, useClass: DrizzleUpminerResultRepository },
     // CERC repositories
     { provide: CERC_VALIDATION_REPOSITORY, useClass: DrizzleCercValidationRepository },
+    { provide: CERC_VALIDATION_RESULTADO_REPOSITORY, useClass: DrizzleCercValidationResultadoRepository },
 
     // Use Cases
     SyncVaduClientUseCase,
@@ -212,6 +216,7 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     SyncCercValidationUseCase,
     GetCercValidationUseCase,
     ListCercValidationsUseCase,
+    GetCercValidationResultadosUseCase,
 
     // Event Listeners
     VaduClientListener,

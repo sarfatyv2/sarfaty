@@ -138,7 +138,8 @@
 | upMiner | `upminer_cade_processos` | CADE processos |
 | upMiner | `upminer_cade_protocolos` | CADE protocolos |
 | upMiner | `upminer_cade_andamentos` | CADE andamentos |
-| CERC | `cerc_validations` | Validacoes/registros CERC |
+| CERC | `cerc_validations` | Validações/registros CERC |
+| CERC | `cerc_validation_resultados` | Resultados de análise por algoritmo (impacto, dimensão, escopo, mensagem) — FK cascade para `cerc_validations` |
 | Investimentos | `investment_asset_groups` | Grupos de ativos |
 | Investimentos | `investment_assets` | Ativos |
 | Taxas | `iof_rates` | Tabela IOF |

@@ -155,7 +155,7 @@ export {
 } from './upminer-receita-qsa-cade';
 
 // CERC
-export { cercValidations } from './cerc-validations';
+export { cercValidations, cercValidationResultados } from './cerc-validations';
 
 // Compliance Checks - Drawees
 export { cguDraweeCheckResults } from './cgu-drawee-check-results';

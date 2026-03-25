@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Loader2, ShieldCheck, AlertTriangle, CheckCircle2,
   Users, FileText, Activity, RefreshCw, Code2, ChevronDown,
-  Receipt, Landmark,
+  Receipt, Landmark, ListChecks,
 } from 'lucide-react';
 import { Badge, Button, Card, CardContent, ScrollArea } from '@nexus/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import type {
   CercValidationRecord, CercConstatacao, CercEvento, CercPartes,
   CercDocumentoFiscal, CercValidacaoData,
+  CercResultado, CercResultadoDimensao, CercResultadoImpacto,
 } from './cerc.types';
 
 type BadgeType = 'success' | 'danger' | 'warning' | 'neutral';
@@ -45,6 +46,131 @@ function formatDatetime(dateStr: string | undefined | null): string {
 function formatCurrency(value: number | undefined | null): string {
   if (value == null) return '—';
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+const DIMENSION_FILTERS: Array<{ value: 'all' | CercResultadoDimensao; label: string }> = [
+  { value: 'all', label: 'Todos' },
+  { value: 'credito', label: 'Crédito' },
+  { value: 'fiscal', label: 'Fiscal' },
+  { value: 'logistica', label: 'Logística' },
+  { value: 'mercantil', label: 'Mercantil' },
+];
+
+const IMPACT_ORDER: CercResultadoImpacto[] = ['critico', 'alerta', 'consistente', 'neutro'];
+
+const IMPACT_LABELS: Record<CercResultadoImpacto, string> = {
+  critico: 'Crítico',
+  alerta: 'Alerta',
+  consistente: 'Consistente',
+  neutro: 'Neutro',
+};
+
+function formatTipoAlgoritmo(tipo: string): string {
+  return tipo.replaceAll('_', ' ');
+}
+
+function dimensaoLabel(d: string): string {
+  const map: Record<string, string> = {
+    credito: 'Crédito',
+    fiscal: 'Fiscal',
+    logistica: 'Logística',
+    mercantil: 'Mercantil',
+  };
+  return map[d] ?? d;
+}
+
+function escopoLabel(escopo: string): string {
+  const map: Record<string, string> = {
+    parte: 'Parte',
+    dfe: 'DF-e',
+    recebivel: 'Recebível',
+  };
+  return map[escopo] ?? escopo;
+}
+
+function impactGroupBorderClass(impact: CercResultadoImpacto): string {
+  switch (impact) {
+    case 'critico':
+      return 'border-red-200 bg-red-50/50';
+    case 'alerta':
+      return 'border-amber-200 bg-amber-50/50';
+    case 'consistente':
+      return 'border-emerald-200 bg-emerald-50/50';
+    default:
+      return 'border-slate-200 bg-slate-50/50';
+  }
+}
+
+function ResultadosAnaliseSection({ resultados }: Readonly<{ resultados: CercResultado[] }>) {
+  const [dimensaoFilter, setDimensaoFilter] = useState<'all' | CercResultadoDimensao>('all');
+
+  const filtered = useMemo(() => {
+    if (dimensaoFilter === 'all') return resultados;
+    return resultados.filter((r) => r.algoritmoDimensao === dimensaoFilter);
+  }, [resultados, dimensaoFilter]);
+
+  const groupedByImpact = useMemo(() => {
+    const map = new Map<CercResultadoImpacto, CercResultado[]>();
+    for (const impact of IMPACT_ORDER) {
+      map.set(impact, filtered.filter((r) => r.impacto === impact));
+    }
+    return map;
+  }, [filtered]);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-1.5">
+        {DIMENSION_FILTERS.map((opt) => (
+          <Button
+            key={opt.value}
+            type="button"
+            variant={dimensaoFilter === opt.value ? 'default' : 'outline'}
+            size="sm"
+            className="h-7 text-xs"
+            onClick={() => setDimensaoFilter(opt.value)}
+          >
+            {opt.label}
+          </Button>
+        ))}
+      </div>
+
+      {filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Nenhum resultado neste filtro. Ajuste a dimensão ou aguarde a sincronização gravar os resultados da CERC.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {IMPACT_ORDER.map((impact) => {
+            const items = groupedByImpact.get(impact) ?? [];
+            if (items.length === 0) return null;
+            return (
+              <div
+                key={impact}
+                className={`rounded-lg border p-3 space-y-2 ${impactGroupBorderClass(impact)}`}
+              >
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {IMPACT_LABELS[impact]} ({items.length})
+                </p>
+                <ul className="space-y-3">
+                  {items.map((item) => (
+                    <li key={item.id} className="space-y-1.5 text-sm">
+                      <p className="font-medium leading-snug">{item.mensagem}</p>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                        <span className="font-mono">{formatTipoAlgoritmo(item.algoritmoTipo)}</span>
+                        <span>{dimensaoLabel(item.algoritmoDimensao)}</span>
+                        <span>{escopoLabel(item.algoritmoEscopo)}</span>
+                        <span>{formatDatetime(item.dataConclusao)}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function getConstatacaoSeverity(tipo: string): BadgeType {
@@ -327,10 +453,11 @@ function RecebivelSection({ validacaoData }: Readonly<{ validacaoData: CercValid
 
 interface CercResultsPanelProps {
   record: CercValidationRecord | null;
+  resultados: CercResultado[];
   onRefresh: (id: string) => void;
 }
 
-export function CercResultsPanel({ record, onRefresh }: Readonly<CercResultsPanelProps>) {
+export function CercResultsPanel({ record, resultados, onRefresh }: Readonly<CercResultsPanelProps>) {
   const handleRefresh = useCallback(() => {
     if (record?.id) onRefresh(record.id);
   }, [record, onRefresh]);
@@ -361,6 +488,9 @@ export function CercResultsPanel({ record, onRefresh }: Readonly<CercResultsPane
   const hasDangerConstatacao = constatacoes.some(
     (c) => getConstatacaoSeverity(c.tipo) === 'danger',
   );
+
+  const resultadosCriticoCount = resultados.filter((r) => r.impacto === 'critico').length;
+  const resultadosAlertaCount = resultados.filter((r) => r.impacto === 'alerta').length;
 
   return (
     <div className="space-y-4">
@@ -456,6 +586,26 @@ export function CercResultsPanel({ record, onRefresh }: Readonly<CercResultsPane
             rawData={record.constatacoesDados}
           >
             <ConstatacoesList constatacoes={constatacoes} />
+          </ExpandableSection>
+
+          {/* Resultados de análise (CERC — tabela persistida) */}
+          <ExpandableSection
+            icon={<ListChecks size={15} className="text-indigo-500" />}
+            title="Resultados de Análise"
+            badge={
+              <div className="flex flex-wrap gap-1">
+                {resultadosCriticoCount > 0 && (
+                  <StatusBadge value={`${resultadosCriticoCount} crít.`} type="danger" />
+                )}
+                {resultadosAlertaCount > 0 && (
+                  <StatusBadge value={`${resultadosAlertaCount} alerta`} type="warning" />
+                )}
+                <StatusBadge value={String(resultados.length)} type="neutral" />
+              </div>
+            }
+            defaultOpen
+          >
+            <ResultadosAnaliseSection resultados={resultados} />
           </ExpandableSection>
 
           {/* Recebível */}

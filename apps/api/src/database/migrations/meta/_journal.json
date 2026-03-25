@@ -43,6 +43,13 @@
       "when": 1774399117853,
       "tag": "0005_glorious_amazoness",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1742842800000,
+      "tag": "0006_cerc_validation_resultados",
+      "breakpoints": true
     }
   ]
 }
