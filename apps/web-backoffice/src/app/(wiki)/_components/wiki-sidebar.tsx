@@ -29,6 +29,7 @@ import {
   KeyRound,
   FileSpreadsheet,
   Bot,
+  Rocket,
 } from 'lucide-react';
 import { Sheet, SheetContent } from '@nexus/ui';
 
@@ -40,6 +41,7 @@ const navGroups = [
       { href: '/wiki/architecture', label: 'Arquitetura', icon: Layers },
       { href: '/wiki/database', label: 'Banco de Dados', icon: Database },
       { href: '/wiki/migration', label: 'Migração Legado → Novo', icon: ArrowRightLeft },
+      { href: '/wiki/roadmap', label: 'Roadmap', icon: Rocket },
     ],
   },
   {
