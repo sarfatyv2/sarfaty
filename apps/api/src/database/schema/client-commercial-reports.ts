@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, numeric, date, timestamp, index, boolean, integer } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, numeric, date, timestamp, index, boolean, integer, jsonb } from 'drizzle-orm/pg-core';
 import { clients } from './clients';
 import { profiles } from './profiles';
 
@@ -63,6 +63,32 @@ export const clientCommercialReports = pgTable('client_commercial_reports', {
 
   // Parecer / Defesa Comercial
   commercialDefense: text('commercial_defense'),
+
+  // Relatório v2 — cabeçalho e observações
+  employeeCount: integer('employee_count'),
+  referralSource: text('referral_source'),
+  averageTicket: text('average_ticket'),
+  operationNotes: text('operation_notes'),
+  serasaNotes: text('serasa_notes'),
+  partnersNotes: text('partners_notes'),
+  relatedCompaniesNotes: text('related_companies_notes'),
+  mainProducts: text('main_products'),
+  anticipaGrandesRedes: boolean('anticipa_grandes_redes'),
+  anticipaGrandesRedesList: text('anticipa_grandes_redes_list'),
+  preBillingPercentage: numeric('pre_billing_percentage', { precision: 5, scale: 2 }),
+  cteDays: integer('cte_days'),
+  salesSouthPercentage: numeric('sales_south_percentage', { precision: 5, scale: 2 }),
+  salesSoutheastPercentage: numeric('sales_southeast_percentage', { precision: 5, scale: 2 }),
+  salesNorthPercentage: numeric('sales_north_percentage', { precision: 5, scale: 2 }),
+  salesNortheastPercentage: numeric('sales_northeast_percentage', { precision: 5, scale: 2 }),
+  salesMidwestPercentage: numeric('sales_midwest_percentage', { precision: 5, scale: 2 }),
+  inventoryValue: numeric('inventory_value', { precision: 15, scale: 2 }),
+  banksBalance: numeric('banks_balance', { precision: 15, scale: 2 }),
+  fundsBalance: numeric('funds_balance', { precision: 15, scale: 2 }),
+  suppliersBalance: numeric('suppliers_balance', { precision: 15, scale: 2 }),
+  receiptMethodsDetail: jsonb('receipt_methods_detail'),
+  externalReceiptMethodsDetail: jsonb('external_receipt_methods_detail'),
+  suppliersDetail: jsonb('suppliers_detail'),
 
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),

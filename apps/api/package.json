@@ -15,7 +15,8 @@
     "test:irpf": "tsx scripts/test-irpf-extraction.ts",
     "test:irpf:classify": "tsx scripts/test-irpf-extraction.ts --no-gemini",
     "test:faturamento": "tsx scripts/test-faturamento-extraction.ts",
-    "validate:cnab": "tsx scripts/validate-cnab-parse.ts"
+    "validate:cnab": "tsx scripts/validate-cnab-parse.ts",
+    "db:migrate": "bash scripts/drizzle-migrate.sh"
   },
   "dependencies": {
     "@fastify/helmet": "11.1.1",
