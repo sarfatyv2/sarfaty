@@ -10,7 +10,7 @@ export const databaseNodes: Node[] = [
     id: 'g-core',
     type: 'group',
     position: { x: 0, y: 0 },
-    style: { width: COL_WIDTH, height: 220, backgroundColor: 'rgba(16, 185, 129, 0.04)', borderRadius: 12, border: '1px solid rgba(16,185,129,0.2)' },
+    style: { width: COL_WIDTH, height: 400, backgroundColor: 'rgba(16, 185, 129, 0.04)', borderRadius: 12, border: '1px solid rgba(16,185,129,0.2)' },
     data: { label: '' },
   },
   {
@@ -27,7 +27,7 @@ export const databaseNodes: Node[] = [
     position: { x: 12, y: 60 },
     parentId: 'g-core',
     extent: 'parent',
-    data: { tableName: 'profiles', columns: ['id (uuid)', 'role', 'full_name', 'avatar_url'], color: 'green' },
+    data: { tableName: 'profiles', columns: ['id', 'email', 'role_id', 'password_hash', 'full_name', 'avatar_url'], color: 'green' },
   },
   {
     id: 't-regions',
@@ -53,13 +53,37 @@ export const databaseNodes: Node[] = [
     extent: 'parent',
     data: { tableName: 'audit_logs', columns: ['id', 'actor_id', 'action', 'entity', 'payload'], color: 'green' },
   },
+  {
+    id: 't-roles',
+    type: 'tableNode',
+    position: { x: 12, y: 240 },
+    parentId: 'g-core',
+    extent: 'parent',
+    data: { tableName: 'roles', columns: ['id', 'key', 'name', 'description'], color: 'green' },
+  },
+  {
+    id: 't-role-permissions',
+    type: 'tableNode',
+    position: { x: 202, y: 240 },
+    parentId: 'g-core',
+    extent: 'parent',
+    data: { tableName: 'role_permissions', columns: ['role_id', 'module', 'feature', 'allowed'], color: 'green' },
+  },
+  {
+    id: 't-refresh-tokens',
+    type: 'tableNode',
+    position: { x: 12, y: 330 },
+    parentId: 'g-core',
+    extent: 'parent',
+    data: { tableName: 'refresh_tokens', columns: ['user_id', 'token_hash', 'family_id', 'expires_at'], color: 'green' },
+  },
 
   // ─── GROUP: Commercial ────────────────────────────────
   {
     id: 'g-commercial',
     type: 'group',
     position: { x: COL_WIDTH + 40, y: 0 },
-    style: { width: COL_WIDTH, height: GROUP_HEIGHT_UNIT * 2.2, backgroundColor: 'rgba(59, 130, 246, 0.04)', borderRadius: 12, border: '1px solid rgba(59,130,246,0.2)' },
+    style: { width: COL_WIDTH, height: 500, backgroundColor: 'rgba(59, 130, 246, 0.04)', borderRadius: 12, border: '1px solid rgba(59,130,246,0.2)' },
     data: { label: '' },
   },
   {
@@ -118,13 +142,21 @@ export const databaseNodes: Node[] = [
     extent: 'parent',
     data: { tableName: 'credit_products', columns: ['id', 'name', 'code', 'type'], color: 'blue' },
   },
+  {
+    id: 't-client-drawees',
+    type: 'tableNode',
+    position: { x: 12, y: 420 },
+    parentId: 'g-commercial',
+    extent: 'parent',
+    data: { tableName: 'client_drawees', columns: ['client_id', 'drawee_id', 'status', 'total_exposure'], color: 'blue' },
+  },
 
   // ─── GROUP: Credit / Integrations ─────────────────────
   {
     id: 'g-credit',
     type: 'group',
     position: { x: (COL_WIDTH + 40) * 2, y: 0 },
-    style: { width: COL_WIDTH, height: 220, backgroundColor: 'rgba(139, 92, 246, 0.04)', borderRadius: 12, border: '1px solid rgba(139,92,246,0.2)' },
+    style: { width: COL_WIDTH, height: 360, backgroundColor: 'rgba(139, 92, 246, 0.04)', borderRadius: 12, border: '1px solid rgba(139,92,246,0.2)' },
     data: { label: '' },
   },
   {
@@ -159,12 +191,36 @@ export const databaseNodes: Node[] = [
     extent: 'parent',
     data: { tableName: 'creditbox_reports', columns: ['id', 'client_id', 'report_json', 'queried_at'], color: 'purple' },
   },
+  {
+    id: 't-serasa',
+    type: 'tableNode',
+    position: { x: 202, y: 150 },
+    parentId: 'g-credit',
+    extent: 'parent',
+    data: { tableName: 'serasa_report_results', columns: ['id', 'client_id', 'payload', 'queried_at'], color: 'purple' },
+  },
+  {
+    id: 't-upminer',
+    type: 'tableNode',
+    position: { x: 12, y: 250 },
+    parentId: 'g-credit',
+    extent: 'parent',
+    data: { tableName: 'upminer_results', columns: ['id', 'entity', 'result_json'], color: 'purple' },
+  },
+  {
+    id: 't-cerc',
+    type: 'tableNode',
+    position: { x: 202, y: 250 },
+    parentId: 'g-credit',
+    extent: 'parent',
+    data: { tableName: 'cerc_validations', columns: ['id', 'drawee_id', 'status'], color: 'purple' },
+  },
 
   // ─── GROUP: Drawees ────────────────────────────────────
   {
     id: 'g-drawees',
     type: 'group',
-    position: { x: 0, y: 260 },
+    position: { x: 0, y: 410 },
     style: { width: COL_WIDTH, height: 220, backgroundColor: 'rgba(14, 165, 233, 0.04)', borderRadius: 12, border: '1px solid rgba(14,165,233,0.2)' },
     data: { label: '' },
   },
@@ -198,14 +254,14 @@ export const databaseNodes: Node[] = [
     position: { x: 12, y: 155 },
     parentId: 'g-drawees',
     extent: 'parent',
-    data: { tableName: 'economic_groups', columns: ['id', 'name', 'lead_client_id'], color: 'sky' },
+    data: { tableName: 'economic_groups', columns: ['id', 'name', 'type', 'status'], color: 'sky' },
   },
 
   // ─── GROUP: Financial ──────────────────────────────────
   {
     id: 'g-financial',
     type: 'group',
-    position: { x: COL_WIDTH + 40, y: 460 },
+    position: { x: COL_WIDTH + 40, y: 510 },
     style: { width: COL_WIDTH, height: 220, backgroundColor: 'rgba(20, 184, 166, 0.04)', borderRadius: 12, border: '1px solid rgba(20,184,166,0.2)' },
     data: { label: '' },
   },
@@ -246,7 +302,7 @@ export const databaseNodes: Node[] = [
   {
     id: 'g-debentures',
     type: 'group',
-    position: { x: (COL_WIDTH + 40) * 2, y: 260 },
+    position: { x: (COL_WIDTH + 40) * 2, y: 380 },
     style: { width: COL_WIDTH, height: 230, backgroundColor: 'rgba(99, 102, 241, 0.04)', borderRadius: 12, border: '1px solid rgba(99,102,241,0.2)' },
     data: { label: '' },
   },
@@ -287,7 +343,7 @@ export const databaseNodes: Node[] = [
   {
     id: 'g-people',
     type: 'group',
-    position: { x: 0, y: 520 },
+    position: { x: 0, y: 650 },
     style: { width: COL_WIDTH, height: 240, backgroundColor: 'rgba(244, 63, 94, 0.04)', borderRadius: 12, border: '1px solid rgba(244,63,94,0.2)' },
     data: { label: '' },
   },
@@ -336,7 +392,7 @@ export const databaseNodes: Node[] = [
   {
     id: 'g-learning',
     type: 'group',
-    position: { x: (COL_WIDTH + 40) * 2, y: 530 },
+    position: { x: (COL_WIDTH + 40) * 2, y: 620 },
     style: { width: COL_WIDTH, height: 230, backgroundColor: 'rgba(168, 85, 247, 0.04)', borderRadius: 12, border: '1px solid rgba(168,85,247,0.2)' },
     data: { label: '' },
   },
@@ -372,9 +428,77 @@ export const databaseNodes: Node[] = [
     extent: 'parent',
     data: { tableName: 'learning_enrollments', columns: ['id', 'course_id', 'collaborator_id', 'status'], color: 'purple' },
   },
+
+  // ─── GROUP: CNAB ───────────────────────────────────────
+  {
+    id: 'g-cnab',
+    type: 'group',
+    position: { x: (COL_WIDTH + 40) * 2, y: 860 },
+    style: { width: COL_WIDTH, height: 200, backgroundColor: 'rgba(13, 148, 136, 0.06)', borderRadius: 12, border: '1px solid rgba(13,148,136,0.25)' },
+    data: { label: '' },
+  },
+  {
+    id: 'g-cnab-label',
+    type: 'tableNode',
+    position: { x: 12, y: 12 },
+    parentId: 'g-cnab',
+    extent: 'parent',
+    data: { tableName: '⬡ CNAB', color: 'teal' },
+  },
+  {
+    id: 't-cnab-files',
+    type: 'tableNode',
+    position: { x: 12, y: 60 },
+    parentId: 'g-cnab',
+    extent: 'parent',
+    data: { tableName: 'cnab_remittance_files', columns: ['id', 'client_id', 'status', 'remittance_date'], color: 'teal' },
+  },
+  {
+    id: 't-cnab-operations',
+    type: 'tableNode',
+    position: { x: 202, y: 60 },
+    parentId: 'g-cnab',
+    extent: 'parent',
+    data: { tableName: 'cnab_operations', columns: ['id', 'cnab_file_id', 'client_id', 'status'], color: 'teal' },
+  },
+  {
+    id: 't-trade-receivables',
+    type: 'tableNode',
+    position: { x: 12, y: 145 },
+    parentId: 'g-cnab',
+    extent: 'parent',
+    data: { tableName: 'trade_receivables', columns: ['id', 'cnab_file_id', 'amount', 'due_date'], color: 'teal' },
+  },
 ];
 
 export const databaseEdges: Edge[] = [
+  // roles → profiles (role_id)
+  {
+    id: 'e-roles-profiles',
+    source: 't-roles',
+    target: 't-profiles',
+    label: 'role_id',
+    style: { stroke: 'hsl(150, 35%, 55%)', strokeWidth: 1.5 },
+    labelStyle: { fontSize: 9 },
+  },
+  // profiles → refresh_tokens
+  {
+    id: 'e-profiles-refresh',
+    source: 't-profiles',
+    target: 't-refresh-tokens',
+    label: 'user_id',
+    style: { stroke: 'hsl(150, 35%, 55%)', strokeWidth: 1.5 },
+    labelStyle: { fontSize: 9 },
+  },
+  // role_permissions → roles
+  {
+    id: 'e-roleperm-roles',
+    source: 't-role-permissions',
+    target: 't-roles',
+    label: 'role_id',
+    style: { stroke: 'hsl(150, 30%, 60%)', strokeWidth: 1, strokeDasharray: '4 3' },
+    labelStyle: { fontSize: 9 },
+  },
   // profiles → clients (assigned_to)
   {
     id: 'e-profiles-clients',
@@ -418,6 +542,69 @@ export const databaseEdges: Edge[] = [
     target: 't-creditbox',
     label: 'client_id',
     style: { stroke: 'hsl(270, 50%, 65%)', strokeWidth: 1.5 },
+    labelStyle: { fontSize: 9 },
+  },
+  // clients → serasa
+  {
+    id: 'e-clients-serasa',
+    source: 't-clients',
+    target: 't-serasa',
+    label: 'client_id',
+    style: { stroke: 'hsl(270, 45%, 60%)', strokeWidth: 1.5 },
+    labelStyle: { fontSize: 9 },
+  },
+  // clients → client_drawees
+  {
+    id: 'e-clients-client-drawees',
+    source: 't-clients',
+    target: 't-client-drawees',
+    label: 'client_id',
+    style: { stroke: 'hsl(220, 50%, 60%)', strokeWidth: 1.5 },
+    labelStyle: { fontSize: 9 },
+  },
+  // drawees → client_drawees
+  {
+    id: 'e-drawees-client-drawees',
+    source: 't-drawees',
+    target: 't-client-drawees',
+    label: 'drawee_id',
+    style: { stroke: 'hsl(200, 55%, 55%)', strokeWidth: 1.5 },
+    labelStyle: { fontSize: 9 },
+  },
+  // drawees → cerc
+  {
+    id: 'e-drawees-cerc',
+    source: 't-drawees',
+    target: 't-cerc',
+    label: 'drawee_id',
+    style: { stroke: 'hsl(270, 40%, 58%)', strokeWidth: 1.5 },
+    labelStyle: { fontSize: 9 },
+  },
+  // clients → cnab files
+  {
+    id: 'e-clients-cnab',
+    source: 't-clients',
+    target: 't-cnab-files',
+    label: 'client_id',
+    style: { stroke: 'hsl(175, 45%, 45%)', strokeWidth: 1.5 },
+    labelStyle: { fontSize: 9 },
+  },
+  // cnab files → operations
+  {
+    id: 'e-cnab-files-ops',
+    source: 't-cnab-files',
+    target: 't-cnab-operations',
+    label: 'cnab_file_id',
+    style: { stroke: 'hsl(175, 45%, 45%)', strokeWidth: 1.5 },
+    labelStyle: { fontSize: 9 },
+  },
+  // cnab files → trade_receivables
+  {
+    id: 'e-cnab-trade',
+    source: 't-cnab-files',
+    target: 't-trade-receivables',
+    label: 'cnab_file_id',
+    style: { stroke: 'hsl(175, 40%, 50%)', strokeWidth: 1.5 },
     labelStyle: { fontSize: 9 },
   },
   // drawees → economic_groups

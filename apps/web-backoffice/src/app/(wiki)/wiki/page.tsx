@@ -26,6 +26,10 @@ import {
   Landmark,
   MessageSquare,
   FileSearch,
+  ShieldCheck,
+  KeyRound,
+  FileSpreadsheet,
+  Bot,
 } from 'lucide-react';
 
 const OverviewFlowDiagram = dynamic(
@@ -35,27 +39,43 @@ const OverviewFlowDiagram = dynamic(
 
 const modules = [
   {
+    href: '/wiki/modules/auth',
+    icon: ShieldCheck,
+    name: 'Autenticação',
+    description: 'Login local com JWT HS256, refresh opaco em refresh_tokens e hash Argon2id em profiles.',
+    tableCount: 2,
+    color: 'slate',
+  },
+  {
+    href: '/wiki/modules/roles',
+    icon: KeyRound,
+    name: 'RBAC / Roles',
+    description: 'Roles e permissões dinâmicas (roles, role_permissions) e GET /my/permissions para o front.',
+    tableCount: 2,
+    color: 'indigo',
+  },
+  {
     href: '/wiki/modules/commercial',
     icon: Briefcase,
     name: 'Comercial',
     description: 'Gestão do ciclo de vida de clientes, desde a prospecção até a ativação com 21 status distintos.',
-    tableCount: 14,
+    tableCount: 19,
     color: 'green',
   },
   {
     href: '/wiki/modules/credit',
     icon: CreditCard,
     name: 'Crédito',
-    description: 'Integrações com Vadu (CNPJ/CPF) e Creditbox para análise de crédito.',
-    tableCount: 3,
+    description: 'Vadu, Creditbox, Serasa, Allcheck, UpMiner, CERC e consultas para clientes e sacados.',
+    tableCount: 14,
     color: 'blue',
   },
   {
     href: '/wiki/modules/drawees',
     icon: Building2,
     name: 'Sacados',
-    description: 'Cadastro e gestão de devedores (PJ/PF), grupos econômicos e produtos habilitados.',
-    tableCount: 8,
+    description: 'Cadastro e gestão de devedores (PJ/PF), grupos econômicos, compliance e produtos habilitados.',
+    tableCount: 18,
     color: 'sky',
   },
   {
@@ -123,11 +143,27 @@ const modules = [
     color: 'sky',
   },
   {
+    href: '/wiki/modules/cnab',
+    icon: FileSpreadsheet,
+    name: 'CNAB',
+    description: 'Upload, parse e operação de arquivos CNAB 400; recebíveis comerciais vinculados ao cliente.',
+    tableCount: 3,
+    color: 'teal',
+  },
+  {
+    href: '/wiki/modules/chat',
+    icon: Bot,
+    name: 'Chat (IA)',
+    description: 'Assistente por cliente com contexto montado on-the-fly e respostas via Google Gemini.',
+    tableCount: 0,
+    color: 'purple',
+  },
+  {
     href: '/wiki/modules/irpf',
     icon: FileSearch,
     name: 'IRPF (Agente IA)',
     description: 'Pipeline de extração automatizada de IRPF dos sócios via Google Gemini, com merge canônico e audit trail.',
-    tableCount: 2,
+    tableCount: 4,
     color: 'amber',
   },
 ];
@@ -140,13 +176,13 @@ const techStack = [
   { label: 'Temporal.io', icon: GitBranch, description: 'Workflows distribuídos' },
   { label: 'Upstash Redis', icon: Zap, description: 'Cache e rate limiting' },
   { label: 'Turborepo', icon: Layers, description: 'Monorepo com pnpm' },
-  { label: 'RBAC', icon: Shield, description: '19 roles, permissões granulares' },
+  { label: 'RBAC', icon: Shield, description: '19 roles; API com permissões dinâmicas no Postgres' },
 ];
 
 const stats = [
-  { value: '84', label: 'Tabelas no banco' },
+  { value: '~127', label: 'Tabelas no banco' },
   { value: '19', label: 'Roles de acesso' },
-  { value: '12', label: 'Módulos funcionais' },
+  { value: '16', label: 'Módulos no wiki' },
   { value: '3', label: 'Apps no monorepo' },
 ];
 

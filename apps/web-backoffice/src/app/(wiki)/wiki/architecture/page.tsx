@@ -34,14 +34,15 @@ const roles = [
   { role: 'hr', area: 'Recursos Humanos', color: 'bg-rose-100 text-rose-800' },
   { role: 'dp', area: 'Departamento Pessoal', color: 'bg-rose-100 text-rose-800' },
   { role: 'hr_admin', area: 'Administrador RH/DP', color: 'bg-rose-100 text-rose-800' },
+  { role: 'governance', area: 'Governança', color: 'bg-indigo-100 text-indigo-800' },
 ];
 
 const authSteps = [
-  { step: '1', title: 'Login', desc: 'Email + senha via Supabase Auth. Retorna JWT com user_metadata.role' },
-  { step: '2', title: 'Token', desc: 'JWT armazenado em cookie HttpOnly. Middleware Next.js valida em cada request' },
-  { step: '3', title: 'RBAC check', desc: 'ROLE_PERMISSIONS[@nexus/config] define quais rotas e ações cada role pode acessar' },
-  { step: '4', title: 'Route guard', desc: 'middleware.ts verifica role e redireciona para homeRoute específico por role' },
-  { step: '5', title: 'RLS', desc: 'Supabase Row Level Security garante isolamento de dados no nível do banco' },
+  { step: '1', title: 'Login', desc: 'POST /auth/login: email + senha validados contra profiles.password_hash (Argon2id). API emite access JWT (HS256) + refresh opaco.' },
+  { step: '2', title: 'Token', desc: 'Access em Authorization: Bearer; refresh em cookie httpOnly (backoffice). Middleware Next.js valida JWT com jose quando aplicável.' },
+  { step: '3', title: 'RBAC API', desc: 'RbacGuard usa roles + role_permissions no Postgres (cache). `@nexus/types`/`GET /my/permissions` complementam UI e catálogo.' },
+  { step: '4', title: 'Route guard', desc: 'middleware.ts verifica role do JWT e redireciona para homeRoute por role no backoffice.' },
+  { step: '5', title: 'RLS', desc: 'PostgreSQL no Supabase com Row Level Security; service role na API para bypass controlado.' },
 ];
 
 export default function ArchitecturePage() {
@@ -65,7 +66,7 @@ export default function ArchitecturePage() {
           </div>
           <h1 className="text-3xl font-bold mb-3 leading-tight text-[hsl(35,35%,15%)]">Arquitetura do Sistema</h1>
           <p className="text-[hsl(35,20%,40%)] text-base leading-relaxed max-w-xl">
-            DDD leve com 4 camadas, monorepo Turborepo e RBAC granular com 18 roles.
+            DDD leve com 4 camadas, monorepo Turborepo e RBAC híbrido: 19 roles estáticos em tipos + permissões dinâmicas no banco para a API.
           </p>
         </div>
       </section>
@@ -144,7 +145,7 @@ export default function ArchitecturePage() {
         <div>
           <SectionHeading
             title="Fluxo de Autenticação e RBAC"
-            subtitle="Supabase Auth com JWT e Row Level Security. ROLE_PERMISSIONS define granularmente o que cada role pode fazer."
+            subtitle="JWT local na API; refresh em refresh_tokens; autorização com RbacGuard alimentado por roles/role_permissions. RLS no Postgres."
             badge="Auth + RBAC"
           />
           <div className="flex flex-col sm:flex-row gap-2 mb-8">
@@ -172,13 +173,19 @@ export default function ArchitecturePage() {
         {/* Roles table */}
         <div>
           <SectionHeading
-            title="Roles do Sistema (18 roles)"
+            title="Roles do Sistema (19 roles)"
             subtitle="Interface adaptativa por role — mesma aplicação, experiência diferente. homeRoute é específico por role."
             badge="RBAC"
           />
           <div className="flex items-center gap-2 mb-4">
             <Shield size={14} className="text-[hsl(150,50%,22%)]" />
-            <span className="text-xs text-[hsl(150,15%,45%)]">Cada role tem permissões granulares configuradas em <code className="font-mono bg-[hsl(30,20%,94%)] px-1 rounded">ROLE_PERMISSIONS</code> no package <code className="font-mono bg-[hsl(30,20%,94%)] px-1 rounded">@nexus/config</code></span>
+            <span className="text-xs text-[hsl(150,15%,45%)]">
+              Na API, <code className="font-mono bg-[hsl(30,20%,94%)] px-1 rounded">RbacGuard</code> resolve features permitidas a partir de{' '}
+              <code className="font-mono bg-[hsl(30,20%,94%)] px-1 rounded">roles</code> e{' '}
+              <code className="font-mono bg-[hsl(30,20%,94%)] px-1 rounded">role_permissions</code>. O front usa{' '}
+              <code className="font-mono bg-[hsl(30,20%,94%)] px-1 rounded">GET /my/permissions</code>; fallback de catálogo em{' '}
+              <code className="font-mono bg-[hsl(30,20%,94%)] px-1 rounded">@nexus/types</code>.
+            </span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {roles.map((r) => (
@@ -202,7 +209,13 @@ export default function ArchitecturePage() {
               {
                 icon: GitBranch,
                 title: 'Módulos NestJS',
-                items: ['AuthModule', 'ClientsModule', 'CreditModule', 'DraweesModule', 'PeopleModule', 'LearningModule', 'GoalsModule', 'PipelineModule', 'NotificationsModule'],
+                items: [
+                  'AuthModule · UsersModule · RolesModule',
+                  'ClientsModule · CreditModule · DraweesModule',
+                  'CnabModule · ChatModule · GovernanceModule · CommunicationModule',
+                  'PeopleModule · LearningModule · GoalsModule · PipelineModule',
+                  'NotificationsModule · EmailModule · AuditTrailModule · HealthModule',
+                ],
               },
               {
                 icon: Shield,

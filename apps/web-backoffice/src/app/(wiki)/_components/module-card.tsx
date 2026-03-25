@@ -60,6 +60,11 @@ const colorMap: Record<string, { bg: string; icon: string; border: string }> = {
     icon: 'text-indigo-700',
     border: 'border-indigo-100 hover:border-indigo-300',
   },
+  slate: {
+    bg: 'bg-slate-50',
+    icon: 'text-slate-700',
+    border: 'border-slate-100 hover:border-slate-300',
+  },
 };
 
 export function ModuleCard({ href, icon: Icon, name, description, tableCount, color, delay = 0 }: ModuleCardProps) {

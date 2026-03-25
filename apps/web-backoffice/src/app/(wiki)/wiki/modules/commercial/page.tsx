@@ -18,7 +18,7 @@ export default function CommercialModulePage() {
         flowSteps={[
           { label: 'Prospecção', desc: 'Cliente criado com status draft. CNPJ/CPF registrado. Segmento e produto de crédito selecionados.' },
           { label: 'Documentação', desc: 'Checklist dinâmico gerado por função SQL: documentos base + segmento + produto + garantias.' },
-          { label: 'Análise de Crédito', desc: 'Consulta Vadu (CNPJ/CPF) e Creditbox. Relatório comercial registrado. Status muda para pending_analysis.' },
+          { label: 'Análise de Crédito', desc: 'Consultas nos bureaus (Vadu, Creditbox, Serasa, etc.). Relatório comercial e vínculos cliente–sacado (client_drawees). Status muda conforme o fluxo.' },
           { label: 'Aprovação', desc: 'Approver analisa documentos e relatório. Pode solicitar complementação ou aprovar/reprovar.' },
           { label: 'Ativação', desc: 'Cliente ativado com status active. Conta financeira criada. Pipeline e metas atualizados.' },
         ]}
@@ -29,7 +29,9 @@ export default function CommercialModulePage() {
           'Relatórios comerciais com registro de visitas',
           'Histórico completo de transições de status',
           'Múltiplos contatos, endereços e contas bancárias por cliente',
-          'Pessoas autorizadas (sócios, procuradores)',
+          'Pessoas autorizadas (sócios, procuradores) com enriquecimento de bureau quando aplicável',
+          'Ligação operacional cliente ↔ sacado (client_drawees) para exposição e títulos',
+          'Cadastro de empresas de faturamento (billing_companies) e extrações anuais por cliente (faturamento_extractions + sources)',
           'Garantias vinculadas ao cadastro',
           'Metas de vendas por nível (individual, equipe, região)',
           'Templates de documentos por segmento/produto/garantia',
@@ -49,6 +51,10 @@ export default function CommercialModulePage() {
           { name: 'credit_products', description: 'Produtos de crédito disponíveis.', keyColumns: ['id', 'name', 'code', 'type'] },
           { name: 'guarantee_types', description: 'Tipos de garantia aceitos.', keyColumns: ['id', 'name', 'code'] },
           { name: 'segment_document_templates', description: 'Templates de documentos por segmento.', keyColumns: ['segment_id', 'document_key', 'required'] },
+          { name: 'client_drawees', description: 'Relação N:N cliente–sacado com totais de títulos e exposição.', keyColumns: ['client_id', 'drawee_id', 'status', 'total_exposure'] },
+          { name: 'billing_companies', description: 'Empresas de faturamento (CNPJ) para notas e cadastros auxiliares.', keyColumns: ['id', 'cnpj', 'name', 'trade_name'] },
+          { name: 'faturamento_extractions', description: 'Extrações anuais de faturamento por cliente (CNPJ + ano).', keyColumns: ['id', 'client_id', 'cnpj', 'year', 'extraction_status'] },
+          { name: 'faturamento_extraction_sources', description: 'Fonte documental de cada extração (vínculo com client_documents).', keyColumns: ['extraction_id', 'document_id', 'file_hash'] },
         ]}
       />
     </PageWrapper>
