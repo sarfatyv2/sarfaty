@@ -78,7 +78,7 @@ export interface CanSubmitResult {
 }
 
 export const BASE_DOCUMENT_TYPES = [
-  { type: 'revenue', label: 'Faturamento', description: 'Faturamento mês a mês por ano (2022–2025)' },
+  { type: 'revenue', label: 'Faturamento', description: 'Faturamento mês a mês (últimos 3 anos)' },
   { type: 'debt_position', label: 'Endividamento Atual (assinado)', description: 'Aberto por instituição, saldo, modalidade, garantia, % e vencimento' },
   { type: 'balance_sheet_dre', label: 'Balanços e DRE', description: 'Balanço patrimonial + DRE (2023–2025)' },
   { type: 'balance_trial_comparative', label: 'Balancete Comparativo', description: 'Mesmo período, ano atual vs anterior' },
@@ -87,8 +87,6 @@ export const BASE_DOCUMENT_TYPES = [
   { type: 'partner_id', label: 'CNH ou RG dos Sócios', description: 'Documento de identificação com foto (por sócio)' },
   { type: 'partner_address_proof', label: 'Comprovante de Endereço dos Sócios', description: 'Comprovante recente (máx. 90 dias, por sócio)' },
   { type: 'abc_curve', label: 'Curva ABC — Maiores Clientes e Fornecedores', description: 'Ranking por volume' },
-  { type: 'visit_report', label: 'Proposta / Relatório de Visita', description: 'Incluindo meios circulantes atuais' },
-  { type: 'superintendent_opinion', label: 'Parecer do Superintendente', description: 'Parecer assinado sobre a operação' },
 ] as const;
 
 export const CONDITIONAL_DOCUMENT_TYPES = [
