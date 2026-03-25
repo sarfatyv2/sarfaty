@@ -19,7 +19,7 @@ export async function fetchRoleConfig(roleKey: string): Promise<RoleConfig> {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      next: { revalidate: 300 },
+      cache: 'no-store',
     });
 
     if (!response.ok) {

@@ -40,18 +40,8 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Dashboard', icon: 'LayoutDashboard', route: '/dashboard' },
           { label: 'Meus Clientes', icon: 'Users', route: '/clients' },
-          { label: 'Sacados', icon: 'Building2', route: '/drawees' },
-          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
-          { label: 'Operações', icon: 'Briefcase', route: '/cnab/operations' },
-          { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
           { label: 'Atividades', icon: 'Calendar', route: '/activities' },
           { label: 'Minha Meta', icon: 'Target', route: '/goals' },
-        ],
-      },
-      {
-        section: 'Crédito',
-        items: [
-          { label: 'Validação CERC', icon: 'ShieldCheck', route: '/credit/cerc' },
         ],
       },
       {
@@ -110,17 +100,7 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Dashboard', icon: 'LayoutDashboard', route: '/dashboard' },
           { label: 'Clientes', icon: 'Users', route: '/clients' },
-          { label: 'Sacados', icon: 'Building2', route: '/drawees' },
-          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
-          { label: 'Operações', icon: 'Briefcase', route: '/cnab/operations' },
-          { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
           { label: 'Atividades', icon: 'Calendar', route: '/activities' },
-        ],
-      },
-      {
-        section: 'Crédito',
-        items: [
-          { label: 'Validação CERC', icon: 'ShieldCheck', route: '/credit/cerc' },
         ],
       },
       {
@@ -187,16 +167,6 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         items: [
           { label: 'Dashboard', icon: 'LayoutDashboard', route: '/dashboard' },
           { label: 'Clientes', icon: 'Users', route: '/clients' },
-          { label: 'Sacados', icon: 'Building2', route: '/drawees' },
-          { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
-          { label: 'Operações', icon: 'Briefcase', route: '/cnab/operations' },
-          { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
-        ],
-      },
-      {
-        section: 'Crédito',
-        items: [
-          { label: 'Validação CERC', icon: 'ShieldCheck', route: '/credit/cerc' },
         ],
       },
       {
@@ -261,7 +231,6 @@ export const ROLE_PERMISSIONS: Record<Role, RoleConfig> = {
         section: 'Visão Geral',
         items: [
           { label: 'Dashboard', icon: 'LayoutDashboard', route: '/dashboard' },
-          { label: 'Pipeline', icon: 'GitBranch', route: '/pipeline' },
           { label: 'Clientes', icon: 'Users', route: '/clients' },
           { label: 'Sacados', icon: 'Building2', route: '/drawees' },
           { label: 'Duplicatas', icon: 'FileSpreadsheet', route: '/cnab/receivables' },
