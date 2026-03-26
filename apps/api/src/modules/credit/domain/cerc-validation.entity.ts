@@ -20,13 +20,6 @@ export interface CercValidationProps {
   status: CercValidationStatus;
   statusProcessamento: string | null;
 
-  requestPayload: unknown;
-  validacaoData: unknown;
-  constatacoesDados: unknown;
-  eventosDados: unknown;
-  partesDados: unknown;
-  docFiscalDados: unknown;
-
   errorMessage: string | null;
   requestedAt: Date;
   processedAt: Date | null;
@@ -52,19 +45,13 @@ export class CercValidation {
   get planodeCobranca(): number { return this.props.planodeCobranca; }
   get status(): CercValidationStatus { return this.props.status; }
   get statusProcessamento(): string | null { return this.props.statusProcessamento; }
-  get requestPayload(): unknown { return this.props.requestPayload; }
-  get validacaoData(): unknown { return this.props.validacaoData; }
-  get constatacoesDados(): unknown { return this.props.constatacoesDados; }
-  get eventosDados(): unknown { return this.props.eventosDados; }
-  get partesDados(): unknown { return this.props.partesDados; }
-  get docFiscalDados(): unknown { return this.props.docFiscalDados; }
   get errorMessage(): string | null { return this.props.errorMessage; }
   get requestedAt(): Date { return this.props.requestedAt; }
   get processedAt(): Date | null { return this.props.processedAt; }
   get requestedBy(): string | null { return this.props.requestedBy; }
 
   static create(
-    input: Omit<CercValidationProps, 'id' | 'requestedAt' | 'status' | 'loteId' | 'validacaoId' | 'statusProcessamento' | 'requestPayload' | 'validacaoData' | 'constatacoesDados' | 'eventosDados' | 'partesDados' | 'docFiscalDados' | 'errorMessage' | 'processedAt'>,
+    input: Omit<CercValidationProps, 'id' | 'requestedAt' | 'status' | 'loteId' | 'validacaoId' | 'statusProcessamento' | 'errorMessage' | 'processedAt'>,
   ): CercValidation {
     return new CercValidation({
       ...input,
@@ -73,12 +60,6 @@ export class CercValidation {
       loteId: null,
       validacaoId: null,
       statusProcessamento: null,
-      requestPayload: null,
-      validacaoData: null,
-      constatacoesDados: null,
-      eventosDados: null,
-      partesDados: null,
-      docFiscalDados: null,
       errorMessage: null,
       requestedAt: new Date(),
       processedAt: null,
@@ -89,29 +70,18 @@ export class CercValidation {
     return new CercValidation(props);
   }
 
-  markAsPolling(loteId: string, requestPayload: unknown): void {
+  markAsPolling(loteId: string): void {
     this.props.status = 'POLLING';
     this.props.loteId = loteId;
-    this.props.requestPayload = requestPayload;
   }
 
   markAsProcessed(params: {
     validacaoId: string;
     statusProcessamento: string;
-    validacaoData: unknown;
-    constatacoesDados: unknown;
-    eventosDados: unknown;
-    partesDados: unknown;
-    docFiscalDados: unknown;
   }): void {
     this.props.status = 'PROCESSED';
     this.props.validacaoId = params.validacaoId;
     this.props.statusProcessamento = params.statusProcessamento;
-    this.props.validacaoData = params.validacaoData;
-    this.props.constatacoesDados = params.constatacoesDados;
-    this.props.eventosDados = params.eventosDados;
-    this.props.partesDados = params.partesDados;
-    this.props.docFiscalDados = params.docFiscalDados;
     this.props.processedAt = new Date();
   }
 

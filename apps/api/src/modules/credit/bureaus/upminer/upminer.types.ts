@@ -25,8 +25,15 @@ export interface UpminerBancoCentralCrsfnBatchParameterization {
 /** Optional keys per capture/source (e.g. `cade`, `bancoCentralCrsfnEmentasAcordaos`). */
 export interface UpminerCreateBatchParameterization {
   bancoCentralCrsfnEmentasAcordaos?: UpminerBancoCentralCrsfnBatchParameterization;
-  cade?: { parameters: Record<string, unknown> };
-  [key: string]: { parameters?: Record<string, unknown> } | undefined;
+  cade?: {
+    auto_relevante?: boolean;
+    parameters: {
+      pesquisa?: string[];
+      target?: string;
+      [key: string]: unknown;
+    };
+  };
+  [key: string]: unknown;
 }
 
 export interface UpminerCreateBatchRequest {
@@ -267,6 +274,267 @@ export interface UpminerPdfDownloadResponse {
   url: string | null;
   created_at: string;
   end_at: string | null;
+}
+
+// --- Direct Source Query ---
+
+export interface UpminerSourceQueryRequest {
+  params: Record<string, string>;
+}
+
+export interface UpminerSource15SocioItem {
+  cpf_cnpj: string;
+  nome: string;
+  entrada: string | null;
+  qualificacao: string;
+  participacao: string;
+  pep: string | null;
+}
+
+export interface UpminerSource15DataItem {
+  cnpj: string;
+  razao_social: string;
+  data_consulta: string | null;
+  aSocio: UpminerSource15SocioItem[];
+  pep: string | null;
+}
+
+export interface UpminerSource15ResultItem {
+  uuid: string;
+  data: UpminerSource15DataItem[];
+  message: string;
+}
+
+export type UpminerSource15Response = UpminerSource15ResultItem[];
+
+// --- Source 285 (Empresa PJ Enriquecida) ---
+
+export interface UpminerSource285Endereco {
+  Bairro: string | null;
+  Cidade: string | null;
+  UF: string | null;
+  CEP: string | null;
+  IBGE: string | null;
+  LogradouroTipo: string | null;
+  LogradouroNumero: string | null;
+  LogradouroComplemento: string | null;
+  Logradouro: string | null;
+  Latitude: number | null;
+  Longitude: number | null;
+  UltimaAtualizacao: string | null;
+}
+
+export interface UpminerSource285Telefone {
+  CNPJ: string | null;
+  ID: string | null;
+  DataLog: string | number | null;
+  DDD: string | null;
+  Descricao: string | null;
+  Telefone: string | null;
+  TelefoneComDDD: string | null;
+  Rank: string | null;
+}
+
+export interface UpminerSource285Email {
+  EnderecoEmail: string | null;
+  UltimaAtualizacao: string | null;
+}
+
+export interface UpminerSource285Socio {
+  documento_socio: string | null;
+  nome: string | null;
+  tipo_socio: string | null;
+  qualificacao: string | null;
+  participacao: string | null;
+  data_entrada: string | number | null;
+  data_cad: string | number | null;
+  data_alt: string | number | null;
+  ano: string | null;
+}
+
+export interface UpminerSource285AtividadeSecundaria {
+  codigo: string | null;
+  descricao: string | null;
+}
+
+export interface UpminerSource285SimplesNacional {
+  CNPJ: string | null;
+  DataConsulta: string | null;
+  StatusSimplesNacional: string | null;
+  StatusSimei: string | null;
+  DataSimplesNacional: string | null;
+  DataSimei: string | null;
+}
+
+export interface UpminerSource285Response {
+  cnpj: string | null;
+  razaoSocial: string | null;
+  nomeFantasia: string | null;
+  matriz: string | null;
+  dataAbertura: string | null;
+  situacaoCadastral: string | null;
+  dataSituacao: string | null;
+  naturezaJuridicaCodigo: string | null;
+  naturezaJuridicaDescricao: string | null;
+  tipoCnae: string | null;
+  cnae: string | null;
+  cnaeSegmento: string | null;
+  cnaeDescricao: string | null;
+  dominio: string | null;
+  catchall: string | null;
+  optanteSimples: string | null;
+  numeroFiliais: number | string | null;
+  capitalSocial: number | null;
+  porte: string | null;
+  setor: string | null;
+  faixaFuncionarios: string | null;
+  faturamentoAnualEstimado: string | null;
+  tipo: string | null;
+  tipoEstabelecimento: string | null;
+  operacionalidade: string | null;
+  motivoSituacao: string | null;
+  classeRisco: string | null;
+  ultimaAtualizacao: string | null;
+  dataConsulta: string | null;
+  enderecos: UpminerSource285Endereco[];
+  telefones: UpminerSource285Telefone[];
+  emails: UpminerSource285Email[];
+  socios: UpminerSource285Socio[];
+  atividadesSecundarias: (UpminerSource285AtividadeSecundaria | null)[];
+  simplesNacional: UpminerSource285SimplesNacional | UpminerSource285SimplesNacional[] | null;
+}
+
+// --- Source 410 (Processos Judiciais) ---
+
+export interface UpminerSource410ValorCausa {
+  moeda: string | null;
+  valor: number | null;
+}
+
+export interface UpminerSource410ClasseProcessual {
+  nome: string | null;
+  codigoCNJ: string | number | null;
+}
+
+export interface UpminerSource410AssuntoCNJ {
+  titulo: string | null;
+  codigoCNJ: string | number | null;
+  ePrincipal: boolean | null;
+}
+
+export interface UpminerSource410OAB {
+  uf: string | null;
+  tipo: string | null;
+  numero: number | null;
+}
+
+export interface UpminerSource410Advogado {
+  tipo: string | null;
+  nome: string | null;
+  cpf: string | null;
+  oab: UpminerSource410OAB | null;
+  dataAtualizacao: string | null;
+}
+
+export interface UpminerSource410Parte {
+  tipo: string | null;
+  nome: string | null;
+  polo: string | null;
+  cpf: string | null;
+  cnpj: string | null;
+  cnpjRaiz: string | null;
+  origemDocumento: string | null;
+  dataAtualizacao: string | null;
+  advogados: UpminerSource410Advogado[];
+}
+
+export interface UpminerSource410ClassificacaoCNJ {
+  codigoCNJ: string | number | null;
+  nome: string | null;
+}
+
+export interface UpminerSource410Movimento {
+  eMovimento: boolean | null;
+  indice: number | null;
+  nomeOriginal: string[];
+  classificacaoCNJ: UpminerSource410ClassificacaoCNJ | null;
+  data: string | null;
+}
+
+export interface UpminerSource410ProcessoRelacionado {
+  numeroProcesso: string | null;
+}
+
+export interface UpminerSource410Julgamento {
+  dataJulgamento: string | null;
+  statusJulgamento: string | null;
+  diasAteJulgamento: number | null;
+  tipoJulgamento: string | null;
+}
+
+export interface UpminerSource410Penhor {
+  data: string | null;
+  tipo: string | null;
+  trechoDecisao: string | null;
+}
+
+export interface UpminerSource410StatusPredictus {
+  statusProcesso: string | null;
+  julgamentos: UpminerSource410Julgamento[];
+  ramoDireito: string | null;
+  justicaGratuita: string | null;
+  penhoras: UpminerSource410Penhor[];
+}
+
+export interface UpminerSource410Processo {
+  id: string | null;
+  urlProcesso: string | null;
+  numeroProcessoUnico: string | null;
+  numeroProcessoAntigo: string | null;
+  statusObservacao: string | null;
+  juiz: string | null;
+  relator: string | null;
+  orgaoJulgador: string | null;
+  unidadeOrigem: string | null;
+  grauProcesso: number | null;
+  area: string | null;
+  sistema: string | null;
+  segmento: string | null;
+  tribunalOrigem: string | null;
+  uf: string | null;
+  tribunal: string | null;
+  dataDistribuicao: string | null;
+  dataProcessamento: string | null;
+  dataAutuacao: string | null;
+  valorCausa: UpminerSource410ValorCausa | null;
+  classeProcessual: UpminerSource410ClasseProcessual | null;
+  assuntosCNJ: UpminerSource410AssuntoCNJ[];
+  partes: UpminerSource410Parte[];
+  movimentos: UpminerSource410Movimento[];
+  processosRelacionados: UpminerSource410ProcessoRelacionado[];
+  eTutelaAntecipada: boolean | null;
+  temInjuncao: boolean | null;
+  eJusticaGratuita: boolean | null;
+  ePrioritario: boolean | null;
+  eSegredoJustica: boolean | null;
+  eProcessoDigital: boolean | null;
+  temAcordao: boolean | null;
+  temSentenca: boolean | null;
+  statusPredictus: UpminerSource410StatusPredictus | null;
+}
+
+export type UpminerSource410Response = UpminerSource410Processo[];
+
+// --- Parallel Item Result ---
+
+export interface UpminerParallelItemResult<T = unknown> {
+  id: string;
+  source_id: number;
+  status: string;
+  parameters: Record<string, string>;
+  results: T | null;
+  errors: unknown | null;
+  created_at: string;
 }
 
 // --- Parallel Sources ---

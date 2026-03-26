@@ -345,6 +345,70 @@ describe('UpminerAdapter', () => {
     });
   });
 
+  describe('querySource15', () => {
+    const mockSource15Response = [
+      {
+        uuid: '0b6ebff9-d414-42e6-affb-cb34c6048b31',
+        data: [
+          {
+            cnpj: '12345678912345',
+            razao_social: 'CAMARA MUNICIPAL DE CUTIAS',
+            data_consulta: null,
+            aSocio: [
+              {
+                cpf_cnpj: 'camara_municipal_de_cutias',
+                nome: 'CAMARA MUNICIPAL DE CUTIAS',
+                entrada: null,
+                qualificacao: 'SOCIO',
+                participacao: '100',
+                pep: null,
+              },
+            ],
+            pep: null,
+          },
+        ],
+        message: 'ok',
+      },
+    ];
+
+    it('should POST to /sources/15 with params wrapper', async () => {
+      mockAuthFetch();
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockSource15Response),
+      });
+
+      const result = await adapter.querySource15({ cpf_cnpj: '12345678000101', ano: '2020' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.message).toBe('ok');
+      expect(result[0]?.data[0]?.razao_social).toBe('CAMARA MUNICIPAL DE CUTIAS');
+      expect(result[0]?.data[0]?.aSocio).toHaveLength(1);
+
+      const [url, init] = mockFetch.mock.calls[1] as [string, RequestInit];
+      expect(url).toContain('/sources/15');
+      expect(init.method).toBe('POST');
+      expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer mock-token-xyz');
+
+      const body = JSON.parse(init.body as string);
+      expect(body.params.cpf_cnpj).toBe('12345678000101');
+      expect(body.params.ano).toBe('2020');
+    });
+
+    it('should throw on API error response', async () => {
+      mockAuthFetch();
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 422,
+        text: () => Promise.resolve('{"message":"Invalid params"}'),
+      });
+
+      await expect(
+        adapter.querySource15({ cpf_cnpj: 'invalid', ano: '2020' }),
+      ).rejects.toThrow('422');
+    });
+  });
+
   describe('fetchWithRetry', () => {
     it('should retry on 500 and succeed on second attempt', async () => {
       mockAuthFetch();

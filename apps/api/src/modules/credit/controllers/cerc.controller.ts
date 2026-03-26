@@ -13,9 +13,9 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { RequestCercValidationUseCase } from '../use-cases/request-cerc-validation.use-case';
 import { SyncCercValidationUseCase } from '../use-cases/sync-cerc-validation.use-case';
-import { GetCercValidationUseCase } from '../use-cases/get-cerc-validation.use-case';
 import { ListCercValidationsUseCase } from '../use-cases/list-cerc-validations.use-case';
 import { GetCercValidationResultadosUseCase } from '../use-cases/get-cerc-validation-resultados.use-case';
+import { GetCercValidationDetailUseCase } from '../use-cases/get-cerc-validation-detail.use-case';
 import { CercValidationMapper } from '../infra/mappers/cerc-validation.mapper';
 import { NfeGeminiService } from '../infra/gemini/nfe-gemini.service';
 
@@ -47,9 +47,9 @@ export class CercController {
   constructor(
     private readonly requestCercValidationUseCase: RequestCercValidationUseCase,
     private readonly syncCercValidationUseCase: SyncCercValidationUseCase,
-    private readonly getCercValidationUseCase: GetCercValidationUseCase,
     private readonly listCercValidationsUseCase: ListCercValidationsUseCase,
     private readonly getCercValidationResultadosUseCase: GetCercValidationResultadosUseCase,
+    private readonly getCercValidationDetailUseCase: GetCercValidationDetailUseCase,
     private readonly nfeGeminiService: NfeGeminiService,
   ) {}
 
@@ -83,15 +83,16 @@ export class CercController {
   @Post('validar/:id/sync')
   @Roles(...CERC_ROLES)
   async syncValidacao(@Param('id') id: string) {
-    const entity = await this.syncCercValidationUseCase.execute(id);
-    return { data: CercValidationMapper.toResponse(entity) };
+    await this.syncCercValidationUseCase.execute(id);
+    const detail = await this.getCercValidationDetailUseCase.execute(id);
+    return { data: detail };
   }
 
   @Get('validar/:id')
   @Roles(...CERC_ROLES)
   async getValidacao(@Param('id') id: string) {
-    const entity = await this.getCercValidationUseCase.execute(id);
-    return { data: CercValidationMapper.toResponse(entity) };
+    const detail = await this.getCercValidationDetailUseCase.execute(id);
+    return { data: detail };
   }
 
   @Get('validar/:id/resultados')

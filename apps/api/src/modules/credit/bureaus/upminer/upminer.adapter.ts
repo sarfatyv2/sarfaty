@@ -24,6 +24,8 @@ import type {
   UpminerParallelRequest,
   UpminerParallelCreateResponse,
   UpminerParallelStatusResponse,
+  UpminerSourceQueryRequest,
+  UpminerSource15Response,
 } from './upminer.types';
 
 const TOKEN_SAFETY_BUFFER_SECONDS = 60;
@@ -218,6 +220,19 @@ export class UpminerAdapter {
 
   async getParallelProcessStatus(processId: string): Promise<UpminerParallelStatusResponse> {
     return this.get<UpminerParallelStatusResponse>(`/sources/parallel/${processId}`, 'upminer.getParallelProcessStatus');
+  }
+
+  async getParallelItemResult(processId: string, itemId: string): Promise<unknown> {
+    return this.get<unknown>(`/sources/parallel/${processId}/items/${itemId}`, 'upminer.getParallelItemResult');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Direct Source Query
+  // ---------------------------------------------------------------------------
+
+  async querySource15(params: Record<string, string>): Promise<UpminerSource15Response> {
+    const body: UpminerSourceQueryRequest = { params };
+    return this.post<UpminerSource15Response>('/sources/15', body, 'upminer.querySource15');
   }
 
   // ---------------------------------------------------------------------------

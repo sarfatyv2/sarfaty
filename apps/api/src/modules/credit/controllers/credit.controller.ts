@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/co
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../../common/guards/roles.guard';
+import { RequestTimeout } from '../../../common/interceptors/timeout.interceptor';
 import { GetVaduResultsUseCase } from '../use-cases/get-vadu-results.use-case';
 import { RequestCreditboxReportUseCase } from '../use-cases/request-creditbox-report.use-case';
 import { SyncCreditboxReportUseCase } from '../use-cases/sync-creditbox-report.use-case';
@@ -17,6 +18,8 @@ import { SyncUpminerBatchUseCase } from '../use-cases/sync-upminer-batch.use-cas
 import { GetUpminerResultUseCase } from '../use-cases/get-upminer-result.use-case';
 import { GetUpminerDossierUseCase } from '../use-cases/get-upminer-dossier.use-case';
 import { GetUpminerDossiersDataUseCase } from '../use-cases/get-upminer-dossiers-data.use-case';
+import { GetUpminerParallelDataUseCase } from '../use-cases/get-upminer-parallel-data.use-case';
+import { TriggerUpminerParallelUseCase } from '../use-cases/trigger-upminer-parallel.use-case';
 import { RequestUpminerPdfUseCase } from '../use-cases/request-upminer-pdf.use-case';
 import { UpminerAdapter } from '../bureaus/upminer/upminer.adapter';
 import { CreditboxReportMapper } from '../infra/mappers/creditbox-report.mapper';
@@ -45,6 +48,8 @@ export class CreditController {
     private readonly getUpminerResultUseCase: GetUpminerResultUseCase,
     private readonly getUpminerDossierUseCase: GetUpminerDossierUseCase,
     private readonly getUpminerDossiersDataUseCase: GetUpminerDossiersDataUseCase,
+    private readonly getUpminerParallelDataUseCase: GetUpminerParallelDataUseCase,
+    private readonly triggerUpminerParallelUseCase: TriggerUpminerParallelUseCase,
     private readonly requestUpminerPdfUseCase: RequestUpminerPdfUseCase,
     private readonly upminerAdapter: UpminerAdapter,
   ) {}
@@ -194,6 +199,7 @@ export class CreditController {
   }
 
   @Post('upminer/sync')
+  @RequestTimeout(120_000)
   @Roles(
     'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
     'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
@@ -202,6 +208,18 @@ export class CreditController {
   async syncUpminerBatch(@Param('clientId') clientId: string) {
     const result = await this.syncUpminerBatchUseCase.execute(clientId);
     return { data: result ? UpminerResultMapper.toPersistence(result) : null };
+  }
+
+  @Post('upminer/sync-parallel')
+  @RequestTimeout(120_000)
+  @Roles(
+    'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
+    'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
+    'legal', 'risk_manager', 'recovery', 'litigation', 'admin',
+  )
+  async triggerUpminerParallel(@Param('clientId') clientId: string) {
+    const output = await this.triggerUpminerParallelUseCase.execute(clientId);
+    return { data: output };
   }
 
   @Get('upminer')
@@ -239,6 +257,22 @@ export class CreditController {
     }
     const dossiersData = await this.getUpminerDossiersDataUseCase.execute(result.id);
     return { data: dossiersData };
+  }
+
+  @Get('upminer/parallel-data')
+  @Roles(
+    'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
+    'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
+    'legal', 'risk_manager', 'recovery', 'litigation', 'admin',
+  )
+  async getUpminerParallelData(@Param('clientId') clientId: string) {
+    const result = await this.getUpminerResultUseCase.execute(clientId);
+    return {
+      data: result?.parallelStatus === 'PROCESSED'
+        ? await this.getUpminerParallelDataUseCase.execute(result.id)
+        : null,
+      parallelStatus: result?.parallelStatus ?? null,
+    };
   }
 
   @Get('upminer/profiles')

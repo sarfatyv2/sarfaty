@@ -11,6 +11,8 @@ export const upminerResults = pgTable('upminer_results', {
   status: text('status').notNull().default('PENDING'),
   dossiersData: jsonb('dossiers_data'),
   errorMessage: text('error_message'),
+  parallelProcessId: text('parallel_process_id'),
+  parallelStatus: text('parallel_status'),
   requestedAt: timestamp('requested_at', { withTimezone: true }).defaultNow().notNull(),
   processedAt: timestamp('processed_at', { withTimezone: true }),
 }, (table) => ({

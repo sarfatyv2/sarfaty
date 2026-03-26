@@ -103,7 +103,7 @@ export class RequestCercValidationUseCase {
 
     try {
       const loteResult = await this.cercAdapter.criarLoteValidacoes(requestPayload);
-      entity.markAsPolling(loteResult.lote_id, requestPayload);
+      entity.markAsPolling(loteResult.lote_id);
       await this.repository.update(entity);
       this.logger.log(`CercValidation polling: ${entity.id}, lote: ${loteResult.lote_id}`);
     } catch (error) {

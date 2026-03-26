@@ -133,18 +133,21 @@ export interface CercGetDocumentoFiscalResponse {
 }
 
 // --- Constatações ---
+// CERC /constatacoes returns a direct array with the same shape as CercResultado.
 
 export interface CercConstatacao {
-  tipo: string;
-  descricao?: string;
-  created_at?: string;
-  dados?: Record<string, unknown>;
+  id: string;
+  codigo: string;
+  algoritmo: CercResultadoAlgoritmo;
+  mensagem: string;
+  impacto: CercResultadoImpacto;
+  dados_utilizados: string;
+  parametros_do_algoritmo: string;
+  informacoes_complementares: string;
+  data_conclusao: string;
 }
 
-export interface CercGetConstatacoeResponse {
-  validacao_id: string;
-  constatacoes: CercConstatacao[];
-}
+export type CercGetConstatacoeResponse = CercConstatacao[];
 
 // --- Eventos ---
 
