@@ -209,6 +209,16 @@ export function AllcheckSection({ entityId, entityType }: Readonly<AllcheckSecti
         onToggle={() => setExpanded((v) => !v)}
       />
       <ExpandableContent isOpen={expanded}>
+        {loading ? (
+          <div className="px-8 pb-8 space-y-3 pt-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Carregando dados Allcheck…
+            </div>
+            <Skeleton className="h-20 w-full rounded-lg" />
+            <Skeleton className="h-28 w-full rounded-lg" />
+          </div>
+        ) : (
         <div className="px-8 pb-8 space-y-6">
           {/* Sync button */}
           <div className="flex items-center justify-between">
@@ -438,6 +448,7 @@ export function AllcheckSection({ entityId, entityType }: Readonly<AllcheckSecti
             </>
           )}
         </div>
+        )}
       </ExpandableContent>
     </Card>
   );
