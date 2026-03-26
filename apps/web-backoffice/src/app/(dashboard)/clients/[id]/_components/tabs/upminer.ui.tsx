@@ -4,8 +4,32 @@ import type { ReactNode } from 'react';
 import { Badge } from '@nexus/ui';
 import type { BadgeType, UpminerResultStatus } from './upminer.types';
 
+export type CardHeaderVariant = 'destructive' | 'warning' | 'success' | 'neutral';
+
 export type { BadgeType } from './upminer.types';
 
+const CARD_HEADER_VARIANT_STYLES: Record<CardHeaderVariant, { bg: string; iconColor: string; border: string }> = {
+  destructive: {
+    bg: 'bg-red-50/80 dark:bg-red-950/20',
+    iconColor: 'text-red-600 dark:text-red-400',
+    border: 'border-red-200/70 dark:border-red-900/40',
+  },
+  warning: {
+    bg: 'bg-amber-50/80 dark:bg-amber-950/20',
+    iconColor: 'text-amber-600 dark:text-amber-400',
+    border: 'border-amber-200/70 dark:border-amber-900/40',
+  },
+  success: {
+    bg: 'bg-emerald-50/80 dark:bg-emerald-950/20',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    border: 'border-emerald-200/70 dark:border-emerald-900/40',
+  },
+  neutral: {
+    bg: 'bg-muted/20',
+    iconColor: 'text-primary',
+    border: 'border-border',
+  },
+};
 export function StatusBadge({ value, type }: Readonly<{ value: string; type: BadgeType }>) {
   const colors: Record<BadgeType, string> = {
     success: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-emerald-200',
@@ -36,10 +60,15 @@ export function InfoField({ label, value }: Readonly<{ label: string; value?: st
   );
 }
 
-export function CardHeaderSmall({ icon, title }: Readonly<{ icon: ReactNode; title: string }>) {
+export function CardHeaderSmall({
+  icon,
+  title,
+  variant = 'neutral',
+}: Readonly<{ icon: ReactNode; title: string; variant?: CardHeaderVariant }>) {
+  const styles = CARD_HEADER_VARIANT_STYLES[variant];
   return (
-    <div className="flex items-center gap-2 border-b bg-muted/20 px-4 py-2.5">
-      <span className="text-primary">{icon}</span>
+    <div className={`flex items-center gap-2 border-b px-4 py-2.5 ${styles.bg} ${styles.border}`}>
+      <span className={styles.iconColor}>{icon}</span>
       <span className="text-sm font-semibold">{title}</span>
     </div>
   );

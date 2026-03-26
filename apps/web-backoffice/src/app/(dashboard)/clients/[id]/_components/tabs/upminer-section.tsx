@@ -1,16 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, Badge, Button, Skeleton } from '@nexus/ui';
+import { Card, Button, Skeleton } from '@nexus/ui';
 import {
   Layers,
   Loader2,
   RefreshCw,
-  FileDown,
-  Building2,
-  Users,
-  Scale,
-  CheckCircle2,
   History,
   AlertTriangle,
   Database,
@@ -28,23 +23,11 @@ import type {
   UpminerPdfRequestResponse,
   UpminerPdfDownloadResponse,
 } from './upminer.types';
-import { formatDate, formatCnpj, POLL_INTERVAL_MS, MAX_SYNC_POLL_ATTEMPTS, PDF_POLL_INTERVAL_MS, MAX_PDF_POLL_ATTEMPTS } from './upminer.utils';
-import { StatusBadge, upminerStatusBadge, InfoField, CardHeaderSmall } from './upminer.ui';
+import { formatDate, POLL_INTERVAL_MS, MAX_SYNC_POLL_ATTEMPTS, PDF_POLL_INTERVAL_MS, MAX_PDF_POLL_ATTEMPTS } from './upminer.utils';
+import { StatusBadge, upminerStatusBadge } from './upminer.ui';
 import { EmpresaPjCard } from './upminer.empresa-pj-card';
 import { ProcessosJudiciaisCard } from './upminer.processos-card';
-import {
-  CadeProcessoItem,
-  CertidoesSection,
-  SancaoHitsSection,
-  MpfSection,
-  DjenSection,
-  ProconSpSection,
-  ReclameAquiSection,
-  CrsfnSection,
-  TcuSection,
-  ContratosSection,
-  GoogleHitsSection,
-} from './upminer.dossier-cards';
+import { DossierView } from './upminer.dossier-view';
 
 interface UpminerSectionProps {
   clientId: string;
@@ -377,177 +360,12 @@ export function UpminerSection({ clientId }: Readonly<UpminerSectionProps>) {
           {/* Dossiers */}
           {result?.status === 'PROCESSED' &&
             dossiersData?.dossiers.map((dossier) => (
-              <div key={dossier.id} className="space-y-4 border-t pt-6 first:border-t-0 first:pt-0">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-semibold">Dossiê {dossier.apiDossierId}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Critério: {dossier.criterionName || dossier.criterionInput}
-                      {dossier.hasUpflag && (
-                        <Badge className="ml-2 bg-amber-100 text-amber-800 border-amber-200 text-[10px]">Upflag</Badge>
-                      )}
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => requestPdf(dossier.apiDossierId)}
-                    disabled={pdfLoadingDossierId === dossier.apiDossierId}
-                  >
-                    {pdfLoadingDossierId === dossier.apiDossierId ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                    ) : (
-                      <FileDown className="h-3.5 w-3.5 mr-1.5" />
-                    )}
-                    PDF do dossiê
-                  </Button>
-                </div>
-
-                {dossier.sources.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Fontes</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {dossier.sources.map((s) => (
-                        <Badge key={`${dossier.id}-${s.method}`} variant="outline" className="text-[10px] font-normal">
-                          {s.name || s.method}
-                          {s.hasResult ? <CheckCircle2 className="inline h-3 w-3 ml-1 text-emerald-600" /> : null}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {dossier.receitaFederalPj && (
-                  <Card>
-                    <CardHeaderSmall icon={<Building2 className="h-4 w-4" />} title="Receita Federal — PJ" />
-                    <div className="px-4 pb-4 space-y-4">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <InfoField label="CNPJ" value={formatCnpj(dossier.receitaFederalPj.cnpj)} />
-                        <InfoField label="Tipo" value={dossier.receitaFederalPj.tipo} />
-                        <InfoField label="Abertura" value={dossier.receitaFederalPj.dataAbertura} />
-                        <InfoField label="Nome empresarial" value={dossier.receitaFederalPj.nomeEmpresarial} />
-                        <InfoField label="Nome fantasia" value={dossier.receitaFederalPj.nomeFantasia} />
-                        <InfoField label="Atividade principal" value={dossier.receitaFederalPj.atividadeEconomicaPrincipal} />
-                      </div>
-                      {dossier.receitaFederalPj.secundarias.length > 0 && (
-                        <div className="overflow-x-auto">
-                          <p className="text-xs font-medium text-muted-foreground mb-2">Atividades secundárias</p>
-                          <table className="w-full text-sm">
-                            <thead>
-                              <tr className="border-b text-left text-xs text-muted-foreground">
-                                <th className="pb-2 pr-2">Código</th>
-                                <th className="pb-2">Descrição</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {dossier.receitaFederalPj.secundarias.map((sec, idx) => (
-                                <tr key={`sec-${sec.codigo ?? idx}`} className="border-b border-muted/40 last:border-0">
-                                  <td className="py-1.5 pr-2 font-mono text-xs">{sec.codigo ?? '—'}</td>
-                                  <td className="py-1.5">{sec.descricao ?? '—'}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                )}
-
-                {dossier.qsa && (
-                  <Card>
-                    <CardHeaderSmall icon={<Users className="h-4 w-4" />} title="QSA — Quadro societário" />
-                    <div className="px-4 pb-4 space-y-4">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <InfoField label="CNPJ" value={formatCnpj(dossier.qsa.cnpj)} />
-                        <InfoField label="Razão social" value={dossier.qsa.razaoSocial} />
-                        <InfoField label="Capital social" value={dossier.qsa.capitalSocial} />
-                        <InfoField label="Data consulta" value={dossier.qsa.dataConsulta} />
-                        <InfoField label="PEP (empresa)" value={dossier.qsa.pep} />
-                      </div>
-                      {dossier.qsa.socios.length > 0 && (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
-                            <thead>
-                              <tr className="border-b text-left text-xs text-muted-foreground">
-                                <th className="pb-2 pr-2">Nome</th>
-                                <th className="pb-2 pr-2">CPF/CNPJ</th>
-                                <th className="pb-2 pr-2">Qualificação</th>
-                                <th className="pb-2 pr-2">%</th>
-                                <th className="pb-2">PEP</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {dossier.qsa.socios.map((soc, idx) => (
-                                <tr key={`soc-${soc.cpfCnpj || idx}`} className="border-b border-muted/40 last:border-0">
-                                  <td className="py-1.5 pr-2 font-medium">{soc.nome ?? '—'}</td>
-                                  <td className="py-1.5 pr-2 font-mono text-xs">{soc.cpfCnpj ?? '—'}</td>
-                                  <td className="py-1.5 pr-2">{soc.qualificacao ?? '—'}</td>
-                                  <td className="py-1.5 pr-2">{soc.participacao ?? '—'}</td>
-                                  <td className="py-1.5 text-xs">{soc.pep ?? '—'}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                )}
-
-                {dossier.cadeProcessos.length > 0 && (
-                  <Card>
-                    <CardHeaderSmall icon={<Scale className="h-4 w-4" />} title="CADE — Processos" />
-                    <div className="px-4 pb-4 space-y-3">
-                      {dossier.cadeProcessos.map((proc) => (
-                        <CadeProcessoItem
-                          key={proc.apiRowId ?? proc.processo ?? 'cade-proc'}
-                          proc={proc}
-                        />
-                      ))}
-                    </div>
-                  </Card>
-                )}
-
-                {dossier.certidoes && dossier.certidoes.length > 0 && (
-                  <CertidoesSection certidoes={dossier.certidoes} />
-                )}
-
-                {((dossier.sancaoHits && dossier.sancaoHits.length > 0) || dossier.sicaf) && (
-                  <SancaoHitsSection hits={dossier.sancaoHits ?? []} sicaf={dossier.sicaf} />
-                )}
-
-                {dossier.mpfProcessos && dossier.mpfProcessos.length > 0 && (
-                  <MpfSection processos={dossier.mpfProcessos} />
-                )}
-
-                {dossier.djenCitacoes && dossier.djenCitacoes.length > 0 && (
-                  <DjenSection citacoes={dossier.djenCitacoes} />
-                )}
-
-                {dossier.proconAnos && dossier.proconAnos.length > 0 && (
-                  <ProconSpSection anos={dossier.proconAnos} />
-                )}
-
-                {dossier.reclameAqui && (
-                  <ReclameAquiSection data={dossier.reclameAqui} />
-                )}
-
-                {dossier.crsfnAcoes && dossier.crsfnAcoes.length > 0 && (
-                  <CrsfnSection acoes={dossier.crsfnAcoes} />
-                )}
-
-                {dossier.tcuProcessos && dossier.tcuProcessos.length > 0 && (
-                  <TcuSection processos={dossier.tcuProcessos} />
-                )}
-
-                {dossier.contratos && dossier.contratos.length > 0 && (
-                  <ContratosSection contratos={dossier.contratos} />
-                )}
-
-                {dossier.googleHits && dossier.googleHits.length > 0 && (
-                  <GoogleHitsSection hits={dossier.googleHits} />
-                )}
+              <div key={dossier.id} className="border-t pt-6 first:border-t-0 first:pt-0">
+                <DossierView
+                  dossier={dossier}
+                  onRequestPdf={requestPdf}
+                  pdfLoading={pdfLoadingDossierId === dossier.apiDossierId}
+                />
               </div>
             ))}
 
