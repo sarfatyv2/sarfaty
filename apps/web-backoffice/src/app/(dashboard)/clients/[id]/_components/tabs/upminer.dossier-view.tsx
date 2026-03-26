@@ -3,6 +3,7 @@
 import { Loader2, FileDown, ShieldAlert, Shield, Scale, Building2, Users, MessageSquare, Globe, CheckCircle2 } from 'lucide-react';
 import { Badge, Button, Card } from '@nexus/ui';
 import { SectionGroup } from './upminer.section-group';
+import { usePagination, PaginationBar } from './upminer.pagination';
 import {
   CadeProcessoItem,
   CertidoesSection,
@@ -275,19 +276,28 @@ function QsaCard({ dossier }: Readonly<{ dossier: UpminerDossiersDataDossier }>)
 
 // ─── CADE Section wrapper ─────────────────────────────────────────────────────
 
+const CADE_PAGE_SIZE = 5;
+
 function CadeSection({ dossier }: Readonly<{ dossier: UpminerDossiersDataDossier }>) {
-  if (!dossier.cadeProcessos || dossier.cadeProcessos.length === 0) return null;
+  const processos = dossier.cadeProcessos;
+  const pagination = usePagination({ total: processos.length, pageSize: CADE_PAGE_SIZE });
+  const page = processos.slice(pagination.startIndex, pagination.endIndex);
+
+  if (!processos || processos.length === 0) return null;
 
   return (
     <Card className="overflow-hidden">
-      <CardHeaderSmall icon={<Scale className="h-4 w-4" />} title={`CADE — Processos (${dossier.cadeProcessos.length})`} variant="destructive" />
+      <CardHeaderSmall icon={<Scale className="h-4 w-4" />} title={`CADE — Processos (${processos.length})`} variant="destructive" />
       <div className="px-4 py-3 space-y-2">
-        {dossier.cadeProcessos.map((proc) => (
+        {page.map((proc) => (
           <CadeProcessoItem
             key={proc.apiRowId ?? proc.processo ?? 'cade-proc'}
             proc={proc}
           />
         ))}
+      </div>
+      <div className="px-4 pb-3">
+        <PaginationBar {...pagination} total={processos.length} onPrev={pagination.prev} onNext={pagination.next} onGoTo={pagination.goTo} />
       </div>
     </Card>
   );
