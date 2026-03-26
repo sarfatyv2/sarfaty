@@ -418,8 +418,6 @@ export function UpminerSection({ clientId }: Readonly<UpminerSectionProps>) {
 
   const statusCfg = result ? upminerStatusBadge(result.status) : null;
 
-  if (loading) return <Skeleton className="h-16 w-full rounded-lg" />;
-
   return (
     <Card className="overflow-hidden">
       <ExpandableHeader
@@ -431,6 +429,17 @@ export function UpminerSection({ clientId }: Readonly<UpminerSectionProps>) {
         onToggle={() => setExpanded((v) => !v)}
       />
       <ExpandableContent isOpen={expanded}>
+        {loading ? (
+          <div className="px-8 pb-8 space-y-3 pt-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Carregando dados upMiner…
+            </div>
+            <Skeleton className="h-20 w-full rounded-lg" />
+            <Skeleton className="h-32 w-full rounded-lg" />
+            <Skeleton className="h-24 w-full rounded-lg" />
+          </div>
+        ) : (
         <div className="px-8 pb-8 space-y-6">
           {/* Actions bar */}
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -591,6 +600,7 @@ export function UpminerSection({ clientId }: Readonly<UpminerSectionProps>) {
             </ExpandableContent>
           </Card>
         </div>
+        )}
       </ExpandableContent>
     </Card>
   );
