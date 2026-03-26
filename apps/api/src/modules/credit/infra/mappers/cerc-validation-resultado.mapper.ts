@@ -67,24 +67,8 @@ export class CercValidationResultadoMapper {
 
   static fromCercResponse(
     cercValidationId: string,
-    raw: {
-      id: string;
-      codigo: string;
-      algoritmo: {
-        id: string;
-        codigo: string;
-        nome: string;
-        tipo: string;
-        dimensao: CercResultadoDimensao;
-        escopo: CercResultadoEscopo;
-      };
-      mensagem: string;
-      impacto: CercResultadoImpacto;
-      dados_utilizados: string;
-      parametros_do_algoritmo: string;
-      informacoes_complementares: string;
-      data_conclusao: string;
-    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    raw: any,
   ): CercValidationResultado {
     return CercValidationResultado.create({
       cercValidationId,

@@ -27,12 +27,6 @@ export class DrizzleCercValidationRepository implements CercValidationRepository
         validacaoId: data.validacaoId,
         status: data.status,
         statusProcessamento: data.statusProcessamento,
-        requestPayload: data.requestPayload,
-        validacaoData: data.validacaoData,
-        constatacoesDados: data.constatacoesDados,
-        eventosDados: data.eventosDados,
-        partesDados: data.partesDados,
-        docFiscalDados: data.docFiscalDados,
         errorMessage: data.errorMessage,
         processedAt: data.processedAt,
       })

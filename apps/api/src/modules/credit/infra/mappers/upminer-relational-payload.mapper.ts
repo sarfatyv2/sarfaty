@@ -1,17 +1,36 @@
 /**
- * Maps upMiner API JSON bodies from GET .../dossiers/{id}/sources/{method} into Drizzle insert shapes.
+ * Facade that re-exports all upMiner dossier mapper shapes and delegates to
+ * the phase-specific sub-mappers.  Importers only need this one file.
  */
 
-const RECEITA_METHOD = 'receitaFederalPj';
-const QSA_METHOD = 'baseEmpresas';
-const CADE_METHOD = 'cade';
+import { str } from './upminer-mapper.utils';
+import { parseCertidao } from './upminer-certidoes.mapper';
+import { parseSancaoHits, parseSicaf } from './upminer-sancoes.mapper';
+import {
+  parseMpfRelevancia,
+  parseDjen,
+  parseProconSp,
+  parseReclameAqui,
+  parseCrsfn,
+  parseTcu,
+} from './upminer-adm-processos.mapper';
+import { parseContratos, parseGoogleGlobal } from './upminer-especiais.mapper';
 
-function stringifyOptional(value: unknown): string | null {
-  if (value === null || value === undefined) return null;
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-  return null;
-}
+// ─── Re-export shapes so existing consumers can keep their import path ────────
+
+export type { CertidaoInsertShape } from './upminer-certidoes.mapper';
+export type { SancaoHitInsertShape, SicafInsertShape } from './upminer-sancoes.mapper';
+export type {
+  MpfProcessoInsertShape,
+  DjenCitacaoInsertShape,
+  ProconAnoInsertShape,
+  ReclameAquiInsertShape,
+  CrsfnAcaoInsertShape,
+  TcuProcessoInsertShape,
+} from './upminer-adm-processos.mapper';
+export type { ContratoInsertShape, GoogleHitInsertShape } from './upminer-especiais.mapper';
+
+// ─── Core insert shapes (Receita Federal / QSA / CADE) ───────────────────────
 
 export interface ReceitaFederalPjInsertShape {
   cnpj: string | null;
@@ -70,6 +89,8 @@ export interface CadeProcessoInsertShape {
   }>;
 }
 
+// ─── CADE private helpers ─────────────────────────────────────────────────────
+
 function parseCadeProtocolo(p: Record<string, unknown>): CadeProcessoInsertShape['protocolos'][number] {
   return {
     docProcesso: typeof p.doc_processo === 'string' ? p.doc_processo : null,
@@ -89,61 +110,118 @@ function parseCadeAndamento(a: Record<string, unknown>): CadeProcessoInsertShape
   };
 }
 
+function extractCadeDados(item: Record<string, unknown>): Record<string, unknown> {
+  return item.dados && typeof item.dados === 'object' && !Array.isArray(item.dados)
+    ? (item.dados as Record<string, unknown>)
+    : {};
+}
+
+function extractCadeAuuacao(dados: Record<string, unknown>): Record<string, unknown> {
+  return dados.autuacao && typeof dados.autuacao === 'object' && !Array.isArray(dados.autuacao)
+    ? (dados.autuacao as Record<string, unknown>)
+    : {};
+}
+
+function extractCadeInteressados(autuacao: Record<string, unknown>): string[] | null {
+  if (!Array.isArray(autuacao.interessados)) return null;
+  const filtered = autuacao.interessados.filter((x): x is string => typeof x === 'string');
+  return filtered.length > 0 ? filtered : null;
+}
+
+function extractCadeProtocolos(dados: Record<string, unknown>): CadeProcessoInsertShape['protocolos'] {
+  if (!Array.isArray(dados.protocolos)) return [];
+  return dados.protocolos
+    .filter((p): p is Record<string, unknown> => p !== null && typeof p === 'object' && !Array.isArray(p))
+    .map(parseCadeProtocolo);
+}
+
+function extractCadeAndamentos(dados: Record<string, unknown>): CadeProcessoInsertShape['andamentos'] {
+  if (!Array.isArray(dados.andamentos)) return [];
+  return dados.andamentos
+    .filter((a): a is Record<string, unknown> => a !== null && typeof a === 'object' && !Array.isArray(a))
+    .map(parseCadeAndamento);
+}
+
+function extractCadeApiRowId(item: Record<string, unknown>): string | null {
+  if (typeof item.id === 'string') return item.id;
+  if (item.id != null && (typeof item.id === 'number' || typeof item.id === 'boolean')) return String(item.id);
+  return null;
+}
+
 function parseCadeOneItem(item: Record<string, unknown>): CadeProcessoInsertShape {
-  const dados =
-    item.dados && typeof item.dados === 'object' && !Array.isArray(item.dados)
-      ? (item.dados as Record<string, unknown>)
-      : {};
-  const autuacao =
-    dados.autuacao && typeof dados.autuacao === 'object' && !Array.isArray(dados.autuacao)
-      ? (dados.autuacao as Record<string, unknown>)
-      : {};
-
-  const interessadosRaw = autuacao.interessados;
-  let interessados: string[] | null = null;
-  if (Array.isArray(interessadosRaw)) {
-    interessados = interessadosRaw.filter((x): x is string => typeof x === 'string');
-  }
-
-  const protocolos: CadeProcessoInsertShape['protocolos'] = [];
-  if (Array.isArray(dados.protocolos)) {
-    for (const p of dados.protocolos) {
-      if (p && typeof p === 'object' && !Array.isArray(p)) {
-        protocolos.push(parseCadeProtocolo(p as Record<string, unknown>));
-      }
-    }
-  }
-
-  const andamentos: CadeProcessoInsertShape['andamentos'] = [];
-  if (Array.isArray(dados.andamentos)) {
-    for (const a of dados.andamentos) {
-      if (a && typeof a === 'object' && !Array.isArray(a)) {
-        andamentos.push(parseCadeAndamento(a as Record<string, unknown>));
-      }
-    }
-  }
-
-  let apiRowId: string | null = null;
-  if (typeof item.id === 'string') {
-    apiRowId = item.id;
-  } else if (item.id != null && (typeof item.id === 'number' || typeof item.id === 'boolean')) {
-    apiRowId = String(item.id);
-  }
-
+  const dados = extractCadeDados(item);
+  const autuacao = extractCadeAuuacao(dados);
   return {
-    apiRowId,
+    apiRowId: extractCadeApiRowId(item),
     estado: typeof item.estado === 'string' ? item.estado : null,
     processo: typeof autuacao.processo === 'string' ? autuacao.processo : null,
     tipo: typeof autuacao.tipo === 'string' ? autuacao.tipo : null,
     dataRegistro: typeof autuacao.data_registro === 'string' ? autuacao.data_registro : null,
     resumoInt: typeof autuacao.resumo_int === 'string' ? autuacao.resumo_int : null,
-    interessados,
-    protocolos,
-    andamentos,
+    interessados: extractCadeInteressados(autuacao),
+    protocolos: extractCadeProtocolos(dados),
+    andamentos: extractCadeAndamentos(dados),
   };
 }
 
+// ─── QSA private helper ───────────────────────────────────────────────────────
+
+function parseQsaSocios(rawSoc: unknown): QsaSocioInsertShape[] {
+  if (!Array.isArray(rawSoc)) return [];
+  return rawSoc
+    .filter((row): row is Record<string, unknown> => row !== null && typeof row === 'object' && !Array.isArray(row))
+    .map((r) => ({
+      cpfCnpj: typeof r.cpf_cnpj === 'string' ? r.cpf_cnpj : null,
+      nome: typeof r.nome === 'string' ? r.nome : null,
+      entrada: typeof r.entrada === 'string' ? r.entrada : null,
+      qualificacao: typeof r.qualificacao === 'string' ? r.qualificacao : null,
+      participacao: typeof r.participacao === 'string' ? r.participacao : null,
+      situacao: typeof r.situacao === 'string' ? r.situacao : null,
+      pep: str(r.pep),
+      tipoSocio: typeof r.tipo_socio === 'string' ? r.tipo_socio : null,
+    }));
+}
+
+// ─── Main facade class ────────────────────────────────────────────────────────
+
 export class UpminerRelationalPayloadMapper {
+  // ─── Method name constants ────────────────────────────────────────────────
+
+  static readonly METHOD_RECEITA = 'receitaFederalPj';
+  static readonly METHOD_QSA = 'baseEmpresas';
+  static readonly METHOD_CADE = 'cade';
+  static readonly CERTIDAO_METHODS = [
+    'MpfCertidaoNegativa',
+    'TcuCertidoesInidoneos',
+    'CertidaoTJDFT',
+    'Tst',
+    'BancoDeFalenciasTst',
+    'CertidaoCadastroNacionalDeCondenacoesCiveis',
+    'CrdaPge',
+  ] as const;
+  static readonly SANCAO_METHODS = [
+    'ofacInstant',
+    'listaOnu',
+    'worldBank',
+    'baseOffshore',
+    'informacaoJuridicaDocumento',
+    'TransparenciaBrasilCnep',
+    'TransparenciaBrasilCeis',
+    'TransparenciaBrasilCepim',
+    'EmpresasPunidasSp',
+  ] as const;
+  static readonly METHOD_SICAF = 'sicaf';
+  static readonly METHOD_MPF = 'mpfRelevancia';
+  static readonly METHOD_DJEN = 'Djen';
+  static readonly METHOD_PROCON = 'proconSp';
+  static readonly METHOD_RECLAME_AQUI = 'reclameAqui';
+  static readonly METHOD_CRSFN = 'bancoCentralCrsfnEmentasAcordaos';
+  static readonly METHOD_TCU = 'tcu';
+  static readonly METHOD_CONTRATOS = 'transparenciaContratos';
+  static readonly METHOD_GOOGLE = 'googleGlobal';
+
+  // ─── Core sources ─────────────────────────────────────────────────────────
+
   static parseReceitaFederalPj(payload: unknown): {
     receita: ReceitaFederalPjInsertShape;
     secundarias: ReceitaSecundariaInsertShape[];
@@ -187,28 +265,9 @@ export class UpminerRelationalPayloadMapper {
       razaoSocial: typeof o.razao_social === 'string' ? o.razao_social : null,
       capitalSocial: typeof o.capital_social === 'string' ? o.capital_social : null,
       dataConsulta: typeof o.data_consulta === 'string' ? o.data_consulta : null,
-      pep: stringifyOptional(o.pep),
+      pep: str(o.pep),
     };
-    const socios: QsaSocioInsertShape[] = [];
-    const rawSoc = o.aSocio;
-    if (Array.isArray(rawSoc)) {
-      for (const row of rawSoc) {
-        if (row && typeof row === 'object' && !Array.isArray(row)) {
-          const r = row as Record<string, unknown>;
-          socios.push({
-            cpfCnpj: typeof r.cpf_cnpj === 'string' ? r.cpf_cnpj : null,
-            nome: typeof r.nome === 'string' ? r.nome : null,
-            entrada: typeof r.entrada === 'string' ? r.entrada : null,
-            qualificacao: typeof r.qualificacao === 'string' ? r.qualificacao : null,
-            participacao: typeof r.participacao === 'string' ? r.participacao : null,
-            situacao: typeof r.situacao === 'string' ? r.situacao : null,
-            pep: stringifyOptional(r.pep),
-            tipoSocio: typeof r.tipo_socio === 'string' ? r.tipo_socio : null,
-          });
-        }
-      }
-    }
-    return { qsa, socios };
+    return { qsa, socios: parseQsaSocios(o.aSocio) };
   }
 
   static parseCade(payload: unknown): CadeProcessoInsertShape[] {
@@ -221,7 +280,26 @@ export class UpminerRelationalPayloadMapper {
     return out;
   }
 
-  static readonly METHOD_RECEITA = RECEITA_METHOD;
-  static readonly METHOD_QSA = QSA_METHOD;
-  static readonly METHOD_CADE = CADE_METHOD;
+  // ─── Phase 1: Certidões ────────────────────────────────────────────────────
+
+  static readonly parseCertidao = parseCertidao;
+
+  // ─── Phase 2: Sanções ──────────────────────────────────────────────────────
+
+  static readonly parseSancaoHits = parseSancaoHits;
+  static readonly parseSicaf = parseSicaf;
+
+  // ─── Phase 3: Administrative processes ────────────────────────────────────
+
+  static readonly parseMpfRelevancia = parseMpfRelevancia;
+  static readonly parseDjen = parseDjen;
+  static readonly parseProconSp = parseProconSp;
+  static readonly parseReclameAqui = parseReclameAqui;
+  static readonly parseCrsfn = parseCrsfn;
+  static readonly parseTcu = parseTcu;
+
+  // ─── Phase 4: Especiais ────────────────────────────────────────────────────
+
+  static readonly parseContratos = parseContratos;
+  static readonly parseGoogleGlobal = parseGoogleGlobal;
 }

@@ -14,6 +14,7 @@ import { NegativeMediaAdapter } from './bureaus/negative-media/negative-media.ad
 import { DigitalPresenceAdapter } from './bureaus/digital-presence/digital-presence.adapter';
 import { UpminerAdapter } from './bureaus/upminer/upminer.adapter';
 import { UpminerDossierPersistenceService } from './infra/upminer-dossier-persistence.service';
+import { UpminerParallelPersistenceService } from './infra/upminer-parallel-persistence.service';
 import { CercAdapter } from './bureaus/cerc/cerc.adapter';
 import { NfeGeminiService } from './infra/gemini/nfe-gemini.service';
 import { DrizzleVaduRepository } from './infra/drizzle/drizzle-vadu.repository';
@@ -91,12 +92,15 @@ import { SyncUpminerBatchUseCase } from './use-cases/sync-upminer-batch.use-case
 import { GetUpminerResultUseCase } from './use-cases/get-upminer-result.use-case';
 import { GetUpminerDossierUseCase } from './use-cases/get-upminer-dossier.use-case';
 import { GetUpminerDossiersDataUseCase } from './use-cases/get-upminer-dossiers-data.use-case';
+import { GetUpminerParallelDataUseCase } from './use-cases/get-upminer-parallel-data.use-case';
+import { TriggerUpminerParallelUseCase } from './use-cases/trigger-upminer-parallel.use-case';
 import { RequestUpminerPdfUseCase } from './use-cases/request-upminer-pdf.use-case';
 import { RequestCercValidationUseCase } from './use-cases/request-cerc-validation.use-case';
 import { SyncCercValidationUseCase } from './use-cases/sync-cerc-validation.use-case';
 import { GetCercValidationUseCase } from './use-cases/get-cerc-validation.use-case';
 import { ListCercValidationsUseCase } from './use-cases/list-cerc-validations.use-case';
 import { GetCercValidationResultadosUseCase } from './use-cases/get-cerc-validation-resultados.use-case';
+import { GetCercValidationDetailUseCase } from './use-cases/get-cerc-validation-detail.use-case';
 import { ALLCHECK_RESULT_REPOSITORY } from './domain/allcheck-result.repository';
 import { ALLCHECK_DRAWEE_RESULT_REPOSITORY } from './domain/allcheck-drawee-result.repository';
 import { DrizzleAllcheckResultRepository } from './infra/drizzle/drizzle-allcheck-result.repository';
@@ -107,6 +111,12 @@ import { CERC_VALIDATION_REPOSITORY } from './domain/cerc-validation.repository'
 import { DrizzleCercValidationRepository } from './infra/drizzle/drizzle-cerc-validation.repository';
 import { CERC_VALIDATION_RESULTADO_REPOSITORY } from './domain/cerc-validation-resultado.repository';
 import { DrizzleCercValidationResultadoRepository } from './infra/drizzle/drizzle-cerc-validation-resultado.repository';
+import { CERC_VALIDATION_EVENTOS_REPOSITORY } from './domain/cerc-validation-eventos.repository';
+import { DrizzleCercValidationEventosRepository } from './infra/drizzle/drizzle-cerc-validation-eventos.repository';
+import { CERC_VALIDATION_PARTES_REPOSITORY } from './domain/cerc-validation-partes.repository';
+import { DrizzleCercValidationPartesRepository } from './infra/drizzle/drizzle-cerc-validation-partes.repository';
+import { CERC_VALIDATION_DOC_FISCAL_REPOSITORY } from './domain/cerc-validation-doc-fiscal.repository';
+import { DrizzleCercValidationDocFiscalRepository } from './infra/drizzle/drizzle-cerc-validation-doc-fiscal.repository';
 import { VADU_DRAWEE_REPOSITORY } from './domain/vadu-drawee.repository';
 import { SERASA_DRAWEE_REPORT_REPOSITORY } from './domain/serasa-drawee-report.repository';
 import { CGU_DRAWEE_CHECK_REPOSITORY } from './domain/cgu-drawee-check.repository';
@@ -139,6 +149,7 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     DigitalPresenceAdapter,
     UpminerAdapter,
     UpminerDossierPersistenceService,
+    UpminerParallelPersistenceService,
     CercAdapter,
     NfeGeminiService,
 
@@ -175,6 +186,9 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     // CERC repositories
     { provide: CERC_VALIDATION_REPOSITORY, useClass: DrizzleCercValidationRepository },
     { provide: CERC_VALIDATION_RESULTADO_REPOSITORY, useClass: DrizzleCercValidationResultadoRepository },
+    { provide: CERC_VALIDATION_EVENTOS_REPOSITORY, useClass: DrizzleCercValidationEventosRepository },
+    { provide: CERC_VALIDATION_PARTES_REPOSITORY, useClass: DrizzleCercValidationPartesRepository },
+    { provide: CERC_VALIDATION_DOC_FISCAL_REPOSITORY, useClass: DrizzleCercValidationDocFiscalRepository },
 
     // Use Cases
     SyncVaduClientUseCase,
@@ -209,6 +223,8 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     GetUpminerResultUseCase,
     GetUpminerDossierUseCase,
     GetUpminerDossiersDataUseCase,
+    GetUpminerParallelDataUseCase,
+    TriggerUpminerParallelUseCase,
     RequestUpminerPdfUseCase,
 
     // CERC use cases
@@ -217,6 +233,7 @@ import { DIGITAL_PRESENCE_DRAWEE_RESULT_REPOSITORY } from './domain/digital-pres
     GetCercValidationUseCase,
     ListCercValidationsUseCase,
     GetCercValidationResultadosUseCase,
+    GetCercValidationDetailUseCase,
 
     // Event Listeners
     VaduClientListener,

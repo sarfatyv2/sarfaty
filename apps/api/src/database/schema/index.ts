@@ -153,6 +153,40 @@ export {
   upminerCadeProtocolos,
   upminerCadeAndamentos,
 } from './upminer-receita-qsa-cade';
+export { upminerCertidoes } from './upminer-certidoes';
+export { upminerSancaoHits, upminerSicaf } from './upminer-sancoes';
+export {
+  upminerMpfProcessos,
+  upminerMpfProcessoDetalhes,
+  upminerDjenCitacoes,
+  upminerDjenDestinatarios,
+  upminerProconAnos,
+  upminerProconReclamacoes,
+  upminerReclameAqui,
+  upminerReclameAquiReclamacoes,
+  upminerCrsfnAcoes,
+  upminerTcuProcessos,
+} from './upminer-adm-processos';
+export { upminerContratos, upminerGoogleHits } from './upminer-especiais';
+export {
+  upminerProcessos,
+  upminerProcessoAssuntosCnj,
+  upminerProcessoPartes,
+  upminerProcessoAdvogados,
+  upminerProcessoMovimentos,
+  upminerProcessoRelacionados,
+  upminerProcessoJulgamentos,
+  upminerProcessoPenhoras,
+} from './upminer-processos';
+export {
+  upminerEmpresaPj,
+  upminerEmpresaPjEnderecos,
+  upminerEmpresaPjTelefones,
+  upminerEmpresaPjEmails,
+  upminerEmpresaPjSocios,
+  upminerEmpresaPjAtividadesSecundarias,
+  upminerEmpresaPjSimplesNacional,
+} from './upminer-empresa-pj';
 
 // CERC
 export { cercValidations, cercValidationResultados } from './cerc-validations';

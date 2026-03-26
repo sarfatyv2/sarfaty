@@ -4,13 +4,13 @@ import { useState, useCallback, useMemo } from 'react';
 import {
   Loader2, ShieldCheck, AlertTriangle, CheckCircle2,
   Users, FileText, Activity, RefreshCw, Code2, ChevronDown,
-  Receipt, Landmark, ListChecks,
+  Landmark, ListChecks, Package, CalendarCheck,
 } from 'lucide-react';
 import { Badge, Button, Card, CardContent, ScrollArea } from '@nexus/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import type {
-  CercValidationRecord, CercConstatacao, CercEvento, CercPartes,
-  CercDocumentoFiscal, CercValidacaoData,
+  CercValidationRecord, CercConstatacao, CercEvento, CercParte,
+  CercDocFiscal, CercNfeDuplicata, CercNfeProduto, CercNfeEventoFiscal,
   CercResultado, CercResultadoDimensao, CercResultadoImpacto,
 } from './cerc.types';
 
@@ -26,7 +26,7 @@ function StatusBadge({ value, type }: Readonly<{ value: string; type: BadgeType 
   return <Badge className={`${colors[type]} font-semibold px-2.5 py-0.5 text-xs`}>{value}</Badge>;
 }
 
-function formatDocument(numero: string, tipo: 'cnpj' | 'cpf'): string {
+function formatDocument(numero: string, tipo: string): string {
   const digits = numero.replaceAll(/\D/g, '');
   if (tipo === 'cpf' && digits.length === 11)
     return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
@@ -35,7 +35,7 @@ function formatDocument(numero: string, tipo: 'cnpj' | 'cpf'): string {
   return numero;
 }
 
-function formatDatetime(dateStr: string | undefined | null): string {
+function formatDatetime(dateStr: string | Date | undefined | null): string {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleString('pt-BR', {
     day: '2-digit', month: '2-digit', year: 'numeric',
@@ -43,9 +43,18 @@ function formatDatetime(dateStr: string | undefined | null): string {
   });
 }
 
-function formatCurrency(value: number | undefined | null): string {
-  if (value == null) return '—';
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+function formatDate(dateStr: string | undefined | null): string {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString('pt-BR');
+}
+
+function formatCurrency(value: number | string | undefined | null): string {
+  if (value == null || value === '') return '—';
+  const n = Number(value);
+  if (Number.isNaN(n)) return String(value);
+  return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 const DIMENSION_FILTERS: Array<{ value: 'all' | CercResultadoDimensao; label: string }> = [
@@ -136,7 +145,7 @@ function ResultadosAnaliseSection({ resultados }: Readonly<{ resultados: CercRes
 
       {filtered.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Nenhum resultado neste filtro. Ajuste a dimensão ou aguarde a sincronização gravar os resultados da CERC.
+          Nenhum resultado neste filtro.
         </p>
       ) : (
         <div className="space-y-4">
@@ -173,14 +182,10 @@ function ResultadosAnaliseSection({ resultados }: Readonly<{ resultados: CercRes
   );
 }
 
-function getConstatacaoSeverity(tipo: string): BadgeType {
-  const t = tipo.toLowerCase();
-  if (t.includes('inativa') || t.includes('incorporada') || t.includes('cancelada') ||
-      t.includes('irregular') || t.includes('protesto') || t.includes('negativo') ||
-      t.includes('bloqueado') || t.includes('suspenso'))
-    return 'danger';
-  if (t.includes('alerta') || t.includes('pendente') || t.includes('aviso')) return 'warning';
-  if (t.includes('ok') || t.includes('ativo') || t.includes('regular')) return 'success';
+function getConstatacaoSeverity(impacto: string): BadgeType {
+  if (impacto === 'critico') return 'danger';
+  if (impacto === 'alerta') return 'warning';
+  if (impacto === 'consistente') return 'success';
   return 'neutral';
 }
 
@@ -226,7 +231,7 @@ interface ExpandableSectionProps {
   badge?: React.ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
-  rawData?: object | null;
+  rawData?: unknown;
 }
 
 function ExpandableSection({
@@ -288,6 +293,15 @@ function InfoRow({ label, value }: Readonly<{ label: string; value: React.ReactN
 }
 
 function ConstatacoesList({ constatacoes }: Readonly<{ constatacoes: CercConstatacao[] }>) {
+  const groupedByImpact = useMemo(() => {
+    const order: CercResultadoImpacto[] = ['critico', 'alerta', 'consistente', 'neutro'];
+    const map = new Map<CercResultadoImpacto, CercConstatacao[]>();
+    for (const impact of order) {
+      map.set(impact, constatacoes.filter((c) => c.impacto === impact));
+    }
+    return { map, order };
+  }, [constatacoes]);
+
   if (constatacoes.length === 0)
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -297,34 +311,32 @@ function ConstatacoesList({ constatacoes }: Readonly<{ constatacoes: CercConstat
     );
 
   return (
-    <ul className="space-y-3">
-      {constatacoes.map((c, idx) => {
-        const severity = getConstatacaoSeverity(c.tipo);
+    <div className="space-y-4">
+      {groupedByImpact.order.map((impact) => {
+        const items = groupedByImpact.map.get(impact) ?? [];
+        if (items.length === 0) return null;
         return (
-          // eslint-disable-next-line react/no-array-index-key
-          <li key={`${c.tipo}-${idx}`} className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              {severity === 'danger' && <AlertTriangle size={13} className="text-red-500 shrink-0" />}
-              {severity === 'warning' && <AlertTriangle size={13} className="text-amber-500 shrink-0" />}
-              {(severity === 'success' || severity === 'neutral') &&
-                <CheckCircle2 size={13} className="text-slate-400 shrink-0" />}
-              <StatusBadge value={c.tipo} type={severity} />
-              {c.created_at && (
-                <span className="text-[10px] text-muted-foreground ml-auto">
-                  {formatDatetime(c.created_at)}
-                </span>
-              )}
-            </div>
-            {c.descricao && <p className="text-xs text-muted-foreground pl-5">{c.descricao}</p>}
-            {c.dados && Object.keys(c.dados).length > 0 && (
-              <div className="pl-5">
-                <RawJsonToggle data={c.dados} />
-              </div>
-            )}
-          </li>
+          <div key={impact} className={`rounded-lg border p-3 space-y-2 ${impactGroupBorderClass(impact)}`}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {IMPACT_LABELS[impact]} ({items.length})
+            </p>
+            <ul className="space-y-3">
+              {items.map((c, idx) => (
+                <li key={`${c.id}-${c.algoritmo.tipo}-${idx}`} className="space-y-1.5 text-sm">
+                  <p className="font-medium leading-snug">{c.mensagem}</p>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                    <span className="font-mono">{formatTipoAlgoritmo(c.algoritmo.tipo)}</span>
+                    <span>{dimensaoLabel(c.algoritmo.dimensao)}</span>
+                    <span>{escopoLabel(c.algoritmo.escopo)}</span>
+                    <span>{formatDatetime(c.data_conclusao)}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         );
       })}
-    </ul>
+    </div>
   );
 }
 
@@ -333,121 +345,189 @@ function EventosList({ eventos }: Readonly<{ eventos: CercEvento[] }>) {
     return <p className="text-sm text-muted-foreground">Nenhum evento registrado.</p>;
 
   const sorted = [...eventos].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime(),
   );
 
   return (
     <ol className="relative border-l border-border ml-2 space-y-4">
       {sorted.map((ev, idx) => (
-        // eslint-disable-next-line react/no-array-index-key
-        <li key={`${ev.tipo}-${idx}`} className="ml-4">
+        <li key={`${ev.codigo}-${idx}`} className="ml-4">
           <div className="absolute -left-1.5 mt-1 h-3 w-3 rounded-full border bg-background border-border" />
           <div className="flex items-start gap-2 flex-wrap">
-            <span className="text-xs font-medium">{ev.tipo}</span>
+            <span className="text-xs font-medium">{ev.codigo}</span>
             <span className="text-[10px] text-muted-foreground ml-auto">
-              {formatDatetime(ev.created_at)}
+              {formatDatetime(ev.data)}
             </span>
           </div>
-          {ev.descricao && <p className="text-xs text-muted-foreground mt-0.5">{ev.descricao}</p>}
+          {ev.descricao && (
+            <p className="text-xs text-muted-foreground mt-0.5">{ev.descricao}</p>
+          )}
         </li>
       ))}
     </ol>
   );
 }
 
-function ParteItem({
-  label, parte,
-}: Readonly<{
-  label: string;
-  parte?: CercPartes['originador'] | null;
-}>) {
+function ParteItem({ label, parte }: Readonly<{ label: string; parte?: CercParte | null }>) {
   if (!parte) return null;
   return (
     <div className="space-y-0.5">
       <p className="text-xs text-muted-foreground">{label}</p>
-      {parte.nome && <p className="text-sm font-medium">{parte.nome}</p>}
+      {(parte.razaoSocial ?? parte.nomeFantasia) && (
+        <p className="text-sm font-medium">{parte.razaoSocial ?? parte.nomeFantasia}</p>
+      )}
       <p className="text-sm font-mono text-muted-foreground">
-        {parte.documento.tipo.toUpperCase()}{' '}
-        {formatDocument(parte.documento.identificador.numero, parte.documento.tipo)}
+        {parte.documentoTipo.toUpperCase()}{' '}
+        {formatDocument(parte.documentoNumero, parte.documentoTipo)}
       </p>
+      {parte.municipio && parte.uf && (
+        <p className="text-xs text-muted-foreground">{parte.municipio} / {parte.uf}</p>
+      )}
+      {parte.atividadePrincipalDescricao && (
+        <p className="text-xs text-muted-foreground truncate">{parte.atividadePrincipalDescricao}</p>
+      )}
     </div>
   );
 }
 
-function DocFiscalSection({ docFiscal }: Readonly<{ docFiscal: CercDocumentoFiscal }>) {
+function DocFiscalSection({ docFiscal }: Readonly<{ docFiscal: CercDocFiscal }>) {
   return (
     <div className="space-y-2 text-sm">
-      <InfoRow label="Tipo" value={docFiscal.tipo?.toUpperCase()} />
+      <InfoRow label="Tipo" value={docFiscal.tipo.toUpperCase()} />
       <InfoRow label="Número" value={docFiscal.numero} />
       <InfoRow label="Série" value={docFiscal.serie} />
-      <InfoRow label="Emissão" value={formatDatetime(docFiscal.data_emissao)} />
-      <InfoRow label="Valor Total" value={formatCurrency(docFiscal.valor_total)} />
-      {docFiscal.chave && (
+      <InfoRow label="Situação" value={docFiscal.situacao} />
+      <InfoRow label="Emissão" value={formatDatetime(docFiscal.dataEmissao)} />
+      <InfoRow label="Valor Total" value={formatCurrency(docFiscal.valorTotal)} />
+      {docFiscal.chaveAcesso && (
         <div className="space-y-0.5">
           <p className="text-muted-foreground text-xs">Chave NF-e</p>
-          <p className="font-mono text-[11px] break-all">{docFiscal.chave}</p>
+          <p className="font-mono text-[11px] break-all">{docFiscal.chaveAcesso}</p>
         </div>
       )}
-      {docFiscal.emitente && (
+      {(docFiscal.emitenteNome ?? docFiscal.emitenteCnpj) && (
         <div className="space-y-0.5 pt-1">
           <p className="text-muted-foreground text-xs">Emitente</p>
-          <p className="font-mono text-[11px]">
-            {docFiscal.emitente.documento.tipo.toUpperCase()}{' '}
-            {formatDocument(docFiscal.emitente.documento.identificador.numero, docFiscal.emitente.documento.tipo)}
-          </p>
-          {docFiscal.emitente.nome && <p className="text-xs">{docFiscal.emitente.nome}</p>}
+          {docFiscal.emitenteNome && <p className="text-xs font-medium">{docFiscal.emitenteNome}</p>}
+          {docFiscal.emitenteCnpj && (
+            <p className="font-mono text-[11px] text-muted-foreground">
+              CNPJ {formatDocument(docFiscal.emitenteCnpj, 'cnpj')}
+            </p>
+          )}
         </div>
       )}
-      {docFiscal.destinatario && (
+      {(docFiscal.destinatarioNome ?? docFiscal.destinatarioCnpj ?? docFiscal.destinatarioCpf) && (
         <div className="space-y-0.5 pt-1">
           <p className="text-muted-foreground text-xs">Destinatário</p>
-          <p className="font-mono text-[11px]">
-            {docFiscal.destinatario.documento.tipo.toUpperCase()}{' '}
-            {formatDocument(docFiscal.destinatario.documento.identificador.numero, docFiscal.destinatario.documento.tipo)}
-          </p>
-          {docFiscal.destinatario.nome && <p className="text-xs">{docFiscal.destinatario.nome}</p>}
+          {docFiscal.destinatarioNome && <p className="text-xs font-medium">{docFiscal.destinatarioNome}</p>}
+          {docFiscal.destinatarioCnpj && (
+            <p className="font-mono text-[11px] text-muted-foreground">
+              CNPJ {formatDocument(docFiscal.destinatarioCnpj, 'cnpj')}
+            </p>
+          )}
+          {!docFiscal.destinatarioCnpj && docFiscal.destinatarioCpf && (
+            <p className="font-mono text-[11px] text-muted-foreground">
+              CPF {formatDocument(docFiscal.destinatarioCpf, 'cpf')}
+            </p>
+          )}
         </div>
+      )}
+      {docFiscal.naturezaOperacao && (
+        <InfoRow label="Natureza Op." value={docFiscal.naturezaOperacao} />
+      )}
+      {docFiscal.modalidadeFrete && (
+        <InfoRow label="Frete" value={docFiscal.modalidadeFrete} />
       )}
     </div>
   );
 }
 
-function RecebivelSection({ validacaoData }: Readonly<{ validacaoData: CercValidacaoData }>) {
-  const rec = validacaoData.recebivel;
-  if (!rec) return null;
+function NfeDuplicatasSection({ duplicatas }: Readonly<{ duplicatas: CercNfeDuplicata[] }>) {
+  if (duplicatas.length === 0)
+    return <p className="text-sm text-muted-foreground">Sem duplicatas.</p>;
   return (
-    <div className="space-y-2 text-sm">
-      <InfoRow label="Tipo" value={rec.tipo?.replaceAll('_', ' ')} />
-      <InfoRow label="Número" value={rec.identificador?.numero} />
-      <InfoRow
-        label="Vencimento"
-        value={rec.vencimento ? new Date(rec.vencimento).toLocaleDateString('pt-BR') : '—'}
-      />
-      <InfoRow label="Valor" value={formatCurrency(rec.valor)} />
-      <InfoRow
-        label="Tipo Doc Fiscal"
-        value={rec.documento_fiscal?.tipo?.toUpperCase()}
-      />
-      {rec.partes?.pagador && (
-        <div className="space-y-0.5 pt-1">
-          <p className="text-muted-foreground text-xs">Pagador</p>
-          <p className="font-mono text-[11px]">
-            {rec.partes.pagador.documento.tipo.toUpperCase()}{' '}
-            {formatDocument(rec.partes.pagador.documento.identificador.numero, rec.partes.pagador.documento.tipo)}
-          </p>
-        </div>
-      )}
-      {validacaoData.cedente && (
-        <div className="space-y-0.5 pt-1">
-          <p className="text-muted-foreground text-xs">Cedente</p>
-          <p className="font-mono text-[11px]">
-            {validacaoData.cedente.documento.tipo.toUpperCase()}{' '}
-            {formatDocument(validacaoData.cedente.documento.identificador.numero, validacaoData.cedente.documento.tipo)}
-          </p>
-          {validacaoData.cedente.nome && <p className="text-xs">{validacaoData.cedente.nome}</p>}
-        </div>
-      )}
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b text-xs text-muted-foreground">
+            <th className="text-left pb-2 font-medium">Nº</th>
+            <th className="text-right pb-2 font-medium">Valor</th>
+            <th className="text-right pb-2 font-medium">Vencimento</th>
+          </tr>
+        </thead>
+        <tbody>
+          {duplicatas.map((d) => (
+            <tr key={d.id ?? d.numero} className="border-b last:border-0">
+              <td className="py-1.5 font-mono">{d.numero}</td>
+              <td className="py-1.5 text-right">{formatCurrency(d.valor)}</td>
+              <td className="py-1.5 text-right">{formatDate(d.vencimento)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
+  );
+}
+
+function NfeProdutosSection({ produtos }: Readonly<{ produtos: CercNfeProduto[] }>) {
+  if (produtos.length === 0)
+    return <p className="text-sm text-muted-foreground">Sem produtos.</p>;
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b text-xs text-muted-foreground">
+            <th className="text-left pb-2 font-medium">Item</th>
+            <th className="text-left pb-2 font-medium">Descrição</th>
+            <th className="text-right pb-2 font-medium">Qtd</th>
+            <th className="text-right pb-2 font-medium">Unit.</th>
+            <th className="text-right pb-2 font-medium">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {produtos.map((p) => (
+            <tr key={p.id ?? p.num} className="border-b last:border-0">
+              <td className="py-1.5 font-mono text-xs">{p.num}</td>
+              <td className="py-1.5 max-w-[200px] truncate" title={p.descricao}>{p.descricao}</td>
+              <td className="py-1.5 text-right">{p.quantidade ? Number(p.quantidade).toLocaleString('pt-BR') : '—'}</td>
+              <td className="py-1.5 text-right">{formatCurrency(p.valorUnitario)}</td>
+              <td className="py-1.5 text-right">{formatCurrency(p.valorTotal)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function NfeEventosFiscaisSection({ eventos }: Readonly<{ eventos: CercNfeEventoFiscal[] }>) {
+  if (eventos.length === 0)
+    return <p className="text-sm text-muted-foreground">Sem eventos fiscais.</p>;
+
+  const sorted = [...eventos].sort(
+    (a, b) => new Date(a.data ?? 0).getTime() - new Date(b.data ?? 0).getTime(),
+  );
+
+  return (
+    <ol className="relative border-l border-border ml-2 space-y-4">
+      {sorted.map((ev, idx) => (
+        <li key={`${ev.protocolo}-${idx}`} className="ml-4">
+          <div className="absolute -left-1.5 mt-1 h-3 w-3 rounded-full border bg-background border-border" />
+          <div className="flex items-start gap-2 flex-wrap">
+            <span className="text-xs font-medium truncate max-w-[220px]">{ev.evento ?? ev.tipo}</span>
+            <span className="text-[10px] text-muted-foreground ml-auto">
+              {formatDatetime(ev.data)}
+            </span>
+          </div>
+          {ev.orgao && (
+            <p className="text-[11px] text-muted-foreground mt-0.5">Órgão: {ev.orgao}</p>
+          )}
+          {ev.protocolo && (
+            <p className="text-[11px] font-mono text-muted-foreground">{ev.protocolo}</p>
+          )}
+        </li>
+      ))}
+    </ol>
   );
 }
 
@@ -477,20 +557,28 @@ export function CercResultsPanel({ record, resultados, onRefresh }: Readonly<Cer
   const isDone = record.status === 'PROCESSED';
   const isError = record.status === 'ERROR';
 
-  const statusBadgeType = isPolling ? 'neutral' : isDone ? 'success' : 'danger';
+  let statusBadgeType: BadgeType = 'neutral';
+  if (isDone) statusBadgeType = 'success';
+  else if (isError) statusBadgeType = 'danger';
 
-  const constatacoes = record.constatacoesDados?.constatacoes ?? [];
-  const eventos = record.eventosDados?.eventos ?? [];
-  const partes = record.partesDados?.partes ?? null;
-  const docFiscal = record.docFiscalDados?.documento_fiscal ?? null;
-  const validacaoData = record.validacaoData ?? null;
+  const eventos = record.eventos ?? [];
+  const partes = record.partes ?? [];
+  const docFiscal = record.docFiscal ?? null;
+  const nfeDuplicatas = record.nfeDuplicatas ?? [];
+  const nfeProdutos = record.nfeProdutos ?? [];
+  const nfeEventosFiscais = record.nfeEventosFiscais ?? [];
 
-  const hasDangerConstatacao = constatacoes.some(
-    (c) => getConstatacaoSeverity(c.tipo) === 'danger',
-  );
+  const pagador = partes.find((p) => p.role === 'pagador') ?? null;
+  const originador = partes.find((p) => p.role === 'originador') ?? null;
+  const cedente = partes.find((p) => p.role === 'cedente') ?? null;
 
   const resultadosCriticoCount = resultados.filter((r) => r.impacto === 'critico').length;
   const resultadosAlertaCount = resultados.filter((r) => r.impacto === 'alerta').length;
+
+  const constatacoes: CercConstatacao[] = [];
+  const hasDangerConstatacao = constatacoes.some(
+    (c) => getConstatacaoSeverity(c.impacto) === 'danger',
+  );
 
   return (
     <div className="space-y-4">
@@ -568,7 +656,7 @@ export function CercResultsPanel({ record, resultados, onRefresh }: Readonly<Cer
       {/* Results */}
       {isDone && (
         <div className="space-y-3">
-          {/* Constatações */}
+          {/* Constatações (from cerc_validation_resultados, passed as prop) */}
           <ExpandableSection
             icon={<AlertTriangle size={15} className="text-amber-500" />}
             title="Constatações"
@@ -583,12 +671,11 @@ export function CercResultsPanel({ record, resultados, onRefresh }: Readonly<Cer
               )
             }
             defaultOpen
-            rawData={record.constatacoesDados}
           >
             <ConstatacoesList constatacoes={constatacoes} />
           </ExpandableSection>
 
-          {/* Resultados de análise (CERC — tabela persistida) */}
+          {/* Resultados de análise (cerc_validation_resultados) */}
           <ExpandableSection
             icon={<ListChecks size={15} className="text-indigo-500" />}
             title="Resultados de Análise"
@@ -608,72 +695,77 @@ export function CercResultsPanel({ record, resultados, onRefresh }: Readonly<Cer
             <ResultadosAnaliseSection resultados={resultados} />
           </ExpandableSection>
 
-          {/* Recebível */}
-          {validacaoData && (
-            <ExpandableSection
-              icon={<Receipt size={15} className="text-blue-500" />}
-              title="Recebível"
-              defaultOpen={false}
-              rawData={record.validacaoData}
-            >
-              <RecebivelSection validacaoData={validacaoData} />
-            </ExpandableSection>
-          )}
-
           {/* Documento Fiscal */}
           {docFiscal && (
             <ExpandableSection
               icon={<FileText size={15} className="text-green-600" />}
               title="Documento Fiscal"
               defaultOpen={false}
-              rawData={record.docFiscalDados}
             >
               <DocFiscalSection docFiscal={docFiscal} />
             </ExpandableSection>
           )}
 
+          {/* Duplicatas da NF-e */}
+          {nfeDuplicatas.length > 0 && (
+            <ExpandableSection
+              icon={<CalendarCheck size={15} className="text-blue-500" />}
+              title="Duplicatas"
+              badge={<StatusBadge value={String(nfeDuplicatas.length)} type="neutral" />}
+              defaultOpen={false}
+            >
+              <NfeDuplicatasSection duplicatas={nfeDuplicatas} />
+            </ExpandableSection>
+          )}
+
+          {/* Produtos */}
+          {nfeProdutos.length > 0 && (
+            <ExpandableSection
+              icon={<Package size={15} className="text-orange-500" />}
+              title="Produtos"
+              badge={<StatusBadge value={String(nfeProdutos.length)} type="neutral" />}
+              defaultOpen={false}
+            >
+              <NfeProdutosSection produtos={nfeProdutos} />
+            </ExpandableSection>
+          )}
+
           {/* Partes */}
-          {partes && (
+          {partes.length > 0 && (
             <ExpandableSection
               icon={<Users size={15} className="text-violet-500" />}
               title="Partes"
               defaultOpen={false}
-              rawData={record.partesDados}
             >
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <ParteItem label="Cedente" parte={partes.cedente} />
-                <ParteItem label="Originador" parte={partes.originador} />
-                <ParteItem label="Pagador" parte={partes.pagador} />
+                <ParteItem label="Cedente" parte={cedente} />
+                <ParteItem label="Originador" parte={originador} />
+                <ParteItem label="Pagador" parte={pagador} />
               </div>
             </ExpandableSection>
           )}
 
-          {/* Eventos */}
-          <ExpandableSection
-            icon={<Activity size={15} className="text-sky-500" />}
-            title="Eventos"
-            badge={
-              eventos.length > 0 ? (
-                <StatusBadge value={String(eventos.length)} type="neutral" />
-              ) : undefined
-            }
-            defaultOpen={false}
-            rawData={record.eventosDados}
-          >
-            <EventosList eventos={eventos} />
-          </ExpandableSection>
+          {/* Eventos CERC */}
+          {eventos.length > 0 && (
+            <ExpandableSection
+              icon={<Activity size={15} className="text-sky-500" />}
+              title="Eventos CERC"
+              badge={<StatusBadge value={String(eventos.length)} type="neutral" />}
+              defaultOpen={false}
+            >
+              <EventosList eventos={eventos} />
+            </ExpandableSection>
+          )}
 
-          {/* Request Payload */}
-          {record.requestPayload && (
+          {/* Eventos Fiscais NF-e */}
+          {nfeEventosFiscais.length > 0 && (
             <ExpandableSection
               icon={<Landmark size={15} className="text-slate-500" />}
-              title="Payload Enviado"
+              title="Eventos Fiscais NF-e"
+              badge={<StatusBadge value={String(nfeEventosFiscais.length)} type="neutral" />}
               defaultOpen={false}
-              rawData={record.requestPayload}
             >
-              <p className="text-xs text-muted-foreground">
-                Dados exatos enviados para a CERC na criação do lote.
-              </p>
+              <NfeEventosFiscaisSection eventos={nfeEventosFiscais} />
             </ExpandableSection>
           )}
 

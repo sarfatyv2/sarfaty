@@ -27,6 +27,8 @@ export class DrizzleUpminerResultRepository implements UpminerResultRepository {
         status: data.status,
         dossiersData: data.dossiersData,
         errorMessage: data.errorMessage,
+        parallelProcessId: data.parallelProcessId,
+        parallelStatus: data.parallelStatus,
         processedAt: data.processedAt,
       })
       .where(eq(upminerResults.id, result.id))

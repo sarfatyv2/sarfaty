@@ -1,61 +1,110 @@
 export interface CercConstatacao {
-  tipo: string;
-  descricao?: string;
-  created_at?: string;
-  dados?: Record<string, unknown>;
+  id: string;
+  codigo: string;
+  algoritmo: {
+    id: string;
+    codigo: string;
+    nome: string;
+    tipo: string;
+    dimensao: CercResultadoDimensao;
+    escopo: string;
+  };
+  mensagem: string;
+  impacto: CercResultadoImpacto;
+  dados_utilizados: string;
+  parametros_do_algoritmo: string;
+  informacoes_complementares: string;
+  data_conclusao: string;
 }
 
 export interface CercEvento {
+  id?: string;
+  cercValidationId: string;
+  data: string;
+  codigo: string;
+  descricao: string | null;
+  createdAt?: string;
+}
+
+export interface CercParte {
+  id?: string;
+  cercValidationId: string;
+  role: string;
+  documentoTipo: string;
+  documentoNumero: string;
+  razaoSocial: string | null;
+  nomeFantasia: string | null;
+  uf: string | null;
+  cep: string | null;
+  municipio: string | null;
+  dataDeAbertura: string | null;
+  capitalSocial: string | null;
+  situacaoCadastralStatus: string | null;
+  atividadePrincipalCodigo: string | null;
+  atividadePrincipalDescricao: string | null;
+}
+
+export interface CercDocFiscal {
+  id?: string;
+  cercValidationId: string;
   tipo: string;
-  descricao?: string;
-  created_at: string;
-  dados?: Record<string, unknown>;
+  chaveAcesso: string | null;
+  numero: string | null;
+  serie: string | null;
+  modelo: string | null;
+  situacao: string | null;
+  naturezaOperacao: string | null;
+  dataEmissao: string | null;
+  valorTotal: string | null;
+  emitenteNome: string | null;
+  emitenteCnpj: string | null;
+  emitenteUf: string | null;
+  destinatarioNome: string | null;
+  destinatarioCnpj: string | null;
+  destinatarioCpf: string | null;
+  destinatarioUf: string | null;
+  faturaNumero: string | null;
+  faturaValorOriginal: string | null;
+  faturaValorLiquido: string | null;
+  modalidadeFrete: string | null;
+  transportadorNome: string | null;
+  transportadorCnpj: string | null;
+  valorIcms: string | null;
+  valorPis: string | null;
+  valorCofins: string | null;
+  valorProdutos: string | null;
 }
 
-export interface CercParteDetalhe {
-  documento: {
-    identificador: { numero: string };
-    tipo: 'cnpj' | 'cpf';
-  };
-  nome?: string;
+export interface CercNfeDuplicata {
+  id?: string;
+  cercValidationId: string;
+  numero: string;
+  valor: string | null;
+  vencimento: string | null;
 }
 
-export interface CercPartes {
-  originador?: CercParteDetalhe;
-  pagador?: CercParteDetalhe;
-  cedente?: CercParteDetalhe;
+export interface CercNfeProduto {
+  id?: string;
+  cercValidationId: string;
+  num: string;
+  codigo: string | null;
+  descricao: string;
+  ncm: string | null;
+  cfop: string | null;
+  unidade: string | null;
+  quantidade: string | null;
+  valorUnitario: string | null;
+  valorTotal: string | null;
 }
 
-export interface CercDocumentoFiscal {
-  chave?: string;
-  tipo?: string;
-  numero?: string;
-  serie?: string;
-  data_emissao?: string;
-  valor_total?: number;
-  emitente?: CercParteDetalhe;
-  destinatario?: CercParteDetalhe;
-}
-
-export interface CercValidacaoData {
-  id: string;
-  lote_id?: string;
-  referencia_externa?: string;
-  status_de_processamento: string;
-  recebivel?: {
-    tipo: string;
-    identificador?: { numero: string };
-    vencimento?: string;
-    valor?: number;
-    documento_fiscal?: { identificador?: { numero: string }; tipo?: string };
-    partes?: {
-      originador?: CercParteDetalhe;
-      pagador?: CercParteDetalhe;
-    };
-  };
-  cedente?: CercParteDetalhe;
-  created_at?: string;
-  updated_at?: string;
+export interface CercNfeEventoFiscal {
+  id?: string;
+  cercValidationId: string;
+  tipo: string | null;
+  data: string | null;
+  orgao: string | null;
+  protocolo: string | null;
+  evento: string | null;
 }
 
 export type CercValidationStatus = 'PENDING' | 'POLLING' | 'PROCESSED' | 'ERROR';
@@ -77,15 +126,15 @@ export interface CercValidationRecord {
   planodeCobranca: number;
   status: CercValidationStatus;
   statusProcessamento: string | null;
-  requestPayload: Record<string, unknown> | null;
-  validacaoData: CercValidacaoData | null;
-  constatacoesDados: { validacao_id: string; constatacoes: CercConstatacao[] } | null;
-  eventosDados: { validacao_id: string; eventos: CercEvento[] } | null;
-  partesDados: { validacao_id: string; partes: CercPartes } | null;
-  docFiscalDados: { validacao_id: string; documento_fiscal: CercDocumentoFiscal } | null;
   errorMessage: string | null;
   requestedAt: string;
   processedAt: string | null;
+  eventos: CercEvento[];
+  partes: CercParte[];
+  docFiscal: CercDocFiscal | null;
+  nfeDuplicatas: CercNfeDuplicata[];
+  nfeProdutos: CercNfeProduto[];
+  nfeEventosFiscais: CercNfeEventoFiscal[];
 }
 
 export type CercResultadoImpacto = 'neutro' | 'alerta' | 'consistente' | 'critico';

@@ -1,7 +1,24 @@
 import { CercValidation, type CercValidationStatus } from '../../domain/cerc-validation.entity';
+import type { CercValidationEventoRow } from '../../domain/cerc-validation-eventos.repository';
+import type { CercValidationParteRow } from '../../domain/cerc-validation-partes.repository';
+import type {
+  CercValidationDocFiscalRow,
+  CercValidationNfeDuplicataRow,
+  CercValidationNfeProdutoRow,
+  CercValidationNfeEventoFiscalRow,
+} from '../../domain/cerc-validation-doc-fiscal.repository';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RawRow = Record<string, any>;
+
+export interface CercValidationDetails {
+  eventos: CercValidationEventoRow[];
+  partes: CercValidationParteRow[];
+  docFiscal: CercValidationDocFiscalRow | null;
+  nfeDuplicatas: CercValidationNfeDuplicataRow[];
+  nfeProdutos: CercValidationNfeProdutoRow[];
+  nfeEventosFiscais: CercValidationNfeEventoFiscalRow[];
+}
 
 export class CercValidationMapper {
   static toDomain(raw: RawRow): CercValidation {
@@ -22,12 +39,6 @@ export class CercValidationMapper {
       planodeCobranca: raw.planodeCobranca ?? 6,
       status: raw.status as CercValidationStatus,
       statusProcessamento: raw.statusProcessamento ?? null,
-      requestPayload: raw.requestPayload ?? null,
-      validacaoData: raw.validacaoData ?? null,
-      constatacoesDados: raw.constatacoesDados ?? null,
-      eventosDados: raw.eventosDados ?? null,
-      partesDados: raw.partesDados ?? null,
-      docFiscalDados: raw.docFiscalDados ?? null,
       errorMessage: raw.errorMessage ?? null,
       requestedAt: new Date(raw.requestedAt),
       processedAt: raw.processedAt ? new Date(raw.processedAt) : null,
@@ -54,12 +65,6 @@ export class CercValidationMapper {
       planodeCobranca: entity.planodeCobranca,
       status: entity.status,
       statusProcessamento: entity.statusProcessamento,
-      requestPayload: entity.requestPayload,
-      validacaoData: entity.validacaoData,
-      constatacoesDados: entity.constatacoesDados,
-      eventosDados: entity.eventosDados,
-      partesDados: entity.partesDados,
-      docFiscalDados: entity.docFiscalDados,
       errorMessage: entity.errorMessage,
       requestedAt: entity.requestedAt,
       processedAt: entity.processedAt,
@@ -85,15 +90,24 @@ export class CercValidationMapper {
       planodeCobranca: entity.planodeCobranca,
       status: entity.status,
       statusProcessamento: entity.statusProcessamento,
-      requestPayload: entity.requestPayload,
-      validacaoData: entity.validacaoData,
-      constatacoesDados: entity.constatacoesDados,
-      eventosDados: entity.eventosDados,
-      partesDados: entity.partesDados,
-      docFiscalDados: entity.docFiscalDados,
       errorMessage: entity.errorMessage,
       requestedAt: entity.requestedAt,
       processedAt: entity.processedAt,
+    };
+  }
+
+  static toDetailResponse(
+    entity: CercValidation,
+    details: CercValidationDetails,
+  ): Record<string, unknown> {
+    return {
+      ...CercValidationMapper.toResponse(entity),
+      eventos: details.eventos,
+      partes: details.partes,
+      docFiscal: details.docFiscal,
+      nfeDuplicatas: details.nfeDuplicatas,
+      nfeProdutos: details.nfeProdutos,
+      nfeEventosFiscais: details.nfeEventosFiscais,
     };
   }
 }

@@ -50,6 +50,41 @@
       "when": 1742842800000,
       "tag": "0006_cerc_validation_resultados",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1743000000000,
+      "tag": "0007_cerc_structured_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1743100000000,
+      "tag": "0008_upminer_processos",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1743200000000,
+      "tag": "0009_upminer_empresa_pj",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1743300000000,
+      "tag": "0010_upminer_parallel_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1743400000000,
+      "tag": "0011_upminer_all_sources",
+      "breakpoints": true
     }
   ]
 }

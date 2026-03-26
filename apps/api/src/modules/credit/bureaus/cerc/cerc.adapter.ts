@@ -173,10 +173,16 @@ export class CercAdapter {
   }
 
   async getConstatacoes(validacaoId: string): Promise<CercGetConstatacoeResponse> {
-    return this.get<CercGetConstatacoeResponse>(
+    const result = await this.get<CercGetConstatacoeResponse | { constatacoes: CercGetConstatacoeResponse }>(
       `/transaction-io/tio-mapper/v1/operations/validacoes/${validacaoId}/constatacoes`,
       'cerc.getConstatacoes',
     );
+    // CERC may return a direct array or a wrapped { constatacoes: [] } — normalise to array.
+    if (Array.isArray(result)) return result;
+    if (result && Array.isArray((result as { constatacoes: CercGetConstatacoeResponse }).constatacoes)) {
+      return (result as { constatacoes: CercGetConstatacoeResponse }).constatacoes;
+    }
+    return [];
   }
 
   async getEventos(validacaoId: string): Promise<CercGetEventosResponse> {

@@ -1,4 +1,4 @@
-import { UpminerResult, type UpminerResultStatus } from '../../domain/upminer-result.entity';
+import { UpminerResult, type UpminerResultStatus, type UpminerParallelStatus } from '../../domain/upminer-result.entity';
 
 export class UpminerResultMapper {
   static toDomain(raw: any): UpminerResult {
@@ -12,6 +12,8 @@ export class UpminerResultMapper {
       status: raw.status as UpminerResultStatus,
       dossiersData: raw.dossiersData ?? null,
       errorMessage: raw.errorMessage ?? null,
+      parallelProcessId: raw.parallelProcessId ?? null,
+      parallelStatus: (raw.parallelStatus ?? null) as UpminerParallelStatus | null,
       requestedAt: new Date(raw.requestedAt),
       processedAt: raw.processedAt ? new Date(raw.processedAt) : null,
     });
@@ -28,6 +30,8 @@ export class UpminerResultMapper {
       status: entity.status,
       dossiersData: entity.dossiersData,
       errorMessage: entity.errorMessage,
+      parallelProcessId: entity.parallelProcessId,
+      parallelStatus: entity.parallelStatus,
       requestedAt: entity.requestedAt,
       processedAt: entity.processedAt,
     };

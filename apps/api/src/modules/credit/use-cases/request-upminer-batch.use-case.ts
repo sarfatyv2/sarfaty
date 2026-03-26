@@ -6,7 +6,7 @@ import { UpminerAdapter } from '../bureaus/upminer/upminer.adapter';
 import { UpminerResult } from '../domain/upminer-result.entity';
 import { type UpminerResultRepository, UPMINER_RESULT_REPOSITORY } from '../domain/upminer-result.repository';
 
-const DEFAULT_SEARCH_PROFILE_ID = 0;
+const DEFAULT_SEARCH_PROFILE_ID = 4; // "Consulta PJ" profile in upMiner
 const PJ_INPUT_TYPE = 2;
 
 export interface RequestUpminerBatchInput {
@@ -75,6 +75,8 @@ export class RequestUpminerBatchUseCase {
       dossiersData: null,
       errorMessage: null,
       processedAt: null,
+      parallelProcessId: null,
+      parallelStatus: null,
     });
 
     try {
@@ -83,6 +85,20 @@ export class RequestUpminerBatchUseCase {
         input_type: PJ_INPUT_TYPE,
         search_profile_id: searchProfileId,
         break_batches: false,
+        parameterization: {
+          cade: {
+            auto_relevante: false,
+            parameters: {
+              pesquisa: ['167', '168', '169'],
+              target: '0',
+            },
+          },
+          bancoCentralCrsfnEmentasAcordaos: {
+            parameters: {
+              exato: false,
+            },
+          },
+        },
       });
 
       result.markAsQueued(batchResponse.batchID);

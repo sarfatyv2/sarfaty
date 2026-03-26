@@ -17,6 +17,8 @@ function makeResult(overrides: Partial<{ status: string; batchId: number | null 
     status: (overrides.status as any) ?? 'QUEUED',
     dossiersData: null,
     errorMessage: null,
+    parallelProcessId: null,
+    parallelStatus: null,
     requestedAt: new Date(),
     processedAt: null,
   });
@@ -41,13 +43,18 @@ function createMocks() {
     getPending: vi.fn(),
   };
 
+  const upminerParallelPersistence = {
+    persist: vi.fn(),
+  };
+
   const useCase = new SyncUpminerBatchUseCase(
     upminerRepository as any,
     upminerAdapter as any,
     upminerDossierPersistence as any,
+    upminerParallelPersistence as any,
   );
 
-  return { useCase, upminerAdapter, upminerRepository, upminerDossierPersistence };
+  return { useCase, upminerAdapter, upminerRepository, upminerDossierPersistence, upminerParallelPersistence };
 }
 
 describe('SyncUpminerBatchUseCase', () => {
