@@ -34,6 +34,23 @@ interface CnpjFieldProps {
 
 type ValidationState = 'idle' | 'validating' | 'valid' | 'error';
 
+function validateCnpjChecksum(digits: string): boolean {
+  if (digits.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(digits)) return false;
+
+  const calcDigit = (base: string, weights: readonly number[]): number => {
+    const sum = weights.reduce((acc, weight, index) => acc + Number(base[index]) * weight, 0);
+    const remainder = sum % 11;
+    return remainder < 2 ? 0 : 11 - remainder;
+  };
+
+  const firstDigit = calcDigit(digits, [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+  if (firstDigit !== Number(digits[12])) return false;
+
+  const secondDigit = calcDigit(digits, [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+  return secondDigit === Number(digits[13]);
+}
+
 export function CnpjField({ value, onChange, onValidated, onError, onClear, disabled }: CnpjFieldProps) {
   const [validationState, setValidationState] = useState<ValidationState>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -42,6 +59,14 @@ export function CnpjField({ value, onChange, onValidated, onError, onClear, disa
     async (cnpj: string) => {
       const digits = cnpj.replaceAll(/\D/g, '');
       if (digits.length !== 14) return;
+
+      if (!validateCnpjChecksum(digits)) {
+        setValidationState('error');
+        const message = 'CNPJ inválido — verifique os dígitos verificadores';
+        setErrorMessage(message);
+        onError(message);
+        return;
+      }
 
       setValidationState('validating');
       setErrorMessage('');
