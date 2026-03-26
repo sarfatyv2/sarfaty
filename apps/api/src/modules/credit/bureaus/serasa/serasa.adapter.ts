@@ -135,10 +135,14 @@ export class SerasaAdapter {
       let errorParsed: any = null;
       try { errorParsed = JSON.parse(errorBody); } catch { /* raw text */ }
 
+      const parsedErrorMessage = Array.isArray(errorParsed)
+        ? (errorParsed[0]?.message ?? errorBody)
+        : (errorParsed?.message || errorParsed?.errors?.[0]?.message || errorBody || `HTTP ${statusCode}`);
+
       return {
         statusCode,
         data: null,
-        error: errorParsed?.message || errorParsed?.errors?.[0]?.message || errorBody || `HTTP ${statusCode}`,
+        error: parsedErrorMessage || `HTTP ${statusCode}`,
         requestId,
       };
     }
