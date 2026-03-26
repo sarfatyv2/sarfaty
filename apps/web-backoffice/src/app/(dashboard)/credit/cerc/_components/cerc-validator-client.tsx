@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { RefreshCw, ChevronRight, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { ChevronRight, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import { Badge, Button } from '@nexus/ui';
@@ -178,15 +178,12 @@ export function CercValidatorClient() {
   );
 
   return (
-    <div className="flex flex-col h-full">
-      <div
-        className="grid grid-cols-1 lg:grid-cols-2 gap-0 border-b divide-y lg:divide-y-0 lg:divide-x"
-        style={{ minHeight: '520px' }}
-      >
-        <div className="p-8 overflow-auto">
+    <div className="flex flex-col">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 border-b divide-y lg:divide-y-0 lg:divide-x min-h-[520px]">
+        <div className="p-8">
           <CercValidationForm isSubmitting={isSubmitting} onSubmit={handleSubmit} />
         </div>
-        <div className="p-8 overflow-auto bg-muted/20">
+        <div className="p-8 bg-muted/20">
           <CercResultsPanel
             record={record}
             resultados={resultados}
@@ -285,7 +282,7 @@ function CercValidacoesHistorico({
   );
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div>
       <div className="px-8 py-4 border-b flex items-center justify-between">
         <div>
           <h2 className="text-sm font-semibold">Histórico de Validações</h2>
