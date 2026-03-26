@@ -153,15 +153,6 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
     setViewRaw(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-48 w-full" />
-        <Skeleton className="h-48 w-full" />
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
@@ -179,7 +170,7 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
 
   return (
     <div className="space-y-4">
-      {hasLegacyBureauBlock ? null : (
+      {!loading && !hasLegacyBureauBlock ? (
         <div className="flex flex-col items-center justify-center py-8 text-center space-y-2 rounded-lg border border-dashed bg-muted/20">
           <FileText className="h-10 w-10 text-muted-foreground/40" />
           <p className="text-sm text-muted-foreground">
@@ -204,6 +195,16 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
           onToggle={() => setSerasaExpanded((v) => !v)}
         />
         <ExpandableContent isOpen={serasaExpanded}>
+          {loading ? (
+            <div className="px-8 pb-8 space-y-3 pt-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Skeleton className="h-4 w-4 rounded-full" />
+                <Skeleton className="h-3 w-40 rounded" />
+              </div>
+              <Skeleton className="h-20 w-full rounded-lg" />
+              <Skeleton className="h-32 w-full rounded-lg" />
+            </div>
+          ) : (
           <SerasaSection
             report={serasa}
             isRequesting={isRequestingSerasa}
@@ -211,6 +212,7 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
             viewRaw={viewRaw}
             toggleRaw={toggleRaw}
           />
+          )}
         </ExpandableContent>
       </Card>
 
@@ -224,6 +226,16 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
           onToggle={() => setVaduExpanded((v) => !v)}
         />
         <ExpandableContent isOpen={vaduExpanded}>
+          {loading ? (
+            <div className="px-8 pb-8 space-y-3 pt-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Skeleton className="h-4 w-4 rounded-full" />
+                <Skeleton className="h-3 w-40 rounded" />
+              </div>
+              <Skeleton className="h-20 w-full rounded-lg" />
+              <Skeleton className="h-32 w-full rounded-lg" />
+            </div>
+          ) : (
           <VaduSection
             data={vaduData}
             creditbox={creditbox}
@@ -233,6 +245,7 @@ export function ClientCreditAnalysisTab({ clientId }: Readonly<{ clientId: strin
             handleRequestCreditbox={handleRequestCreditbox}
             handleDownloadPdf={handleDownloadPdf}
           />
+          )}
         </ExpandableContent>
       </Card>
 
