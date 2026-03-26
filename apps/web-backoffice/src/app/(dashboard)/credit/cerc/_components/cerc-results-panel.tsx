@@ -110,6 +110,370 @@ function impactGroupBorderClass(impact: CercResultadoImpacto): string {
   }
 }
 
+function parseJsonField(value: string | null | undefined): Record<string, unknown> | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value);
+    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    // not valid JSON
+  }
+  return null;
+}
+
+function renderFieldValue(val: unknown): string {
+  if (val === null || val === undefined) return '—';
+  if (typeof val === 'object') {
+    try { return JSON.stringify(val); } catch { return '[objeto]'; }
+  }
+  if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+    return String(val);
+  }
+  return '—';
+}
+
+function isQualificacaoAlgoritmo(tipo: string): boolean {
+  const t = tipo.toLowerCase();
+  return t.includes('qualificacao') || t.includes('avaliacao') || t.includes('scoring') || t.includes('score');
+}
+
+function situacaoCadastralBadgeType(status: string): BadgeType {
+  const s = status.toUpperCase();
+  if (s === 'ATIVA') return 'success';
+  if (s === 'BAIXADA' || s === 'INAPTA' || s === 'SUSPENSA') return 'danger';
+  return 'warning';
+}
+
+function getConstatacaoSeverity(impacto: string): BadgeType {
+  if (impacto === 'critico') return 'danger';
+  if (impacto === 'alerta') return 'warning';
+  if (impacto === 'consistente') return 'success';
+  return 'neutral';
+}
+
+/* ------------------------------------------------------------------ */
+/* InfoComplementar                                                     */
+/* ------------------------------------------------------------------ */
+
+function InfoComplementar({
+  informacoesComplementares,
+  dadosUtilizados,
+  parametrosDoAlgoritmo,
+}: Readonly<{
+  informacoesComplementares: string | null | undefined;
+  dadosUtilizados: string | null | undefined;
+  parametrosDoAlgoritmo?: string | null | undefined;
+}>) {
+  const [showParametros, setShowParametros] = useState(false);
+
+  const infoObj = parseJsonField(informacoesComplementares);
+  const dadosObj = parseJsonField(dadosUtilizados);
+  const paramObj = parseJsonField(parametrosDoAlgoritmo);
+
+  const hasInfo = infoObj !== null && Object.keys(infoObj).length > 0;
+  const hasDados = dadosObj !== null && Object.keys(dadosObj).length > 0;
+  const hasParametros = (paramObj !== null && Object.keys(paramObj).length > 0) || !!parametrosDoAlgoritmo;
+
+  const hasAnyContent = hasInfo || hasDados || hasParametros || !!informacoesComplementares || !!dadosUtilizados;
+  if (!hasAnyContent) return null;
+
+  return (
+    <div className="mt-1.5 space-y-1">
+      {hasInfo && (
+        <dl className="flex flex-wrap gap-x-4 gap-y-0.5">
+          {Object.entries(infoObj).map(([key, val]) => (
+            <div key={key} className="flex items-baseline gap-1 text-[11px]">
+              <dt className="text-muted-foreground capitalize">{key.replaceAll('_', ' ')}:</dt>
+              <dd className="font-semibold text-foreground">{renderFieldValue(val)}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {!hasInfo && informacoesComplementares && (
+        <p className="text-[11px] text-muted-foreground italic">{informacoesComplementares}</p>
+      )}
+      {hasDados && (
+        <dl className="flex flex-wrap gap-x-4 gap-y-0.5">
+          {Object.entries(dadosObj).map(([key, val]) => (
+            <div key={key} className="flex items-baseline gap-1 text-[11px]">
+              <dt className="text-muted-foreground capitalize">{key.replaceAll('_', ' ')}:</dt>
+              <dd className="font-medium text-muted-foreground">{renderFieldValue(val)}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {!hasDados && dadosUtilizados && (
+        <p className="text-[11px] text-muted-foreground italic">{dadosUtilizados}</p>
+      )}
+      {hasParametros && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowParametros((v) => !v)}
+            className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors mt-0.5"
+          >
+            <motion.div animate={{ rotate: showParametros ? 180 : 0 }} transition={{ duration: 0.15 }}>
+              <ChevronDown size={10} />
+            </motion.div>
+            {showParametros ? 'Ocultar parâmetros' : 'Ver parâmetros'}
+          </button>
+          {showParametros && (
+            <div className="mt-1 pl-2.5 border-l-2 border-muted">
+              {paramObj !== null && Object.keys(paramObj).length > 0 ? (
+                <dl className="flex flex-wrap gap-x-4 gap-y-0.5">
+                  {Object.entries(paramObj).map(([key, val]) => (
+                    <div key={key} className="flex items-baseline gap-1 text-[11px]">
+                      <dt className="text-muted-foreground capitalize">{key.replaceAll('_', ' ')}:</dt>
+                      <dd className="font-mono text-[10px] text-muted-foreground">{renderFieldValue(val)}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : parametrosDoAlgoritmo ? (
+                <p className="text-[10px] font-mono text-muted-foreground italic">{parametrosDoAlgoritmo}</p>
+              ) : null}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* DuplicataResumo                                                      */
+/* ------------------------------------------------------------------ */
+
+function DuplicataResumo({ record }: Readonly<{ record: CercValidationRecord }>) {
+  return (
+    <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
+      <div className="flex flex-wrap gap-x-6 gap-y-2">
+        <div>
+          <p className="text-[11px] text-muted-foreground">Nº Duplicata</p>
+          <p className="text-sm font-mono font-semibold">{record.numeroDuplicata}</p>
+        </div>
+        <div>
+          <p className="text-[11px] text-muted-foreground">Valor</p>
+          <p className="text-sm font-semibold">{formatCurrency(record.valor)}</p>
+        </div>
+        <div>
+          <p className="text-[11px] text-muted-foreground">Vencimento</p>
+          <p className="text-sm font-medium">{formatDate(record.vencimento)}</p>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-x-6 gap-y-2 pt-2 border-t border-border/40">
+        <div>
+          <p className="text-[11px] text-muted-foreground">Cedente (CNPJ)</p>
+          <p className="text-xs font-mono">{formatDocument(record.cnpjCedente, 'cnpj')}</p>
+        </div>
+        <div>
+          <p className="text-[11px] text-muted-foreground">
+            Pagador ({record.tipoPagador.toUpperCase()})
+          </p>
+          <p className="text-xs font-mono">
+            {formatDocument(record.cnpjCpfPagador, record.tipoPagador)}
+          </p>
+        </div>
+        {record.referenciaExterna && (
+          <div>
+            <p className="text-[11px] text-muted-foreground">Referência</p>
+            <p className="text-xs">{record.referenciaExterna}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* InsightsBlock                                                        */
+/* ------------------------------------------------------------------ */
+
+function InsightsBlock({ resultados }: Readonly<{ resultados: CercResultado[] }>) {
+  const criticoCount = resultados.filter((r) => r.impacto === 'critico').length;
+  const alertaCount = resultados.filter((r) => r.impacto === 'alerta').length;
+
+  const verdict: 'reprovado' | 'atencao' | 'consistente' =
+    criticoCount > 0 ? 'reprovado' : alertaCount > 0 ? 'atencao' : 'consistente';
+
+  const verdictConfig = {
+    reprovado: {
+      label: 'Reprovado',
+      Icon: AlertTriangle,
+      wrapperClass: 'bg-red-50 border-red-200',
+      textClass: 'text-red-700',
+      badgeClass: 'bg-red-100 text-red-800 border-red-200',
+      itemBg: 'bg-red-50/60 border-red-100',
+      itemText: 'text-red-700',
+    },
+    atencao: {
+      label: 'Em Atenção',
+      Icon: AlertTriangle,
+      wrapperClass: 'bg-amber-50 border-amber-200',
+      textClass: 'text-amber-700',
+      badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
+      itemBg: 'bg-amber-50/60 border-amber-100',
+      itemText: 'text-amber-700',
+    },
+    consistente: {
+      label: 'Consistente',
+      Icon: ShieldCheck,
+      wrapperClass: 'bg-emerald-50 border-emerald-200',
+      textClass: 'text-emerald-700',
+      badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+      itemBg: 'bg-emerald-50/60 border-emerald-100',
+      itemText: 'text-emerald-700',
+    },
+  };
+
+  const vc = verdictConfig[verdict];
+  const { Icon: VerdictIcon } = vc;
+
+  const qualificacoes = useMemo(
+    () =>
+      resultados
+        .filter((r) => isQualificacaoAlgoritmo(r.algoritmoTipo))
+        .map((r) => ({
+          tipo: r.algoritmoTipo,
+          dimensao: r.algoritmoDimensao,
+          impacto: r.impacto,
+          info: parseJsonField(r.informacoesComplementares),
+        }))
+        .filter((q) => q.info !== null),
+    [resultados],
+  );
+
+  const dims: { value: CercResultadoDimensao; label: string }[] = [
+    { value: 'credito', label: 'Crédito' },
+    { value: 'fiscal', label: 'Fiscal' },
+    { value: 'logistica', label: 'Logística' },
+    { value: 'mercantil', label: 'Mercantil' },
+  ];
+
+  const breakdown = useMemo(
+    () =>
+      dims
+        .map((d) => ({
+          ...d,
+          critico: resultados.filter((r) => r.algoritmoDimensao === d.value && r.impacto === 'critico').length,
+          alerta: resultados.filter((r) => r.algoritmoDimensao === d.value && r.impacto === 'alerta').length,
+          total: resultados.filter((r) => r.algoritmoDimensao === d.value).length,
+        }))
+        .filter((d) => d.total > 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [resultados],
+  );
+
+  return (
+    <div className={`rounded-lg border p-4 space-y-3 ${vc.wrapperClass}`}>
+      {/* Verdict */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <VerdictIcon size={16} className={vc.textClass} />
+          <span className={`text-sm font-semibold ${vc.textClass}`}>
+            Parecer: {vc.label}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {criticoCount > 0 && (
+            <Badge className="bg-red-100 text-red-800 border-red-200 font-semibold text-xs">
+              {criticoCount} crítico{criticoCount > 1 ? 's' : ''}
+            </Badge>
+          )}
+          {alertaCount > 0 && (
+            <Badge className="bg-amber-100 text-amber-800 border-amber-200 font-semibold text-xs">
+              {alertaCount} alerta{alertaCount > 1 ? 's' : ''}
+            </Badge>
+          )}
+          {criticoCount === 0 && alertaCount === 0 && (
+            <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 font-semibold text-xs">
+              {resultados.length} verificados
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      {/* Qualificações em destaque */}
+      {qualificacoes.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+            Qualificações
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {qualificacoes.map((q, idx) => {
+              const severity = getConstatacaoSeverity(q.impacto);
+              const infoEntries = q.info ? Object.entries(q.info).slice(0, 4) : [];
+              return (
+                <div
+                  key={`${q.tipo}-${idx}`}
+                  className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs ${
+                    severity === 'danger'
+                      ? 'bg-red-50 border-red-200'
+                      : severity === 'warning'
+                        ? 'bg-amber-50 border-amber-200'
+                        : 'bg-emerald-50 border-emerald-200'
+                  }`}
+                >
+                  <span className="text-muted-foreground font-mono text-[11px]">
+                    {formatTipoAlgoritmo(q.tipo)}
+                  </span>
+                  {infoEntries.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {infoEntries.map(([key, val]) => (
+                        <span
+                          key={key}
+                          className={`font-bold ${
+                            severity === 'danger'
+                              ? 'text-red-700'
+                              : severity === 'warning'
+                                ? 'text-amber-700'
+                                : 'text-emerald-700'
+                          }`}
+                          title={key.replaceAll('_', ' ')}
+                        >
+                          {renderFieldValue(val)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Breakdown por dimensão */}
+      {breakdown.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {breakdown.map((d) => (
+            <div
+              key={d.value}
+              className="flex items-center gap-1.5 bg-white/60 rounded px-2 py-1 text-xs border border-white/80"
+            >
+              <span className="text-muted-foreground">{d.label}</span>
+              {d.critico > 0 && (
+                <span className="text-red-600 font-semibold">{d.critico}c</span>
+              )}
+              {d.alerta > 0 && (
+                <span className="text-amber-600 font-semibold">{d.alerta}a</span>
+              )}
+              {d.critico === 0 && d.alerta === 0 && (
+                <CheckCircle2 size={10} className="text-emerald-500" />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* ResultadosAnaliseSection                                             */
+/* ------------------------------------------------------------------ */
+
 function ResultadosAnaliseSection({ resultados }: Readonly<{ resultados: CercResultado[] }>) {
   const [dimensaoFilter, setDimensaoFilter] = useState<'all' | CercResultadoDimensao>('all');
 
@@ -144,9 +508,7 @@ function ResultadosAnaliseSection({ resultados }: Readonly<{ resultados: CercRes
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Nenhum resultado neste filtro.
-        </p>
+        <p className="text-sm text-muted-foreground">Nenhum resultado neste filtro.</p>
       ) : (
         <div className="space-y-4">
           {IMPACT_ORDER.map((impact) => {
@@ -160,9 +522,9 @@ function ResultadosAnaliseSection({ resultados }: Readonly<{ resultados: CercRes
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {IMPACT_LABELS[impact]} ({items.length})
                 </p>
-                <ul className="space-y-3">
+                <ul className="space-y-3 divide-y divide-border/40">
                   {items.map((item) => (
-                    <li key={item.id} className="space-y-1.5 text-sm">
+                    <li key={item.id} className="space-y-1.5 text-sm pt-3 first:pt-0">
                       <p className="font-medium leading-snug">{item.mensagem}</p>
                       <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                         <span className="font-mono">{formatTipoAlgoritmo(item.algoritmoTipo)}</span>
@@ -170,6 +532,11 @@ function ResultadosAnaliseSection({ resultados }: Readonly<{ resultados: CercRes
                         <span>{escopoLabel(item.algoritmoEscopo)}</span>
                         <span>{formatDatetime(item.dataConclusao)}</span>
                       </div>
+                      <InfoComplementar
+                        informacoesComplementares={item.informacoesComplementares}
+                        dadosUtilizados={item.dadosUtilizados}
+                        parametrosDoAlgoritmo={item.parametrosDoAlgoritmo}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -182,12 +549,9 @@ function ResultadosAnaliseSection({ resultados }: Readonly<{ resultados: CercRes
   );
 }
 
-function getConstatacaoSeverity(impacto: string): BadgeType {
-  if (impacto === 'critico') return 'danger';
-  if (impacto === 'alerta') return 'warning';
-  if (impacto === 'consistente') return 'success';
-  return 'neutral';
-}
+/* ------------------------------------------------------------------ */
+/* RawJsonToggle + ExpandableSection                                    */
+/* ------------------------------------------------------------------ */
 
 function RawJsonToggle({ data }: Readonly<{ data: unknown }>) {
   const [open, setOpen] = useState(false);
@@ -287,58 +651,113 @@ function InfoRow({ label, value }: Readonly<{ label: string; value: React.ReactN
   return (
     <div className="flex items-start justify-between gap-4 text-sm">
       <span className="text-muted-foreground shrink-0">{label}</span>
-      <span className="font-medium text-right">{value || '—'}</span>
+      <span className="font-medium text-right">{value ?? '—'}</span>
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* ConstatacoesList — quick summary (critico + alerta only)            */
+/* ------------------------------------------------------------------ */
 
 function ConstatacoesList({ constatacoes }: Readonly<{ constatacoes: CercConstatacao[] }>) {
-  const groupedByImpact = useMemo(() => {
-    const order: CercResultadoImpacto[] = ['critico', 'alerta', 'consistente', 'neutro'];
-    const map = new Map<CercResultadoImpacto, CercConstatacao[]>();
-    for (const impact of order) {
-      map.set(impact, constatacoes.filter((c) => c.impacto === impact));
-    }
-    return { map, order };
-  }, [constatacoes]);
+  const urgentItems = constatacoes.filter((c) => c.impacto === 'critico' || c.impacto === 'alerta');
 
-  if (constatacoes.length === 0)
+  if (urgentItems.length === 0) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <CheckCircle2 size={15} className="text-emerald-500" />
-        Nenhuma constatação encontrada.
+        <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+        {constatacoes.length === 0
+          ? 'Nenhuma constatação encontrada.'
+          : 'Sem constatações críticas ou de alerta.'}
       </div>
     );
+  }
+
+  const criticos = urgentItems.filter((c) => c.impacto === 'critico');
+  const alertas = urgentItems.filter((c) => c.impacto === 'alerta');
+
+  const renderItem = (c: CercConstatacao, idx: number) => {
+    const severity = getConstatacaoSeverity(c.impacto);
+    const infoObj = parseJsonField(c.informacoes_complementares);
+
+    return (
+      <li key={`${c.id}-${idx}`} className="space-y-1.5 pt-3 first:pt-0">
+        <div className="flex items-start gap-2 flex-wrap">
+          <StatusBadge
+            value={c.impacto === 'critico' ? 'Crítico' : 'Alerta'}
+            type={severity}
+          />
+          <p className="text-sm font-medium leading-snug flex-1">{c.mensagem}</p>
+        </div>
+
+        {infoObj !== null && Object.keys(infoObj).length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-1">
+            {Object.entries(infoObj).map(([key, val]) => (
+              <div
+                key={key}
+                className={`flex items-center gap-1 rounded-md border px-2 py-0.5 ${
+                  severity === 'danger' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
+                }`}
+              >
+                <span className="text-[10px] text-muted-foreground capitalize">
+                  {key.replaceAll('_', ' ')}:
+                </span>
+                <span
+                  className={`text-xs font-bold ${
+                    severity === 'danger' ? 'text-red-700' : 'text-amber-700'
+                  }`}
+                >
+                  {renderFieldValue(val)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+          <span className="font-mono">{formatTipoAlgoritmo(c.algoritmo.tipo)}</span>
+          <span>{dimensaoLabel(c.algoritmo.dimensao)}</span>
+          <span>{escopoLabel(c.algoritmo.escopo)}</span>
+          <span>{formatDatetime(c.data_conclusao)}</span>
+        </div>
+      </li>
+    );
+  };
 
   return (
-    <div className="space-y-4">
-      {groupedByImpact.order.map((impact) => {
-        const items = groupedByImpact.map.get(impact) ?? [];
-        if (items.length === 0) return null;
-        return (
-          <div key={impact} className={`rounded-lg border p-3 space-y-2 ${impactGroupBorderClass(impact)}`}>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              {IMPACT_LABELS[impact]} ({items.length})
-            </p>
-            <ul className="space-y-3">
-              {items.map((c, idx) => (
-                <li key={`${c.id}-${c.algoritmo.tipo}-${idx}`} className="space-y-1.5 text-sm">
-                  <p className="font-medium leading-snug">{c.mensagem}</p>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                    <span className="font-mono">{formatTipoAlgoritmo(c.algoritmo.tipo)}</span>
-                    <span>{dimensaoLabel(c.algoritmo.dimensao)}</span>
-                    <span>{escopoLabel(c.algoritmo.escopo)}</span>
-                    <span>{formatDatetime(c.data_conclusao)}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      })}
+    <div className="space-y-3">
+      <p className="text-[11px] text-muted-foreground">
+        Exibindo apenas constatações críticas e de alerta.
+        Ver todos em <span className="italic">Resultados de Análise</span>.
+      </p>
+      {criticos.length > 0 && (
+        <div className={`rounded-lg border p-3 ${impactGroupBorderClass('critico')}`}>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+            Crítico ({criticos.length})
+          </p>
+          <ul className="divide-y divide-red-200/50">
+            {criticos.map((c, idx) => renderItem(c, idx))}
+          </ul>
+        </div>
+      )}
+      {alertas.length > 0 && (
+        <div className={`rounded-lg border p-3 ${impactGroupBorderClass('alerta')}`}>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+            Alerta ({alertas.length})
+          </p>
+          <ul className="divide-y divide-amber-200/50">
+            {alertas.map((c, idx) => renderItem(c, idx))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* EventosList                                                          */
+/* ------------------------------------------------------------------ */
 
 function EventosList({ eventos }: Readonly<{ eventos: CercEvento[] }>) {
   if (eventos.length === 0)
@@ -368,79 +787,202 @@ function EventosList({ eventos }: Readonly<{ eventos: CercEvento[] }>) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* ParteItem                                                            */
+/* ------------------------------------------------------------------ */
+
 function ParteItem({ label, parte }: Readonly<{ label: string; parte?: CercParte | null }>) {
   if (!parte) return null;
   return (
-    <div className="space-y-0.5">
-      <p className="text-xs text-muted-foreground">{label}</p>
+    <div className="space-y-1.5">
+      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+        {label}
+      </p>
       {(parte.razaoSocial ?? parte.nomeFantasia) && (
-        <p className="text-sm font-medium">{parte.razaoSocial ?? parte.nomeFantasia}</p>
+        <p className="text-sm font-semibold leading-snug">
+          {parte.razaoSocial ?? parte.nomeFantasia}
+        </p>
       )}
-      <p className="text-sm font-mono text-muted-foreground">
+      <p className="text-xs font-mono text-muted-foreground">
         {parte.documentoTipo.toUpperCase()}{' '}
         {formatDocument(parte.documentoNumero, parte.documentoTipo)}
       </p>
-      {parte.municipio && parte.uf && (
-        <p className="text-xs text-muted-foreground">{parte.municipio} / {parte.uf}</p>
+      {parte.situacaoCadastralStatus && (
+        <StatusBadge
+          value={parte.situacaoCadastralStatus}
+          type={situacaoCadastralBadgeType(parte.situacaoCadastralStatus)}
+        />
+      )}
+      {(parte.municipio ?? parte.uf) && (
+        <p className="text-xs text-muted-foreground">
+          {[parte.municipio, parte.uf].filter(Boolean).join(' / ')}
+          {parte.cep ? ` · CEP ${parte.cep}` : ''}
+        </p>
+      )}
+      {parte.dataDeAbertura && (
+        <p className="text-xs text-muted-foreground">
+          Abertura: {formatDate(parte.dataDeAbertura)}
+        </p>
+      )}
+      {parte.capitalSocial && (
+        <p className="text-xs text-muted-foreground">
+          Capital Social: {formatCurrency(parte.capitalSocial)}
+        </p>
       )}
       {parte.atividadePrincipalDescricao && (
-        <p className="text-xs text-muted-foreground truncate">{parte.atividadePrincipalDescricao}</p>
+        <p className="text-xs text-muted-foreground truncate" title={parte.atividadePrincipalDescricao}>
+          {parte.atividadePrincipalDescricao}
+        </p>
       )}
     </div>
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* DocFiscalSection                                                     */
+/* ------------------------------------------------------------------ */
+
 function DocFiscalSection({ docFiscal }: Readonly<{ docFiscal: CercDocFiscal }>) {
+  const hasImpostos = !!(
+    docFiscal.valorIcms ?? docFiscal.valorPis ?? docFiscal.valorCofins ?? docFiscal.valorProdutos
+  );
+  const hasFatura = !!(
+    docFiscal.faturaNumero ?? docFiscal.faturaValorOriginal ?? docFiscal.faturaValorLiquido
+  );
+  const hasTransportador = !!(docFiscal.transportadorNome ?? docFiscal.transportadorCnpj);
+
   return (
-    <div className="space-y-2 text-sm">
-      <InfoRow label="Tipo" value={docFiscal.tipo.toUpperCase()} />
-      <InfoRow label="Número" value={docFiscal.numero} />
-      <InfoRow label="Série" value={docFiscal.serie} />
-      <InfoRow label="Situação" value={docFiscal.situacao} />
-      <InfoRow label="Emissão" value={formatDatetime(docFiscal.dataEmissao)} />
-      <InfoRow label="Valor Total" value={formatCurrency(docFiscal.valorTotal)} />
+    <div className="space-y-3 text-sm">
+      {/* Dados gerais */}
+      <div className="space-y-2">
+        <InfoRow
+          label="Tipo"
+          value={`${docFiscal.tipo.toUpperCase()}${docFiscal.modelo ? ` · Mod. ${docFiscal.modelo}` : ''}`}
+        />
+        <InfoRow label="Número" value={docFiscal.numero} />
+        <InfoRow label="Série" value={docFiscal.serie} />
+        <InfoRow label="Situação" value={docFiscal.situacao} />
+        <InfoRow label="Emissão" value={formatDatetime(docFiscal.dataEmissao)} />
+        <InfoRow label="Valor Total" value={formatCurrency(docFiscal.valorTotal)} />
+        {docFiscal.naturezaOperacao && (
+          <InfoRow label="Natureza Op." value={docFiscal.naturezaOperacao} />
+        )}
+        {docFiscal.modalidadeFrete && (
+          <InfoRow label="Frete" value={docFiscal.modalidadeFrete} />
+        )}
+      </div>
+
+      {/* Chave NF-e */}
       {docFiscal.chaveAcesso && (
         <div className="space-y-0.5">
-          <p className="text-muted-foreground text-xs">Chave NF-e</p>
-          <p className="font-mono text-[11px] break-all">{docFiscal.chaveAcesso}</p>
+          <p className="text-xs text-muted-foreground">Chave NF-e</p>
+          <p className="font-mono text-[11px] break-all bg-muted/40 rounded px-2 py-1.5">
+            {docFiscal.chaveAcesso}
+          </p>
         </div>
       )}
+
+      {/* Emitente */}
       {(docFiscal.emitenteNome ?? docFiscal.emitenteCnpj) && (
-        <div className="space-y-0.5 pt-1">
-          <p className="text-muted-foreground text-xs">Emitente</p>
-          {docFiscal.emitenteNome && <p className="text-xs font-medium">{docFiscal.emitenteNome}</p>}
+        <div className="space-y-0.5 pt-2 border-t">
+          <p className="text-xs font-semibold text-muted-foreground">Emitente</p>
+          {docFiscal.emitenteNome && (
+            <p className="text-xs font-medium">{docFiscal.emitenteNome}</p>
+          )}
           {docFiscal.emitenteCnpj && (
             <p className="font-mono text-[11px] text-muted-foreground">
               CNPJ {formatDocument(docFiscal.emitenteCnpj, 'cnpj')}
+              {docFiscal.emitenteUf ? ` · UF ${docFiscal.emitenteUf}` : ''}
             </p>
           )}
         </div>
       )}
+
+      {/* Destinatário */}
       {(docFiscal.destinatarioNome ?? docFiscal.destinatarioCnpj ?? docFiscal.destinatarioCpf) && (
-        <div className="space-y-0.5 pt-1">
-          <p className="text-muted-foreground text-xs">Destinatário</p>
-          {docFiscal.destinatarioNome && <p className="text-xs font-medium">{docFiscal.destinatarioNome}</p>}
+        <div className="space-y-0.5 pt-2 border-t">
+          <p className="text-xs font-semibold text-muted-foreground">Destinatário</p>
+          {docFiscal.destinatarioNome && (
+            <p className="text-xs font-medium">{docFiscal.destinatarioNome}</p>
+          )}
           {docFiscal.destinatarioCnpj && (
             <p className="font-mono text-[11px] text-muted-foreground">
               CNPJ {formatDocument(docFiscal.destinatarioCnpj, 'cnpj')}
+              {docFiscal.destinatarioUf ? ` · UF ${docFiscal.destinatarioUf}` : ''}
             </p>
           )}
           {!docFiscal.destinatarioCnpj && docFiscal.destinatarioCpf && (
             <p className="font-mono text-[11px] text-muted-foreground">
               CPF {formatDocument(docFiscal.destinatarioCpf, 'cpf')}
+              {docFiscal.destinatarioUf ? ` · UF ${docFiscal.destinatarioUf}` : ''}
             </p>
           )}
         </div>
       )}
-      {docFiscal.naturezaOperacao && (
-        <InfoRow label="Natureza Op." value={docFiscal.naturezaOperacao} />
+
+      {/* Fatura */}
+      {hasFatura && (
+        <div className="space-y-2 pt-2 border-t">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Fatura
+          </p>
+          {docFiscal.faturaNumero && (
+            <InfoRow label="Nº Fatura" value={docFiscal.faturaNumero} />
+          )}
+          {docFiscal.faturaValorOriginal && (
+            <InfoRow label="Valor Original" value={formatCurrency(docFiscal.faturaValorOriginal)} />
+          )}
+          {docFiscal.faturaValorLiquido && (
+            <InfoRow label="Valor Líquido" value={formatCurrency(docFiscal.faturaValorLiquido)} />
+          )}
+        </div>
       )}
-      {docFiscal.modalidadeFrete && (
-        <InfoRow label="Frete" value={docFiscal.modalidadeFrete} />
+
+      {/* Impostos */}
+      {hasImpostos && (
+        <div className="space-y-2 pt-2 border-t">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Impostos
+          </p>
+          {docFiscal.valorProdutos && (
+            <InfoRow label="Valor Produtos" value={formatCurrency(docFiscal.valorProdutos)} />
+          )}
+          {docFiscal.valorIcms && (
+            <InfoRow label="ICMS" value={formatCurrency(docFiscal.valorIcms)} />
+          )}
+          {docFiscal.valorPis && (
+            <InfoRow label="PIS" value={formatCurrency(docFiscal.valorPis)} />
+          )}
+          {docFiscal.valorCofins && (
+            <InfoRow label="COFINS" value={formatCurrency(docFiscal.valorCofins)} />
+          )}
+        </div>
+      )}
+
+      {/* Transportador */}
+      {hasTransportador && (
+        <div className="space-y-2 pt-2 border-t">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Transportador
+          </p>
+          {docFiscal.transportadorNome && (
+            <InfoRow label="Nome" value={docFiscal.transportadorNome} />
+          )}
+          {docFiscal.transportadorCnpj && (
+            <InfoRow
+              label="CNPJ"
+              value={formatDocument(docFiscal.transportadorCnpj, 'cnpj')}
+            />
+          )}
+        </div>
       )}
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* NfeDuplicatasSection                                                 */
+/* ------------------------------------------------------------------ */
 
 function NfeDuplicatasSection({ duplicatas }: Readonly<{ duplicatas: CercNfeDuplicata[] }>) {
   if (duplicatas.length === 0)
@@ -469,6 +1011,10 @@ function NfeDuplicatasSection({ duplicatas }: Readonly<{ duplicatas: CercNfeDupl
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* NfeProdutosSection                                                   */
+/* ------------------------------------------------------------------ */
+
 function NfeProdutosSection({ produtos }: Readonly<{ produtos: CercNfeProduto[] }>) {
   if (produtos.length === 0)
     return <p className="text-sm text-muted-foreground">Sem produtos.</p>;
@@ -488,8 +1034,20 @@ function NfeProdutosSection({ produtos }: Readonly<{ produtos: CercNfeProduto[] 
           {produtos.map((p) => (
             <tr key={p.id ?? p.num} className="border-b last:border-0">
               <td className="py-1.5 font-mono text-xs">{p.num}</td>
-              <td className="py-1.5 max-w-[200px] truncate" title={p.descricao}>{p.descricao}</td>
-              <td className="py-1.5 text-right">{p.quantidade ? Number(p.quantidade).toLocaleString('pt-BR') : '—'}</td>
+              <td className="py-1.5">
+                <p className="max-w-[200px] truncate" title={p.descricao}>{p.descricao}</p>
+                {(p.codigo ?? p.ncm ?? p.cfop ?? p.unidade) && (
+                  <div className="flex flex-wrap gap-x-2 text-[10px] text-muted-foreground mt-0.5">
+                    {p.codigo && <span>Cód: {p.codigo}</span>}
+                    {p.ncm && <span>NCM: {p.ncm}</span>}
+                    {p.cfop && <span>CFOP: {p.cfop}</span>}
+                    {p.unidade && <span>Un: {p.unidade}</span>}
+                  </div>
+                )}
+              </td>
+              <td className="py-1.5 text-right">
+                {p.quantidade ? Number(p.quantidade).toLocaleString('pt-BR') : '—'}
+              </td>
               <td className="py-1.5 text-right">{formatCurrency(p.valorUnitario)}</td>
               <td className="py-1.5 text-right">{formatCurrency(p.valorTotal)}</td>
             </tr>
@@ -499,6 +1057,10 @@ function NfeProdutosSection({ produtos }: Readonly<{ produtos: CercNfeProduto[] 
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* NfeEventosFiscaisSection                                             */
+/* ------------------------------------------------------------------ */
 
 function NfeEventosFiscaisSection({ eventos }: Readonly<{ eventos: CercNfeEventoFiscal[] }>) {
   if (eventos.length === 0)
@@ -530,6 +1092,10 @@ function NfeEventosFiscaisSection({ eventos }: Readonly<{ eventos: CercNfeEvento
     </ol>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* CercResultsPanel                                                     */
+/* ------------------------------------------------------------------ */
 
 interface CercResultsPanelProps {
   record: CercValidationRecord | null;
@@ -604,6 +1170,10 @@ export function CercResultsPanel({ record, resultados, isLoadingDetail, onRefres
     informacoes_complementares: r.informacoesComplementares ?? '',
     data_conclusao: r.dataConclusao,
   }));
+
+  const urgentConstatacaoCount = constatacoes.filter(
+    (c) => c.impacto === 'critico' || c.impacto === 'alerta',
+  ).length;
   const hasDangerConstatacao = constatacoes.some(
     (c) => getConstatacaoSeverity(c.impacto) === 'danger',
   );
@@ -635,7 +1205,10 @@ export function CercResultsPanel({ record, resultados, isLoadingDetail, onRefres
         </div>
       </div>
 
-      {/* IDs */}
+      {/* Resumo da Duplicata */}
+      <DuplicataResumo record={record} />
+
+      {/* IDs técnicos */}
       <div className="space-y-1">
         {record.id && (
           <div className="text-[11px] text-muted-foreground font-mono bg-muted/40 rounded px-2.5 py-1.5 truncate">
@@ -684,18 +1257,23 @@ export function CercResultsPanel({ record, resultados, isLoadingDetail, onRefres
       {/* Results */}
       {isDone && (
         <div className="space-y-3">
-          {/* Constatações (from cerc_validation_resultados, passed as prop) */}
+          {/* Insights Block */}
+          {resultados.length > 0 && (
+            <InsightsBlock resultados={resultados} />
+          )}
+
+          {/* Constatações — quick summary (critico + alerta only) */}
           <ExpandableSection
             icon={<AlertTriangle size={15} className="text-amber-500" />}
             title="Constatações"
             badge={
-              constatacoes.length > 0 ? (
+              urgentConstatacaoCount > 0 ? (
                 <StatusBadge
-                  value={String(constatacoes.length)}
+                  value={String(urgentConstatacaoCount)}
                   type={hasDangerConstatacao ? 'danger' : 'warning'}
                 />
               ) : (
-                <StatusBadge value="0" type="success" />
+                <StatusBadge value="Sem alertas" type="success" />
               )
             }
             defaultOpen
@@ -703,7 +1281,7 @@ export function CercResultsPanel({ record, resultados, isLoadingDetail, onRefres
             <ConstatacoesList constatacoes={constatacoes} />
           </ExpandableSection>
 
-          {/* Resultados de análise (cerc_validation_resultados) */}
+          {/* Resultados de Análise — todos os resultados com filtro por dimensão */}
           <ExpandableSection
             icon={<ListChecks size={15} className="text-indigo-500" />}
             title="Resultados de Análise"
@@ -718,7 +1296,8 @@ export function CercResultsPanel({ record, resultados, isLoadingDetail, onRefres
                 <StatusBadge value={String(resultados.length)} type="neutral" />
               </div>
             }
-            defaultOpen
+            defaultOpen={false}
+            rawData={resultados}
           >
             <ResultadosAnaliseSection resultados={resultados} />
           </ExpandableSection>
@@ -729,6 +1308,7 @@ export function CercResultsPanel({ record, resultados, isLoadingDetail, onRefres
               icon={<FileText size={15} className="text-green-600" />}
               title="Documento Fiscal"
               defaultOpen={false}
+              rawData={docFiscal}
             >
               <DocFiscalSection docFiscal={docFiscal} />
             </ExpandableSection>
@@ -764,8 +1344,9 @@ export function CercResultsPanel({ record, resultados, isLoadingDetail, onRefres
               icon={<Users size={15} className="text-violet-500" />}
               title="Partes"
               defaultOpen={false}
+              rawData={partes}
             >
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <ParteItem label="Cedente" parte={cedente} />
                 <ParteItem label="Originador" parte={originador} />
                 <ParteItem label="Pagador" parte={pagador} />
