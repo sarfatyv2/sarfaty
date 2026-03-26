@@ -29,6 +29,7 @@ import type {
   UpminerDossiersDataGoogleHit,
 } from './upminer.types';
 import { CardHeaderSmall } from './upminer.ui';
+import { usePagination, PaginationBar } from './upminer.pagination';
 
 // ─── CADE Processo ────────────────────────────────────────────────────────────
 
@@ -593,13 +594,18 @@ export function ReclameAquiSection({ data }: Readonly<{ data: UpminerDossiersDat
 
 // ─── CRSFN ────────────────────────────────────────────────────────────────────
 
+const CRSFN_PAGE_SIZE = 5;
+
 export function CrsfnSection({ acoes }: Readonly<{ acoes: UpminerDossiersDataCrsfnAcao[] }>) {
+  const pagination = usePagination({ total: acoes.length, pageSize: CRSFN_PAGE_SIZE });
+  const page = acoes.slice(pagination.startIndex, pagination.endIndex);
+
   return (
     <Card className="overflow-hidden">
       <CardHeaderSmall icon={<Gavel className="h-4 w-4" />} title={`CRSFN — Ações (${acoes.length})`} variant="destructive" />
       <div className="divide-y">
-        {acoes.map((acao, idx) => (
-          <div key={`crsfn-${acao.processo ?? ''}-${idx}`} className="px-4 py-3 space-y-1.5">
+        {page.map((acao, idx) => (
+          <div key={`crsfn-${acao.processo ?? ''}-${pagination.startIndex + idx}`} className="px-4 py-3 space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-semibold">{acao.processo ?? '—'}</span>
               {acao.resultado && (
@@ -626,19 +632,27 @@ export function CrsfnSection({ acoes }: Readonly<{ acoes: UpminerDossiersDataCrs
           </div>
         ))}
       </div>
+      <div className="px-4 pb-3">
+        <PaginationBar {...pagination} total={acoes.length} onPrev={pagination.prev} onNext={pagination.next} onGoTo={pagination.goTo} />
+      </div>
     </Card>
   );
 }
 
 // ─── TCU ──────────────────────────────────────────────────────────────────────
 
+const TCU_PAGE_SIZE = 5;
+
 export function TcuSection({ processos }: Readonly<{ processos: UpminerDossiersDataTcuProcesso[] }>) {
+  const pagination = usePagination({ total: processos.length, pageSize: TCU_PAGE_SIZE });
+  const page = processos.slice(pagination.startIndex, pagination.endIndex);
+
   return (
     <Card className="overflow-hidden">
       <CardHeaderSmall icon={<Gavel className="h-4 w-4" />} title={`TCU — Processos (${processos.length})`} variant="destructive" />
       <div className="divide-y">
-        {processos.map((proc, idx) => (
-          <div key={`tcu-${proc.numProcesso ?? ''}-${idx}`} className="px-4 py-3 space-y-1.5">
+        {page.map((proc, idx) => (
+          <div key={`tcu-${proc.numProcesso ?? ''}-${pagination.startIndex + idx}`} className="px-4 py-3 space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-semibold">{proc.numProcesso ?? '—'}</span>
               {proc.situacao && (
@@ -657,13 +671,21 @@ export function TcuSection({ processos }: Readonly<{ processos: UpminerDossiersD
           </div>
         ))}
       </div>
+      <div className="px-4 pb-3">
+        <PaginationBar {...pagination} total={processos.length} onPrev={pagination.prev} onNext={pagination.next} onGoTo={pagination.goTo} />
+      </div>
     </Card>
   );
 }
 
 // ─── Contratos Públicos ───────────────────────────────────────────────────────
 
+const CONTRATOS_PAGE_SIZE = 10;
+
 export function ContratosSection({ contratos }: Readonly<{ contratos: UpminerDossiersDataContrato[] }>) {
+  const pagination = usePagination({ total: contratos.length, pageSize: CONTRATOS_PAGE_SIZE });
+  const page = contratos.slice(pagination.startIndex, pagination.endIndex);
+
   return (
     <Card className="overflow-hidden">
       <CardHeaderSmall icon={<FileText className="h-4 w-4" />} title={`Contratos Públicos (${contratos.length})`} />
@@ -679,8 +701,8 @@ export function ContratosSection({ contratos }: Readonly<{ contratos: UpminerDos
             </tr>
           </thead>
           <tbody>
-            {contratos.map((c, idx) => (
-              <tr key={`contrato-${c.apiId ?? ''}-${idx}`} className="border-b border-muted/40 last:border-0 hover:bg-muted/20 transition-colors">
+            {page.map((c, idx) => (
+              <tr key={`contrato-${c.apiId ?? ''}-${pagination.startIndex + idx}`} className="border-b border-muted/40 last:border-0 hover:bg-muted/20 transition-colors">
                 <td className="px-3 py-2 whitespace-nowrap font-mono">{c.numeroContrato ?? '—'}</td>
                 <td className="px-3 py-2 max-w-[150px] truncate">{c.nomeOrgao ?? c.nomeOrgaoSuperior ?? '—'}</td>
                 <td className="px-3 py-2 max-w-[200px] truncate" title={c.objeto ?? undefined}>{c.objeto ?? '—'}</td>
@@ -695,19 +717,27 @@ export function ContratosSection({ contratos }: Readonly<{ contratos: UpminerDos
           </tbody>
         </table>
       </div>
+      <div className="px-4 pb-3">
+        <PaginationBar {...pagination} total={contratos.length} onPrev={pagination.prev} onNext={pagination.next} onGoTo={pagination.goTo} />
+      </div>
     </Card>
   );
 }
 
 // ─── Google Hits ──────────────────────────────────────────────────────────────
 
+const GOOGLE_PAGE_SIZE = 10;
+
 export function GoogleHitsSection({ hits }: Readonly<{ hits: UpminerDossiersDataGoogleHit[] }>) {
+  const pagination = usePagination({ total: hits.length, pageSize: GOOGLE_PAGE_SIZE });
+  const page = hits.slice(pagination.startIndex, pagination.endIndex);
+
   return (
     <Card className="overflow-hidden">
       <CardHeaderSmall icon={<Database className="h-4 w-4" />} title={`Google — Resultados (${hits.length})`} />
       <div className="divide-y px-4">
-        {hits.map((h, idx) => (
-          <div key={`google-${h.url ?? h.titulo ?? idx}`} className="py-3 space-y-1">
+        {page.map((h, idx) => (
+          <div key={`google-${h.url ?? h.titulo ?? pagination.startIndex + idx}`} className="py-3 space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               {h.pais && (
                 <Badge variant="outline" className="text-[10px] py-0 px-1.5">{h.pais}</Badge>
@@ -730,20 +760,31 @@ export function GoogleHitsSection({ hits }: Readonly<{ hits: UpminerDossiersData
           </div>
         ))}
       </div>
+      <div className="px-4 pb-3">
+        <PaginationBar {...pagination} total={hits.length} onPrev={pagination.prev} onNext={pagination.next} onGoTo={pagination.goTo} />
+      </div>
     </Card>
   );
 }
 
 // ─── MPF Section wrapper ──────────────────────────────────────────────────────
 
+const MPF_PAGE_SIZE = 5;
+
 export function MpfSection({ processos }: Readonly<{ processos: UpminerDossiersDataMpfProcesso[] }>) {
+  const pagination = usePagination({ total: processos.length, pageSize: MPF_PAGE_SIZE });
+  const page = processos.slice(pagination.startIndex, pagination.endIndex);
+
   return (
     <Card className="overflow-hidden">
       <CardHeaderSmall icon={<Scale className="h-4 w-4" />} title={`MPF — Processos (${processos.length})`} variant="warning" />
       <div className="px-4 py-3 space-y-2">
-        {processos.map((proc, idx) => (
-          <MpfProcessoItem key={`mpf-${proc.apiId ?? ''}-${idx}`} proc={proc} />
+        {page.map((proc, idx) => (
+          <MpfProcessoItem key={`mpf-${proc.apiId ?? ''}-${pagination.startIndex + idx}`} proc={proc} />
         ))}
+      </div>
+      <div className="px-4 pb-3">
+        <PaginationBar {...pagination} total={processos.length} onPrev={pagination.prev} onNext={pagination.next} onGoTo={pagination.goTo} />
       </div>
     </Card>
   );
@@ -751,14 +792,22 @@ export function MpfSection({ processos }: Readonly<{ processos: UpminerDossiersD
 
 // ─── DJEN Section wrapper ─────────────────────────────────────────────────────
 
+const DJEN_PAGE_SIZE = 5;
+
 export function DjenSection({ citacoes }: Readonly<{ citacoes: UpminerDossiersDataDjenCitacao[] }>) {
+  const pagination = usePagination({ total: citacoes.length, pageSize: DJEN_PAGE_SIZE });
+  const page = citacoes.slice(pagination.startIndex, pagination.endIndex);
+
   return (
     <Card className="overflow-hidden">
       <CardHeaderSmall icon={<Gavel className="h-4 w-4" />} title={`DJEN — Citações (${citacoes.length})`} variant="warning" />
       <div className="px-4 py-3 space-y-2">
-        {citacoes.map((cit, idx) => (
-          <DjenCitacaoItem key={`djen-${cit.apiId ?? ''}-${idx}`} cit={cit} />
+        {page.map((cit, idx) => (
+          <DjenCitacaoItem key={`djen-${cit.apiId ?? ''}-${pagination.startIndex + idx}`} cit={cit} />
         ))}
+      </div>
+      <div className="px-4 pb-3">
+        <PaginationBar {...pagination} total={citacoes.length} onPrev={pagination.prev} onNext={pagination.next} onGoTo={pagination.goTo} />
       </div>
     </Card>
   );

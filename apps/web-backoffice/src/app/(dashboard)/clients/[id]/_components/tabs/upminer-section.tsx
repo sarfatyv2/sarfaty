@@ -9,6 +9,9 @@ import {
   History,
   AlertTriangle,
   Database,
+  Building2,
+  Scale,
+  RefreshCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, ApiError } from '@/lib/api';
@@ -22,12 +25,143 @@ import type {
   UpminerParallelDataResponse,
   UpminerPdfRequestResponse,
   UpminerPdfDownloadResponse,
+  UpminerParallelStatus,
 } from './upminer.types';
 import { formatDate, POLL_INTERVAL_MS, MAX_SYNC_POLL_ATTEMPTS, PDF_POLL_INTERVAL_MS, MAX_PDF_POLL_ATTEMPTS } from './upminer.utils';
 import { StatusBadge, upminerStatusBadge } from './upminer.ui';
 import { EmpresaPjCard } from './upminer.empresa-pj-card';
 import { ProcessosJudiciaisCard } from './upminer.processos-card';
 import { DossierView } from './upminer.dossier-view';
+
+// ─── Parallel Data Section ────────────────────────────────────────────────────
+
+interface ParallelDataSectionProps {
+  parallelStatus: UpminerParallelStatus | null;
+  parallelData: UpminerParallelData | null;
+  parallelInFlight: boolean;
+  syncingParallel: boolean;
+  onSync: () => void;
+}
+
+function ParallelDataSection({
+  parallelStatus,
+  parallelData,
+  parallelInFlight,
+  syncingParallel,
+  onSync,
+}: Readonly<ParallelDataSectionProps>) {
+  const isLoading = parallelInFlight || syncingParallel;
+
+  return (
+    <div className="space-y-4">
+      {/* Section header */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Database className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-semibold">Fontes Adicionais</span>
+          <span className="text-xs text-muted-foreground">
+            — Empresa PJ Enriquecida e Processos Judiciais
+          </span>
+        </div>
+        {parallelStatus === 'PROCESSED' && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onSync}
+            disabled={isLoading}
+            className="h-7 text-xs text-muted-foreground"
+          >
+            {isLoading ? (
+              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+            ) : (
+              <RefreshCcw className="h-3 w-3 mr-1" />
+            )}
+            Atualizar
+          </Button>
+        )}
+      </div>
+
+      {/* Not yet requested */}
+      {parallelStatus === null && !isLoading && (
+        <div className="rounded-lg border border-dashed border-muted-foreground/30 p-6 text-center space-y-3">
+          <div className="flex justify-center">
+            <div className="rounded-full bg-muted/50 p-3">
+              <Database className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">Dados adicionais não consultados</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Busque dados enriquecidos de Empresa PJ e Processos Judiciais via upMiner.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={onSync} disabled={isLoading}>
+            <Database className="h-3.5 w-3.5 mr-1.5" />
+            Buscar Fontes Adicionais
+          </Button>
+        </div>
+      )}
+
+      {/* Loading */}
+      {isLoading && (
+        <div className="rounded-lg border bg-muted/20 p-6 flex flex-col items-center gap-3">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Carregando Empresa PJ e Processos Judiciais…</p>
+        </div>
+      )}
+
+      {/* Error */}
+      {parallelStatus === 'ERROR' && !isLoading && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3">
+          <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-destructive">Erro ao buscar fontes adicionais</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Tente novamente ou verifique se o cliente possui dados disponíveis no upMiner.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={onSync} className="shrink-0">
+            <RefreshCcw className="h-3.5 w-3.5 mr-1.5" />
+            Tentar novamente
+          </Button>
+        </div>
+      )}
+
+      {/* Loaded: Empresa PJ */}
+      {!isLoading && parallelData?.empresaPj && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 px-1">
+            <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Empresa PJ Enriquecida
+            </span>
+          </div>
+          <EmpresaPjCard empresa={parallelData.empresaPj} />
+        </div>
+      )}
+
+      {/* Loaded: Processos Judiciais */}
+      {!isLoading && parallelData?.processos && parallelData.processos.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 px-1">
+            <Scale className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Processos Judiciais
+            </span>
+          </div>
+          <ProcessosJudiciaisCard processos={parallelData.processos} />
+        </div>
+      )}
+
+      {/* Processed but no data */}
+      {!isLoading && parallelStatus === 'PROCESSED' && !parallelData?.empresaPj && (!parallelData?.processos || parallelData.processos.length === 0) && (
+        <p className="text-sm text-muted-foreground text-center py-3">
+          Nenhum dado adicional encontrado para este cliente.
+        </p>
+      )}
+    </div>
+  );
+}
 
 interface UpminerSectionProps {
   clientId: string;
@@ -314,10 +448,34 @@ export function UpminerSection({ clientId }: Readonly<UpminerSectionProps>) {
                 {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
                 Sincronizar
               </Button>
-              {!parallelData && (
-                <Button variant="outline" size="sm" onClick={handleSyncParallel} disabled={syncingParallel || syncing}>
-                  {syncingParallel ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Database className="h-3.5 w-3.5 mr-1.5" />}
-                  Empresa PJ / Processos
+              {!parallelData && result?.status === 'PROCESSED' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSyncParallel}
+                  disabled={syncingParallel || syncing || parallelInFlight}
+                >
+                  {(syncingParallel || parallelInFlight) ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                  ) : (
+                    <Database className="h-3.5 w-3.5 mr-1.5" />
+                  )}
+                  Buscar Fontes Adicionais
+                </Button>
+              )}
+              {parallelData && result?.status === 'PROCESSED' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSyncParallel}
+                  disabled={syncingParallel || syncing || parallelInFlight}
+                >
+                  {(syncingParallel || parallelInFlight) ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                  ) : (
+                    <RefreshCcw className="h-3.5 w-3.5 mr-1.5" />
+                  )}
+                  Atualizar Fontes Adicionais
                 </Button>
               )}
             </div>
@@ -328,13 +486,6 @@ export function UpminerSection({ clientId }: Readonly<UpminerSectionProps>) {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               Aguardando processamento no upMiner…
-            </div>
-          )}
-
-          {parallelInFlight && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Carregando dados adicionais (Empresa PJ / Processos Judiciais)…
             </div>
           )}
 
@@ -369,17 +520,16 @@ export function UpminerSection({ clientId }: Readonly<UpminerSectionProps>) {
               </div>
             ))}
 
-          {/* Parallel data: Empresa PJ Enriquecida */}
-          {parallelData?.empresaPj && (
+          {/* Fontes Adicionais — always visible when batch is processed */}
+          {result?.status === 'PROCESSED' && (
             <div className="border-t pt-6">
-              <EmpresaPjCard empresa={parallelData.empresaPj} />
-            </div>
-          )}
-
-          {/* Parallel data: Processos Judiciais */}
-          {parallelData?.processos && parallelData.processos.length > 0 && (
-            <div className="border-t pt-6">
-              <ProcessosJudiciaisCard processos={parallelData.processos} />
+              <ParallelDataSection
+                parallelStatus={result.parallelStatus}
+                parallelData={parallelData}
+                parallelInFlight={parallelInFlight}
+                syncingParallel={syncingParallel}
+                onSync={handleSyncParallel}
+              />
             </div>
           )}
 
