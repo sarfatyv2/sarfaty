@@ -534,20 +534,31 @@ function NfeEventosFiscaisSection({ eventos }: Readonly<{ eventos: CercNfeEvento
 interface CercResultsPanelProps {
   record: CercValidationRecord | null;
   resultados: CercResultado[];
+  isLoadingDetail?: boolean;
   onRefresh: (id: string) => void;
 }
 
-export function CercResultsPanel({ record, resultados, onRefresh }: Readonly<CercResultsPanelProps>) {
+export function CercResultsPanel({ record, resultados, isLoadingDetail, onRefresh }: Readonly<CercResultsPanelProps>) {
   const handleRefresh = useCallback(() => {
     if (record?.id) onRefresh(record.id);
   }, [record, onRefresh]);
+
+  if (isLoadingDetail) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-64 text-center gap-3">
+        <Loader2 size={28} className="animate-spin text-primary/40" />
+        <p className="text-sm text-muted-foreground">Carregando detalhes da validação...</p>
+      </div>
+    );
+  }
 
   if (!record) {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-64 text-center gap-3">
         <ShieldCheck size={40} className="text-muted-foreground/30" />
         <p className="text-sm text-muted-foreground">
-          Preencha o formulário e clique em <strong>Validar Duplicata</strong> para ver os resultados.
+          Preencha o formulário e clique em <strong>Validar Duplicata</strong> para ver os resultados,
+          ou selecione uma validação no histórico abaixo.
         </p>
       </div>
     );
@@ -575,7 +586,24 @@ export function CercResultsPanel({ record, resultados, onRefresh }: Readonly<Cer
   const resultadosCriticoCount = resultados.filter((r) => r.impacto === 'critico').length;
   const resultadosAlertaCount = resultados.filter((r) => r.impacto === 'alerta').length;
 
-  const constatacoes: CercConstatacao[] = [];
+  const constatacoes: CercConstatacao[] = resultados.map((r) => ({
+    id: r.id,
+    codigo: r.resultadoCercId,
+    algoritmo: {
+      id: r.id,
+      codigo: r.resultadoCercId,
+      nome: r.algoritmoTipo,
+      tipo: r.algoritmoTipo,
+      dimensao: r.algoritmoDimensao,
+      escopo: r.algoritmoEscopo,
+    },
+    mensagem: r.mensagem,
+    impacto: r.impacto,
+    dados_utilizados: r.dadosUtilizados ?? '',
+    parametros_do_algoritmo: r.parametrosDoAlgoritmo ?? '',
+    informacoes_complementares: r.informacoesComplementares ?? '',
+    data_conclusao: r.dataConclusao,
+  }));
   const hasDangerConstatacao = constatacoes.some(
     (c) => getConstatacaoSeverity(c.impacto) === 'danger',
   );

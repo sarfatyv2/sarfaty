@@ -137,6 +137,24 @@ export interface CercValidationRecord {
   nfeEventosFiscais: CercNfeEventoFiscal[];
 }
 
+export interface CercValidationListItem {
+  id: string;
+  loteId: string | null;
+  validacaoId: string | null;
+  numeroDuplicata: string;
+  valor: number;
+  vencimento: string;
+  cnpjCedente: string;
+  cnpjCpfPagador: string;
+  tipoPagador: 'cpf' | 'cnpj';
+  referenciaExterna: string | null;
+  status: CercValidationStatus;
+  statusProcessamento: string | null;
+  errorMessage: string | null;
+  requestedAt: string;
+  processedAt: string | null;
+}
+
 export type CercResultadoImpacto = 'neutro' | 'alerta' | 'consistente' | 'critico';
 export type CercResultadoDimensao = 'credito' | 'fiscal' | 'logistica' | 'mercantil';
 
