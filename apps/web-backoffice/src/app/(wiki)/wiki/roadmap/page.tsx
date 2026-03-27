@@ -948,7 +948,6 @@ function DeliveryStats({ items }: { readonly items: DeliveryItem[] }) {
 }
 
 interface PhaseBlockProps {
-  readonly phase: number;
   readonly title: string;
   readonly subtitle: string;
   readonly dateRange: string;
@@ -968,7 +967,7 @@ function PhaseBlock({
   accentBorder,
   accentText,
   items,
-}: Omit<PhaseBlockProps, 'phase'>) {
+}: PhaseBlockProps) {
   return (
     <div className="relative">
       {/* Colored left accent strip */}
@@ -1055,7 +1054,6 @@ export default function RoadmapPage() {
         />
 
         <PhaseBlock
-          phase={1}
           title="Entrega 1 — Fundação Operacional"
           subtitle="Cadastro de clientes, integrações de bureaus e compliance, extração inteligente de documentos (OCR/IA), módulo de RH completo, autenticação JWT e estruturação do banco de dados."
           dateRange="Jan — Mar 2026"
@@ -1067,7 +1065,6 @@ export default function RoadmapPage() {
         />
 
         <PhaseBlock
-          phase={2}
           title="Entrega 2 — Expansão Comercial e Crédito"
           subtitle="Módulo de crédito, análise automatizada de sacados, integração CERC, sistema de visitas, enriquecimento do RH e integração Netfactor."
           dateRange="Abr — Mai 2026"
@@ -1079,7 +1076,6 @@ export default function RoadmapPage() {
         />
 
         <PhaseBlock
-          phase={3}
           title="Entrega 3 — Comercial, Governança e IA"
           subtitle="Comunicação interna, comitês de crédito, pipeline e metas, finalização e dashboards comerciais, acompanhamento de visitas com IA, LMS e treinamento."
           dateRange="Mai — Jun 2026"
@@ -1106,7 +1102,6 @@ export default function RoadmapPage() {
         />
 
         <PhaseBlock
-          phase={4}
           title="Entrega 4 — Produtos Estruturados e Formalização"
           subtitle="Automação de duplicatas via CNAB, módulo jurídico, nota comercial, gravame e complementação documental pós-comitê."
           dateRange="Jul 2026"
@@ -1118,7 +1113,6 @@ export default function RoadmapPage() {
         />
 
         <PhaseBlock
-          phase={5}
           title="Entrega 5 — Análise e Formalização de Garantias"
           subtitle="Cadastro de garantias, avaliação técnica por tipo de ativo (imóvel, veículo, recebíveis) e consulta automatizada de ônus e restrições em cartório."
           dateRange="Set 2026"
@@ -1130,7 +1124,6 @@ export default function RoadmapPage() {
         />
 
         <PhaseBlock
-          phase={6}
           title="Entrega 6 — Contratação e Liberação do Crédito"
           subtitle="Geração e assinatura digital de contratos, workflow de liberação de desembolso com integração bancária e painel de acompanhamento pós-liberação."
           dateRange="Out — Nov 2026"
@@ -1157,7 +1150,6 @@ export default function RoadmapPage() {
         />
 
         <PhaseBlock
-          phase={7}
           title="Entrega 7 — Cobrança, Financeiro e Contabilidade"
           subtitle="Módulo completo de cobrança com régua automatizada, gestão financeira com fluxo de caixa e conciliação bancária, e contabilidade integrada com ERP/SPED."
           dateRange="Set 2026 — Mar 2027"
