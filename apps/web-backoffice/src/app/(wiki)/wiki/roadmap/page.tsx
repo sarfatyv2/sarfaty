@@ -237,6 +237,14 @@ const delivery3: DeliveryItem[] = [
     deadline: '27 Jun 2026',
   },
   {
+    label: 'Análise Documental com IA',
+    description:
+      'Agente que lê documentos enviados pelo cliente (PDFs, balanços, contratos sociais) e valida se o conteúdo bate com o esperado — CNPJ, razão social, datas de validade, assinaturas — reduzindo erros de checklist para zero.',
+    status: 'planned',
+    icon: ScanSearch,
+    deadline: '27 Jun 2026',
+  },
+  {
     label: 'Treinamento e Implantação',
     description:
       'Programa de treinamento por role, documentação de uso e rollout faseado para todas as áreas da empresa.',
@@ -357,6 +365,14 @@ const delivery6: DeliveryItem[] = [
     deadline: '09 Out 2026',
   },
   {
+    label: 'Agente IA — Preenchimento de Minutas',
+    description:
+      'Agente que recebe os dados da operação aprovada e preenche automaticamente a minuta contratual — partes, valores, prazos, garantias e cláusulas específicas por produto — entregando o documento pronto para revisão jurídica.',
+    status: 'planned',
+    icon: Bot,
+    deadline: '23 Out 2026',
+  },
+  {
     label: 'Assinatura Digital de Contratos',
     description:
       'Fluxo de assinatura eletrônica com gestão de signatários, ordem de assinatura, lembretes automáticos e rastreabilidade completa do processo.',
@@ -383,6 +399,14 @@ const delivery6: DeliveryItem[] = [
 ];
 
 const delivery7: DeliveryItem[] = [
+  {
+    label: 'Agente IA — Monitoramento Contínuo de Carteira',
+    description:
+      'Agente que roda diariamente e detecta sinais de deterioração antes da inadimplência: atraso emergindo, mudança de rating em bureau, ações judiciais novas, concentração de vencimentos — gerando alertas proativos com prioridade para o time de cobrança.',
+    status: 'planned',
+    icon: Eye,
+    deadline: '11 Set 2026',
+  },
   {
     label: 'Régua de Cobrança Automatizada',
     description:
@@ -430,6 +454,14 @@ const delivery7: DeliveryItem[] = [
     status: 'planned',
     icon: FileText,
     deadline: '11 Dez 2026',
+  },
+  {
+    label: 'Agente IA — Explicação de Divergências',
+    description:
+      'Quando o matching automático não consegue casar um lançamento, o agente analisa o contexto (descrição, valor, data, contraparte) e gera uma hipótese explicável — eliminando a fila de "pendentes sem justificativa" e reduzindo o tempo de fechamento contábil.',
+    status: 'planned',
+    icon: ArrowRightLeft,
+    deadline: '08 Jan 2027',
   },
   {
     label: 'Lançamentos Contábeis Automatizados',
@@ -583,82 +615,62 @@ const GANTT_MONTHS = ['Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'N
 const GANTT_TOTAL = 13;
 
 interface PartBannerProps {
-  number: string;
-  title: string;
-  subtitle: string;
-  period: string;
-  phaseSteps: Array<{ label: string }>;
-  startPhase: number;
-  variant: 'warm' | 'dark' | 'rose';
+  readonly number: string;
+  readonly title: string;
+  readonly subtitle: string;
+  readonly period: string;
+  readonly phaseSteps: ReadonlyArray<{ readonly label: string }>;
+  readonly startPhase: number;
+  readonly variant: 'warm' | 'dark' | 'rose';
 }
 
+const PART_BANNER_CONFIGS = {
+  warm: {
+    bg: 'bg-gradient-to-br from-[hsl(44,52%,88%)] to-[hsl(46,45%,93%)]',
+    gridColor: 'hsl(40,60%,50%)',
+    watermarkColor: 'text-[hsl(44,35%,76%)]',
+    dotColor: 'bg-[hsl(38,70%,45%)]',
+    labelColor: 'text-[hsl(35,25%,45%)]',
+    periodStyle: 'bg-[hsl(45,50%,97%)] border-[hsl(45,25%,82%)] text-[hsl(35,25%,45%)]',
+    titleColor: 'text-[hsl(35,35%,15%)]',
+    subtitleColor: 'text-[hsl(35,15%,42%)]',
+    stepCardStyle: 'bg-white/60 border-[hsl(45,25%,82%)]',
+    stepAccentColor: 'text-[hsl(38,70%,42%)]',
+    stepLabelColor: 'text-[hsl(35,30%,20%)]',
+    arrowColor: 'text-[hsl(35,20%,58%)]',
+  },
+  dark: {
+    bg: 'bg-gradient-to-br from-[hsl(215,40%,12%)] to-[hsl(222,35%,18%)]',
+    gridColor: 'white',
+    watermarkColor: 'text-white/[0.04]',
+    dotColor: 'bg-teal-400',
+    labelColor: 'text-slate-400',
+    periodStyle: 'bg-white/[0.07] border-white/[0.1] text-slate-300',
+    titleColor: 'text-white',
+    subtitleColor: 'text-slate-400',
+    stepCardStyle: 'bg-white/[0.07] border-white/[0.09]',
+    stepAccentColor: 'text-teal-400',
+    stepLabelColor: 'text-slate-200',
+    arrowColor: 'text-slate-600',
+  },
+  rose: {
+    bg: 'bg-gradient-to-br from-[hsl(340,55%,90%)] to-[hsl(345,40%,95%)]',
+    gridColor: 'hsl(340,60%,60%)',
+    watermarkColor: 'text-[hsl(340,30%,80%)]',
+    dotColor: 'bg-[hsl(340,65%,50%)]',
+    labelColor: 'text-[hsl(340,25%,45%)]',
+    periodStyle: 'bg-[hsl(340,50%,97%)] border-[hsl(340,25%,82%)] text-[hsl(340,25%,45%)]',
+    titleColor: 'text-[hsl(340,35%,15%)]',
+    subtitleColor: 'text-[hsl(340,15%,42%)]',
+    stepCardStyle: 'bg-white/60 border-[hsl(340,25%,82%)]',
+    stepAccentColor: 'text-[hsl(340,65%,45%)]',
+    stepLabelColor: 'text-[hsl(340,30%,20%)]',
+    arrowColor: 'text-[hsl(340,20%,65%)]',
+  },
+} as const;
+
 function PartBanner({ number, title, subtitle, period, phaseSteps, startPhase, variant }: PartBannerProps) {
-  const isWarm = variant === 'warm';
-  const isRose = variant === 'rose';
-
-  const bg = isWarm
-    ? 'bg-gradient-to-br from-[hsl(44,52%,88%)] to-[hsl(46,45%,93%)]'
-    : isRose
-      ? 'bg-gradient-to-br from-[hsl(340,55%,90%)] to-[hsl(345,40%,95%)]'
-      : 'bg-gradient-to-br from-[hsl(215,40%,12%)] to-[hsl(222,35%,18%)]';
-
-  const gridColor = isWarm ? 'hsl(40,60%,50%)' : isRose ? 'hsl(340,60%,60%)' : 'white';
-
-  const watermarkColor = isWarm
-    ? 'text-[hsl(44,35%,76%)]'
-    : isRose
-      ? 'text-[hsl(340,30%,80%)]'
-      : 'text-white/[0.04]';
-
-  const dotColor = isWarm ? 'bg-[hsl(38,70%,45%)]' : isRose ? 'bg-[hsl(340,65%,50%)]' : 'bg-teal-400';
-
-  const labelColor = isWarm
-    ? 'text-[hsl(35,25%,45%)]'
-    : isRose
-      ? 'text-[hsl(340,25%,45%)]'
-      : 'text-slate-400';
-
-  const periodStyle = isWarm
-    ? 'bg-[hsl(45,50%,97%)] border-[hsl(45,25%,82%)] text-[hsl(35,25%,45%)]'
-    : isRose
-      ? 'bg-[hsl(340,50%,97%)] border-[hsl(340,25%,82%)] text-[hsl(340,25%,45%)]'
-      : 'bg-white/[0.07] border-white/[0.1] text-slate-300';
-
-  const titleColor = isWarm
-    ? 'text-[hsl(35,35%,15%)]'
-    : isRose
-      ? 'text-[hsl(340,35%,15%)]'
-      : 'text-white';
-
-  const subtitleColor = isWarm
-    ? 'text-[hsl(35,15%,42%)]'
-    : isRose
-      ? 'text-[hsl(340,15%,42%)]'
-      : 'text-slate-400';
-
-  const stepCardStyle = isWarm
-    ? 'bg-white/60 border-[hsl(45,25%,82%)]'
-    : isRose
-      ? 'bg-white/60 border-[hsl(340,25%,82%)]'
-      : 'bg-white/[0.07] border-white/[0.09]';
-
-  const stepAccentColor = isWarm
-    ? 'text-[hsl(38,70%,42%)]'
-    : isRose
-      ? 'text-[hsl(340,65%,45%)]'
-      : 'text-teal-400';
-
-  const stepLabelColor = isWarm
-    ? 'text-[hsl(35,30%,20%)]'
-    : isRose
-      ? 'text-[hsl(340,30%,20%)]'
-      : 'text-slate-200';
-
-  const arrowColor = isWarm
-    ? 'text-[hsl(35,20%,58%)]'
-    : isRose
-      ? 'text-[hsl(340,20%,65%)]'
-      : 'text-slate-600';
+  const cfg = PART_BANNER_CONFIGS[variant];
 
   return (
     <motion.div
@@ -666,20 +678,20 @@ function PartBanner({ number, title, subtitle, period, phaseSteps, startPhase, v
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.55 }}
-      className={`relative overflow-hidden rounded-2xl ${bg} p-8`}
+      className={`relative overflow-hidden rounded-2xl ${cfg.bg} p-8`}
     >
       {/* Grid pattern */}
       <div
         className="absolute inset-0 opacity-[0.045]"
         style={{
-          backgroundImage: `repeating-linear-gradient(90deg, ${gridColor} 0px, ${gridColor} 1px, transparent 1px, transparent 50px)`,
+          backgroundImage: `repeating-linear-gradient(90deg, ${cfg.gridColor} 0px, ${cfg.gridColor} 1px, transparent 1px, transparent 50px)`,
           backgroundSize: '50px 50px',
         }}
       />
 
       {/* Large watermark number */}
       <div
-        className={`absolute right-6 -bottom-4 text-[10rem] font-black leading-none select-none pointer-events-none ${watermarkColor}`}
+        className={`absolute right-6 -bottom-4 text-[10rem] font-black leading-none select-none pointer-events-none ${cfg.watermarkColor}`}
       >
         {number}
       </div>
@@ -688,23 +700,23 @@ function PartBanner({ number, title, subtitle, period, phaseSteps, startPhase, v
         {/* Top row */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
-            <span className={`text-[10px] font-black uppercase tracking-[0.18em] ${labelColor}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dotColor}`} />
+            <span className={`text-[10px] font-black uppercase tracking-[0.18em] ${cfg.labelColor}`}>
               Parte {number}
             </span>
           </div>
-          <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${periodStyle}`}>
+          <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${cfg.periodStyle}`}>
             {period}
           </span>
         </div>
 
         {/* Title */}
-        <h2 className={`text-2xl font-bold mb-2 leading-snug ${titleColor}`}>
+        <h2 className={`text-2xl font-bold mb-2 leading-snug ${cfg.titleColor}`}>
           {title}
         </h2>
 
         {/* Subtitle */}
-        <p className={`text-sm leading-relaxed mb-7 max-w-2xl ${subtitleColor}`}>
+        <p className={`text-sm leading-relaxed mb-7 max-w-2xl ${cfg.subtitleColor}`}>
           {subtitle}
         </p>
 
@@ -712,21 +724,21 @@ function PartBanner({ number, title, subtitle, period, phaseSteps, startPhase, v
         <div className="flex items-center gap-2 flex-wrap">
           {phaseSteps.flatMap((step, i) => [
             <div
-              key={`step-${i}`}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border ${stepCardStyle}`}
+              key={step.label}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border ${cfg.stepCardStyle}`}
             >
-              <span className={`text-[9px] font-black uppercase tracking-widest ${stepAccentColor}`}>
+              <span className={`text-[9px] font-black uppercase tracking-widest ${cfg.stepAccentColor}`}>
                 F{startPhase + i}
               </span>
-              <span className={`text-[11px] font-semibold ${stepLabelColor}`}>
+              <span className={`text-[11px] font-semibold ${cfg.stepLabelColor}`}>
                 {step.label}
               </span>
             </div>,
             i < phaseSteps.length - 1 ? (
               <ArrowRight
-                key={`arrow-${i}`}
+                key={`arrow-${step.label}`}
                 size={11}
-                className={arrowColor}
+                className={cfg.arrowColor}
               />
             ) : null,
           ])}
@@ -782,9 +794,9 @@ function RoadmapTimeline() {
           <div className="relative space-y-2">
             {/* Vertical month dividers */}
             <div className="absolute inset-0 pointer-events-none" style={{ display: 'grid', gridTemplateColumns: `repeat(${GANTT_TOTAL}, 1fr)` }}>
-              {GANTT_MONTHS.map((_, i) => (
+              {GANTT_MONTHS.map((month, i) => (
                 <div
-                  key={i}
+                  key={month}
                   className={`h-full ${i > 0 ? 'border-l border-dashed border-slate-100' : ''}`}
                 />
               ))}
@@ -849,7 +861,7 @@ function RoadmapTimeline() {
   );
 }
 
-function DeliveryCard({ item, index }: { item: DeliveryItem; index: number }) {
+function DeliveryCard({ item, index }: { readonly item: DeliveryItem; readonly index: number }) {
   const config = statusConfig[item.status];
   const StatusIcon = config.icon;
   const ItemIcon = item.icon;
@@ -893,7 +905,7 @@ function DeliveryCard({ item, index }: { item: DeliveryItem; index: number }) {
   );
 }
 
-function DeliveryStats({ items }: { items: DeliveryItem[] }) {
+function DeliveryStats({ items }: { readonly items: DeliveryItem[] }) {
   const done = items.filter((i) => i.status === 'done').length;
   const inProgress = items.filter((i) => i.status === 'in_progress').length;
   const planned = items.filter((i) => i.status === 'planned').length;
@@ -915,7 +927,7 @@ function DeliveryStats({ items }: { items: DeliveryItem[] }) {
         {done > 0 && (
           <span className="flex items-center gap-1 text-[10px] text-emerald-700">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            {done} concluído{done !== 1 ? 's' : ''}
+            {done} concluído{done > 1 ? 's' : ''}
           </span>
         )}
         {inProgress > 0 && (
@@ -927,7 +939,7 @@ function DeliveryStats({ items }: { items: DeliveryItem[] }) {
         {planned > 0 && (
           <span className="flex items-center gap-1 text-[10px] text-slate-500">
             <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-            {planned} planejado{planned !== 1 ? 's' : ''}
+            {planned} planejado{planned > 1 ? 's' : ''}
           </span>
         )}
       </div>
@@ -936,15 +948,15 @@ function DeliveryStats({ items }: { items: DeliveryItem[] }) {
 }
 
 interface PhaseBlockProps {
-  phase: number;
-  title: string;
-  subtitle: string;
-  dateRange: string;
-  accentColor: string;
-  accentBg: string;
-  accentBorder: string;
-  accentText: string;
-  items: DeliveryItem[];
+  readonly phase: number;
+  readonly title: string;
+  readonly subtitle: string;
+  readonly dateRange: string;
+  readonly accentColor: string;
+  readonly accentBg: string;
+  readonly accentBorder: string;
+  readonly accentText: string;
+  readonly items: DeliveryItem[];
 }
 
 function PhaseBlock({
@@ -956,7 +968,7 @@ function PhaseBlock({
   accentBorder,
   accentText,
   items,
-}: PhaseBlockProps) {
+}: Omit<PhaseBlockProps, 'phase'>) {
   return (
     <div className="relative">
       {/* Colored left accent strip */}
