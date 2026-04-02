@@ -5,7 +5,7 @@ vi.mock('../../../../config/env', () => ({
   env: {
     FLASH_API_KEY: 'test-flash-key',
     FLASH_BASE_URL: 'https://api.flashapp.services',
-    FLASH_COMPANY_ID: 'company-flash-1',
+    FLASH_COMPANY_ID_MAP: { Sarfaty: 'company-flash-1' },
   },
 }));
 

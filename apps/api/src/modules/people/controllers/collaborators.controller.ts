@@ -1,4 +1,14 @@
-import { Controller, Get, Patch, Param, Query, Body, UseGuards, InternalServerErrorException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Param,
+  Query,
+  Body,
+  UseGuards,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -14,6 +24,8 @@ import { updateCollaboratorAdminSchema, type UpdateCollaboratorAdminDto } from '
 import { ListCollaboratorsUseCase } from '../use-cases/list-collaborators.use-case';
 import { GetCollaboratorUseCase } from '../use-cases/get-collaborator.use-case';
 import { UpdateCollaboratorUseCase } from '../use-cases/update-collaborator.use-case';
+import { RegisterCollaboratorToFlashUseCase } from '../use-cases/register-collaborator-to-flash.use-case';
+import { SyncFlashCollaboratorsUseCase } from '../use-cases/sync-flash-collaborators.use-case';
 import type { Role } from '@nexus/types';
 
 @ApiTags('People - Collaborators')
@@ -26,6 +38,8 @@ export class CollaboratorsController {
     private readonly listCollaboratorsUseCase: ListCollaboratorsUseCase,
     private readonly getCollaboratorUseCase: GetCollaboratorUseCase,
     private readonly updateCollaboratorUseCase: UpdateCollaboratorUseCase,
+    private readonly registerCollaboratorToFlashUseCase: RegisterCollaboratorToFlashUseCase,
+    private readonly syncFlashCollaboratorsUseCase: SyncFlashCollaboratorsUseCase,
   ) {}
 
   @Get()
@@ -69,6 +83,14 @@ export class CollaboratorsController {
     }
   }
 
+  @Post('flash-sync')
+  @Roles('hr_admin', 'admin')
+  @Auditable({ action: 'collaborator.flash_sync', entity: 'collaborator' })
+  async syncFlash() {
+    const result = await this.syncFlashCollaboratorsUseCase.execute();
+    return { data: { linked: result.linked } };
+  }
+
   @Get(':id')
   @Roles('hr', 'dp', 'hr_admin', 'admin', 'people_manager')
   async findOne(
@@ -83,6 +105,20 @@ export class CollaboratorsController {
       : { ...collaborator.toPlainObject(), role: profileRole };
 
     return { data };
+  }
+
+  @Post(':id/flash-register')
+  @Roles('hr', 'dp', 'hr_admin', 'admin')
+  @Auditable({ action: 'collaborator.flash_register', entity: 'collaborator', idParam: 'id' })
+  async registerFlash(@Param('id') id: string) {
+    const collaborator = await this.registerCollaboratorToFlashUseCase.execute(id);
+    const { role: profileRole } = await this.getCollaboratorUseCase.execute(id);
+    return {
+      data: {
+        ...collaborator.toPlainObject(),
+        role: profileRole,
+      },
+    };
   }
 
   @Patch(':id')

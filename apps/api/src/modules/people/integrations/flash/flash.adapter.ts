@@ -29,10 +29,27 @@ export class FlashAdapter {
     return Boolean(env.FLASH_API_KEY?.trim());
   }
 
+  /**
+   * Resolves the Flash companyId for a given collaborator `company` field value
+   * using the FLASH_COMPANY_ID_MAP configuration.
+   */
+  resolveCompanyId(company: string): string | undefined {
+    return env.FLASH_COMPANY_ID_MAP[company] ?? undefined;
+  }
+
   async listEmployees(params: FlashListEmployeesParams): Promise<FlashListEmployeesResponse> {
     if (!this.isConfigured()) {
       this.logger.warn('Flash listEmployees skipped: FLASH_API_KEY not set');
-      return { records: [], metadata: { total: 0, page: params.page, limit: params.limit ?? 0 } };
+      return {
+        records: [],
+        metadata: {
+          totalCount: 0,
+          totalPages: 0,
+          currentPage: params.page,
+          nextPage: null,
+          prevPage: null,
+        },
+      };
     }
 
     const searchParams = new URLSearchParams();
@@ -134,8 +151,8 @@ export class FlashAdapter {
       managerId: managerFlashEmployeeId ?? undefined,
     };
 
-    if (env.FLASH_COMPANY_ID?.trim()) {
-      body.companyId = env.FLASH_COMPANY_ID.trim();
+    if (env.FLASH_COMPANY_ID_MAP[collaborator.company]) {
+      body.companyId = env.FLASH_COMPANY_ID_MAP[collaborator.company];
     }
 
     if (collaborator.registrationDate) {

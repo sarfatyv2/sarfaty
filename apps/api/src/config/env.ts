@@ -31,7 +31,26 @@ const envSchema = z.object({
   SENDGRID_INVOICE_TEMPLATE_ID: z.string().optional().default(''),
   FLASH_API_KEY: z.string().optional().default(''),
   FLASH_BASE_URL: z.string().url().optional().default('https://api.flashapp.services'),
-  FLASH_COMPANY_ID: z.string().optional().default(''),
+  /**
+   * JSON object mapping the collaborator `company` field value to the
+   * corresponding Flash companyId.
+   * Example: '{"Sarfaty":"vZyGN2fYDShhOO","Sarfaty Consultoria":"LDclOE35aJrmHw"}'
+   */
+  FLASH_COMPANY_ID_MAP: z
+    .string()
+    .optional()
+    .default('{}')
+    .transform((str) => {
+      try {
+        const parsed = JSON.parse(str) as unknown;
+        if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+          return parsed as Record<string, string>;
+        }
+        return {} as Record<string, string>;
+      } catch {
+        return {} as Record<string, string>;
+      }
+    }),
 });
 
 export type Env = z.infer<typeof envSchema>;

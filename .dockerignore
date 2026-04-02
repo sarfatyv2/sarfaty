@@ -1,0 +1,11 @@
+**/node_modules
+**/.next
+**/dist
+**/.git
+**/.turbo
+**/coverage
+**/.env.local
+**/.env*.local
+**/*.log
+**/.DS_Store
+**/pnpm-debug.log

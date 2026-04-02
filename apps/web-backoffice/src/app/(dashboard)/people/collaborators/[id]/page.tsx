@@ -7,6 +7,7 @@ import { ACCESS_TOKEN_COOKIE } from '@/lib/auth/constants';
 import { Button, Tabs, TabsList, TabsTrigger, TabsContent } from '@nexus/ui';
 import { ArrowLeft } from 'lucide-react';
 import { CollaboratorDetail } from '../_components/collaborator-detail';
+import { FlashStatusCard } from '../_components/flash-status-card';
 import { EditCollaboratorForm } from '../_components/edit-collaborator-form';
 import { DependentsList } from '../_components/dependents-list';
 import { ROLES, type Role } from '@nexus/types';
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
 
 interface CollaboratorData {
   id: string;
+  flashEmployeeId: string | null;
   fullName: string;
   socialName: string | null;
   corporateEmail: string | null;
@@ -155,7 +157,12 @@ export default async function CollaboratorDetailPage({ params }: PageProps) {
           <TabsTrigger value="dependentes">Dependentes</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dados" className="mt-6">
+        <TabsContent value="dados" className="mt-6 space-y-6">
+          <FlashStatusCard
+            collaboratorId={id}
+            initialFlashEmployeeId={collaborator.flashEmployeeId ?? null}
+            canEdit={canEdit}
+          />
           <CollaboratorDetail collaborator={collaborator} />
         </TabsContent>
 

@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { env } from '../../../config/env';
 import {
   COLLABORATOR_REPOSITORY,
   type CollaboratorRepository,
@@ -29,7 +28,6 @@ export class SyncFlashCollaboratorsUseCase {
     }
 
     const candidates = await this.collaboratorRepository.findCollaboratorsWithCpfNotNull();
-    const companyId = env.FLASH_COMPANY_ID?.trim();
     let linked = 0;
 
     for (let offset = 0; offset < candidates.length; offset += FLASH_SYNC_BATCH_SIZE) {
@@ -46,7 +44,6 @@ export class SyncFlashCollaboratorsUseCase {
       const response = await this.flashAdapter.listEmployees({
         page: 1,
         limit: 200,
-        companyId: companyId || undefined,
         documentNumbers,
       });
 

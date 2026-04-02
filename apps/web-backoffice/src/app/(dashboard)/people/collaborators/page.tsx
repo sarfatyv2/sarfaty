@@ -1,9 +1,14 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import { cookies } from 'next/headers';
+import { decodeJwt } from 'jose';
 import { serverFetch } from '@/lib/api-server';
+import { ACCESS_TOKEN_COOKIE } from '@/lib/auth/constants';
 import { Skeleton } from '@nexus/ui';
+import { ROLES, type Role } from '@nexus/types';
 import { CollaboratorsTable } from './_components/collaborators-table';
 import { CollaboratorFilters } from './_components/collaborator-filters';
+import { FlashSyncButton } from './_components/flash-sync-button';
 
 export const metadata: Metadata = {
   title: 'Colaboradores | Sarfaty',
@@ -60,16 +65,37 @@ function TableSkeleton() {
   );
 }
 
+const FLASH_SYNC_ROLES = new Set<Role>(['hr_admin', 'admin']);
+
 export default async function CollaboratorsPage({ searchParams }: PageProps) {
   const resolvedParams = await searchParams;
 
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get(ACCESS_TOKEN_COOKIE)?.value;
+  let role: Role = 'employee';
+  if (accessToken) {
+    try {
+      const payload = decodeJwt(accessToken);
+      const roleClaim = payload.role;
+      if (typeof roleClaim === 'string' && ROLES.includes(roleClaim as Role)) {
+        role = roleClaim as Role;
+      }
+    } catch {
+      role = 'employee';
+    }
+  }
+  const canFlashSync = FLASH_SYNC_ROLES.has(role);
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-normal">Colaboradores</h1>
-        <p className="text-sm text-muted-foreground">
-          Gerencie os colaboradores da empresa
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-normal">Colaboradores</h1>
+          <p className="text-sm text-muted-foreground">
+            Gerencie os colaboradores da empresa
+          </p>
+        </div>
+        {canFlashSync && <FlashSyncButton />}
       </div>
 
       <Suspense fallback={null}>

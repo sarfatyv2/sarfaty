@@ -4,7 +4,7 @@ import { SyncFlashCollaboratorsUseCase } from './sync-flash-collaborators.use-ca
 
 vi.mock('../../../config/env', () => ({
   env: {
-    FLASH_COMPANY_ID: 'company-env-1',
+    FLASH_COMPANY_ID_MAP: {},
   },
 }));
 
