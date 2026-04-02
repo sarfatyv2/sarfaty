@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { env } from '../../../config/env';
 import type { Collaborator } from '../domain/collaborator.entity';
 import { CollaboratorNotFoundException } from '../domain/exceptions/collaborator-not-found.exception';
 import {
@@ -33,9 +32,11 @@ export class RegisterCollaboratorToFlashUseCase {
       return existing;
     }
 
-    const companyId = env.FLASH_COMPANY_ID?.trim();
+    const companyId = this.flashAdapter.resolveCompanyId(existing.company);
     if (!companyId) {
-      this.logger.warn('RegisterCollaboratorToFlash skipped: FLASH_COMPANY_ID not set');
+      this.logger.warn(
+        `RegisterCollaboratorToFlash skipped: no Flash companyId mapped for company "${existing.company}"`,
+      );
       return existing;
     }
 

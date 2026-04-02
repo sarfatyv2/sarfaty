@@ -32,6 +32,7 @@ const securityHeaders = [
 ];
 
 const config: NextConfig = {
+  output: 'standalone',
   eslint: {
     ignoreDuringBuilds: true,
   },

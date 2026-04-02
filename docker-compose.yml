@@ -1,0 +1,55 @@
+name: sarfaty
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: sarfaty-api
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SERASA_ENV: ${SERASA_ENV:-uat}
+      SERASA_CLIENT_ID: ${SERASA_CLIENT_ID:-}
+      SERASA_CLIENT_SECRET: ${SERASA_CLIENT_SECRET:-}
+      ALLCHECK_USER_ID: ${ALLCHECK_USER_ID:-}
+      ALLCHECK_USER_TOKEN: ${ALLCHECK_USER_TOKEN:-}
+      UPMINER_CLIENT_ID: ${UPMINER_CLIENT_ID:-}
+      UPMINER_CLIENT_SECRET: ${UPMINER_CLIENT_SECRET:-}
+      UPMINER_BASE_URL: ${UPMINER_BASE_URL:-https://upapi-orchestrator.uplexis.com}
+      FLASH_API_KEY: ${FLASH_API_KEY:-}
+      FLASH_BASE_URL: ${FLASH_BASE_URL:-https://api.flashapp.services}
+      FLASH_COMPANY_ID_MAP: ${FLASH_COMPANY_ID_MAP:-{}}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  web-backoffice:
+    build:
+      context: .
+      dockerfile: apps/web-backoffice/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    container_name: sarfaty-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy

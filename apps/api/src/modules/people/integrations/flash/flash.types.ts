@@ -37,10 +37,11 @@ export interface FlashListEmployeesParams {
 }
 
 export interface FlashListEmployeesMetadata {
-  total?: number;
-  page?: number;
-  limit?: number;
+  totalCount?: number;
   totalPages?: number;
+  currentPage?: number;
+  nextPage?: number | null;
+  prevPage?: number | null;
 }
 
 export interface FlashListEmployeesResponse {
