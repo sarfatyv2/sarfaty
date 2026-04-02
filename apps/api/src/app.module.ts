@@ -18,17 +18,7 @@ import { HealthModule } from './modules/health/health.module';
 import { UsersModule } from './modules/users/users.module';
 import { PeopleModule } from './modules/people/people.module';
 import { ClientsModule } from './modules/clients/clients.module';
-import { LearningModule } from './modules/learning/learning.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
-import { GoalsModule } from './modules/goals/goals.module';
-import { PipelineModule } from './modules/pipeline/pipeline.module';
-import { DraweesModule } from './modules/drawees/drawees.module';
-import { CreditModule } from './modules/credit/credit.module';
-import { GovernanceModule } from './modules/governance/governance.module';
-import { CommunicationModule } from './modules/communication/communication.module';
-import { CnabModule } from './modules/cnab/cnab.module';
-import { ChatModule } from './modules/chat/chat.module';
-import { AuditTrailModule } from './modules/audit/audit.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { EmailModule } from './modules/email/email.module';
 
@@ -55,17 +45,7 @@ import { EmailModule } from './modules/email/email.module';
     UsersModule,
     PeopleModule,
     ClientsModule,
-    LearningModule,
     NotificationsModule,
-    GoalsModule,
-    PipelineModule,
-    DraweesModule,
-    CreditModule,
-    GovernanceModule,
-    CommunicationModule,
-    CnabModule,
-    ChatModule,
-    AuditTrailModule,
     RolesModule,
   ],
   providers: [
