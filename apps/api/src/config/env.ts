@@ -31,7 +31,7 @@ const envSchema = z.object({
   AWS_SECRET_ACCESS_KEY: z.string().optional().default(''),
   S3_BUCKET_CLIENT_DOCS: z.string().default('client-documents'),
   S3_BUCKET_COLLABORATOR_DOCS: z.string().default('collaborator-documents'),
-  S3_BUCKET_AVATARS: z.string().default('avatars'),
+  S3_BUCKET_AVATARS: z.string().default('avatars-sarfatyOS'),
   SENDGRID_API_KEY: z.string().optional().default(''),
   SENDGRID_FROM_EMAIL: z.string().default(''),
   SENDGRID_INVOICE_TEMPLATE_ID: z.string().optional().default(''),
