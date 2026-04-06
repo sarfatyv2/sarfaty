@@ -3,9 +3,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { decodeJwt } from 'jose';
-import { getAccessTokenFromDocument } from '@/lib/auth/cookies';
-import { useNotificationRealtime } from '@/hooks/use-notification-realtime';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,23 +47,6 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-
-  // Resolve userId for Realtime subscription
-  useEffect(() => {
-    const token = getAccessTokenFromDocument();
-    if (token) {
-      try {
-        const payload = decodeJwt(token);
-        const sub = typeof payload.sub === 'string' ? payload.sub : null;
-        setUserId(sub);
-      } catch {
-        setUserId(null);
-      }
-    } else {
-      setUserId(null);
-    }
-  }, []);
 
   const fetchUnreadCount = useCallback(async () => {
     try {
@@ -91,16 +71,6 @@ export function NotificationBell() {
       setIsLoading(false);
     }
   }, []);
-
-  // Supabase Realtime — refresh on new notification
-  const handleRealtimeNotification = useCallback(() => {
-    void fetchUnreadCount();
-    if (isOpen) {
-      void fetchNotifications();
-    }
-  }, [fetchUnreadCount, fetchNotifications, isOpen]);
-
-  useNotificationRealtime({ userId, onNewNotification: handleRealtimeNotification });
 
   useEffect(() => {
     void fetchUnreadCount();

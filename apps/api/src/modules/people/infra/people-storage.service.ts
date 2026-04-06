@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { supabaseAdmin } from '../../../config/supabase';
+import { PutObjectCommand, DeleteObjectsCommand, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { s3Client } from '../../../config/s3';
 import { env } from '../../../config/env';
 
-const BUCKET_ID = 'collaborator-documents';
-const AVATAR_BUCKET_ID = 'avatars';
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
 const ALLOWED_INVOICE_MIME_TYPES = ['application/pdf'];
@@ -33,6 +33,14 @@ export interface UploadResult {
 
 @Injectable()
 export class PeopleStorageService {
+  private get docsBucket() {
+    return env.S3_BUCKET_COLLABORATOR_DOCS;
+  }
+
+  private get avatarBucket() {
+    return env.S3_BUCKET_AVATARS;
+  }
+
   async uploadInvoice(
     collaboratorId: string,
     year: number,
@@ -50,22 +58,16 @@ export class PeopleStorageService {
     const filename = `${Date.now()}-${sanitized}`;
     const path = `invoices/${collaboratorId}/${year}-${month}/${filename}`;
 
-    const { error } = await supabaseAdmin.storage
-      .from(BUCKET_ID)
-      .upload(path, file.buffer, {
-        contentType: file.mimetype,
-        upsert: true,
-      });
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: this.docsBucket,
+        Key: path,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      }),
+    );
 
-    if (error) {
-      throw new Error(`Storage upload failed: ${error.message}`);
-    }
-
-    return {
-      path,
-      size: file.buffer.length,
-      mimeType: file.mimetype,
-    };
+    return { path, size: file.buffer.length, mimeType: file.mimetype };
   }
 
   async uploadReceipt(
@@ -84,22 +86,16 @@ export class PeopleStorageService {
     const filename = `${Date.now()}-${sanitized}`;
     const path = `reimbursements/${collaboratorId}/${reimbursementId}/${filename}`;
 
-    const { error } = await supabaseAdmin.storage
-      .from(BUCKET_ID)
-      .upload(path, file.buffer, {
-        contentType: file.mimetype,
-        upsert: true,
-      });
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: this.docsBucket,
+        Key: path,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      }),
+    );
 
-    if (error) {
-      throw new Error(`Storage upload failed: ${error.message}`);
-    }
-
-    return {
-      path,
-      size: file.buffer.length,
-      mimeType: file.mimetype,
-    };
+    return { path, size: file.buffer.length, mimeType: file.mimetype };
   }
 
   async uploadAvatar(
@@ -117,47 +113,49 @@ export class PeopleStorageService {
     const ext = MIME_TO_EXT[file.mimetype] ?? 'jpg';
     const path = `${profileId}/avatar.${ext}`;
 
-    // Remove any existing avatar files for this profile
-    const { data: existingFiles } = await supabaseAdmin.storage
-      .from(AVATAR_BUCKET_ID)
-      .list(profileId);
+    // Remove existing avatars for this profile before uploading new one
+    await this.deleteAvatarObjects(profileId);
 
-    if (existingFiles && existingFiles.length > 0) {
-      const filesToRemove = existingFiles.map((f) => `${profileId}/${f.name}`);
-      await supabaseAdmin.storage.from(AVATAR_BUCKET_ID).remove(filesToRemove);
-    }
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: this.avatarBucket,
+        Key: path,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      }),
+    );
 
-    const { error } = await supabaseAdmin.storage
-      .from(AVATAR_BUCKET_ID)
-      .upload(path, file.buffer, {
-        contentType: file.mimetype,
-        upsert: true,
-      });
-
-    if (error) {
-      throw new Error(`Avatar upload failed: ${error.message}`);
-    }
-
-    const publicUrl = `${env.SUPABASE_URL}/storage/v1/object/public/${AVATAR_BUCKET_ID}/${path}`;
-    return publicUrl;
+    return `https://${this.avatarBucket}.s3.${env.AWS_REGION}.amazonaws.com/${path}`;
   }
 
   async deleteAvatar(profileId: string): Promise<void> {
-    const { data: existingFiles } = await supabaseAdmin.storage
-      .from(AVATAR_BUCKET_ID)
-      .list(profileId);
-
-    if (existingFiles && existingFiles.length > 0) {
-      const filesToRemove = existingFiles.map((f) => `${profileId}/${f.name}`);
-      await supabaseAdmin.storage.from(AVATAR_BUCKET_ID).remove(filesToRemove);
-    }
+    await this.deleteAvatarObjects(profileId);
   }
 
   async getSignedUrl(path: string, expiresInSeconds = 3600): Promise<string | null> {
-    const { data } = await supabaseAdmin.storage
-      .from(BUCKET_ID)
-      .createSignedUrl(path, expiresInSeconds);
-    return data?.signedUrl ?? null;
+    try {
+      const command = new GetObjectCommand({ Bucket: this.docsBucket, Key: path });
+      return await getSignedUrl(s3Client, command, { expiresIn: expiresInSeconds });
+    } catch {
+      return null;
+    }
+  }
+
+  private async deleteAvatarObjects(profileId: string): Promise<void> {
+    const listed = await s3Client.send(
+      new ListObjectsV2Command({ Bucket: this.avatarBucket, Prefix: `${profileId}/` }),
+    );
+
+    if (listed.Contents && listed.Contents.length > 0) {
+      await s3Client.send(
+        new DeleteObjectsCommand({
+          Bucket: this.avatarBucket,
+          Delete: {
+            Objects: listed.Contents.map((obj) => ({ Key: obj.Key! })),
+          },
+        }),
+      );
+    }
   }
 
   private validateFile(
@@ -202,9 +200,7 @@ export class PeopleStorageService {
       buffer[2] === 0x44 &&
       buffer[3] === 0x46;
 
-    if (startsWithPdf) {
-      return 'application/pdf';
-    }
+    if (startsWithPdf) return 'application/pdf';
 
     const startsWithPng =
       buffer.length >= 8 &&
@@ -217,18 +213,14 @@ export class PeopleStorageService {
       buffer[6] === 0x1a &&
       buffer[7] === 0x0a;
 
-    if (startsWithPng) {
-      return 'image/png';
-    }
+    if (startsWithPng) return 'image/png';
 
     const startsWithJpeg =
       buffer[0] === 0xff &&
       buffer[1] === 0xd8 &&
       buffer[2] === 0xff;
 
-    if (startsWithJpeg) {
-      return 'image/jpeg';
-    }
+    if (startsWithJpeg) return 'image/jpeg';
 
     const startsWithWebp =
       buffer.length >= 12 &&
@@ -241,9 +233,7 @@ export class PeopleStorageService {
       buffer[10] === 0x42 &&
       buffer[11] === 0x50;
 
-    if (startsWithWebp) {
-      return 'image/webp';
-    }
+    if (startsWithWebp) return 'image/webp';
 
     return null;
   }

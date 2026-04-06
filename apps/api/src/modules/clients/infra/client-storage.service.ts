@@ -1,7 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { supabaseAdmin } from '../../../config/supabase';
+import { PutObjectCommand, DeleteObjectsCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { s3Client } from '../../../config/s3';
+import { env } from '../../../config/env';
 
-const BUCKET_ID = 'client-documents';
 const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25MB
 const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
@@ -20,6 +22,10 @@ export interface UploadResult {
 
 @Injectable()
 export class ClientStorageService {
+  private get bucket() {
+    return env.S3_BUCKET_CLIENT_DOCS;
+  }
+
   async uploadDocument(
     clientId: string,
     documentType: string,
@@ -31,19 +37,14 @@ export class ClientStorageService {
     const filename = `${Date.now()}-${sanitized}`;
     const path = `${clientId}/${documentType}/${filename}`;
 
-    const { error } = await supabaseAdmin.storage
-      .from(BUCKET_ID)
-      .upload(path, file.buffer, {
-        contentType: file.mimetype,
-        upsert: false,
-      });
-
-    if (error) {
-      const detail = (error as { statusCode?: string; error?: string }).statusCode
-        ? `[${(error as { statusCode?: string }).statusCode}] ${error.message}`
-        : error.message;
-      throw new Error(`Falha ao enviar arquivo para o armazenamento: ${detail}. Verifique se o arquivo não está corrompido ou protegido por senha.`);
-    }
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: path,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      }),
+    );
 
     return {
       path,
@@ -53,33 +54,34 @@ export class ClientStorageService {
   }
 
   async deleteDocument(path: string): Promise<void> {
-    const { error } = await supabaseAdmin.storage
-      .from(BUCKET_ID)
-      .remove([path]);
-
-    if (error) {
-      throw new Error(`Storage delete failed: ${error.message}`);
-    }
+    await s3Client.send(
+      new DeleteObjectsCommand({
+        Bucket: this.bucket,
+        Delete: { Objects: [{ Key: path }] },
+      }),
+    );
   }
 
   async downloadDocument(path: string): Promise<Buffer> {
-    const { data, error } = await supabaseAdmin.storage
-      .from(BUCKET_ID)
-      .download(path);
+    const response = await s3Client.send(
+      new GetObjectCommand({ Bucket: this.bucket, Key: path }),
+    );
 
-    if (error || !data) {
-      throw new Error(`Storage download failed for path "${path}": ${error?.message ?? 'no data'}`);
+    if (!response.Body) {
+      throw new Error(`Storage download failed for path "${path}": no data`);
     }
 
-    const arrayBuffer = await data.arrayBuffer();
-    return Buffer.from(arrayBuffer);
+    const bytes = await response.Body.transformToByteArray();
+    return Buffer.from(bytes);
   }
 
   async getSignedUrl(path: string, expiresInSeconds = 3600): Promise<string | null> {
-    const { data } = await supabaseAdmin.storage
-      .from(BUCKET_ID)
-      .createSignedUrl(path, expiresInSeconds);
-    return data?.signedUrl ?? null;
+    try {
+      const command = new GetObjectCommand({ Bucket: this.bucket, Key: path });
+      return await getSignedUrl(s3Client, command, { expiresIn: expiresInSeconds });
+    } catch {
+      return null;
+    }
   }
 
   private validateFile(buffer: Buffer, mimetype: string): void {
