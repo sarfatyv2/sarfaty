@@ -1,0 +1,47 @@
+---
+description: Convenções de API REST - endpoints, responses, validação, versionamento
+globs: "apps/api/src/modules/**/controllers/**/*.ts,apps/api/src/modules/**/dto/**/*.ts"
+alwaysApply: false
+---
+
+# API — Convenções REST
+
+## Endpoints
+
+- Recursos em plural, kebab-case: `/api/clients`, `/api/credit-products`.
+- Aninhamento máximo 2 níveis: `/api/clients/:id/documents` (OK), `/api/clients/:id/documents/:did/versions` (evitar).
+- Verbos HTTP: GET (listar/detalhe), POST (criar/ações), PATCH (atualizar parcial), DELETE (remover).
+- Ações que não são CRUD: `POST /api/clients/:id/submit`, `POST /api/clients/:id/reassign`.
+
+## Response Format
+
+Sucesso:
+```json
+{ "data": { ... } }
+{ "data": [...], "pagination": { "total": 100, "page": 1, "pageSize": 20 } }
+```
+
+Erro (via DomainExceptionFilter):
+```json
+{ "error": { "code": "CLIENT_NOT_FOUND", "message": "...", "statusCode": 404, "correlationId": "..." } }
+```
+
+## DTOs (Validação)
+
+- Cada endpoint tem um DTO definido como schema Zod em `dto/`.
+- O `ZodValidationPipe` global valida automaticamente.
+- DTOs de criação: `CreateClientDto`. DTOs de atualização: `UpdateClientDto` (campos optional via `.partial()`).
+- DTOs de query (listagem): `ListClientsQueryDto` com paginação, filtros e ordenação.
+
+## Paginação
+
+- Query params: `?page=1&pageSize=20&sortBy=createdAt&sortOrder=desc`.
+- Response inclui `pagination: { total, page, pageSize, totalPages }`.
+- Default: page 1, pageSize 20, max pageSize 100.
+
+## Autenticação e Autorização
+
+- Todos os endpoints protegidos por `AuthGuard` (valida JWT Supabase).
+- `@Public()` decorator para endpoints sem auth.
+- `@RequireActions(['approve_credit'])` decorator para RBAC por ação.
+- O `RbacGuard` consulta `ROLE_PERMISSIONS` para validar.

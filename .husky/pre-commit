@@ -1,0 +1,5 @@
+# Run gitleaks to prevent committing secrets
+# Install gitleaks: brew install gitleaks (macOS) or see https://github.com/gitleaks/gitleaks#installing
+if command -v gitleaks &> /dev/null; then
+  gitleaks protect --staged --verbose
+fi

@@ -1,0 +1,40 @@
+---
+description: Contexto geral da plataforma Sarfaty. Sempre aplicável.
+alwaysApply: true
+---
+
+# Plataforma Sarfaty — Contexto
+
+Plataforma corporativa integrada da Sarfaty. Engloba todas as áreas da empresa: comercial, crédito, compliance, jurídico, backoffice, gestão de risco, e people (RH + DP). Interface única adaptativa por role — mesma aplicação, experiência diferente por papel do usuário. Monorepo Turborepo com:
+
+- `apps/web-client` — Portal do Cliente (Next.js 15, App Router)
+- `apps/web-backoffice` — Backoffice Interno (Next.js 15, App Router)
+- `apps/api` — API Backend (NestJS + Fastify)
+- `apps/workers` — Workers IA (Python, fase futura)
+- `packages/types` — Tipos TypeScript compartilhados
+- `packages/validators` — Schemas Zod compartilhados
+- `packages/ui` — Design system (componentes UI)
+- `packages/config` — Configs (ESLint, TS, Tailwind, permissions)
+- `packages/utils` — Funções utilitárias
+
+## Stack
+
+- **Backend:** NestJS + Fastify + Drizzle ORM + Zod + Pino (logger)
+- **Frontend:** Next.js 15 (App Router) + Tailwind CSS + shadcn/ui
+- **Banco:** Supabase (PostgreSQL 15+ com RLS)
+- **Cache:** Redis (Upstash)
+- **Workflows:** Temporal.io (Cloud)
+- **Auth:** Supabase Auth + custom RBAC via `ROLE_PERMISSIONS`
+- **Monorepo:** Turborepo + pnpm workspaces
+
+## Arquitetura Backend
+
+DDD leve com 4 camadas: `Controller → UseCase → Domain → Repository`. Regras de negócio vivem nas domain entities, nunca nos controllers ou use-cases. Repositories são interfaces no domínio, implementações com Drizzle na camada infra.
+
+## Idioma
+
+Código, variáveis, comentários e commits em **inglês**. Documentação e specs em **português (pt-BR)**.
+
+## Specs de referência
+
+Os documentos `.md` na raiz do projeto contêm as specs completas de cada módulo. Consulte-os antes de implementar qualquer feature.

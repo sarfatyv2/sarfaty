@@ -1,0 +1,51 @@
+---
+description: Patterns React e Next.js 15 - App Router, Server Components, composição por role
+globs: "apps/web-*/**/*.tsx,apps/web-*/**/*.ts"
+alwaysApply: false
+---
+
+# Next.js 15 — Patterns do Frontend
+
+## App Router
+
+- Usar **Server Components** por padrão. Só marcar `'use client'` quando necessário (interatividade, hooks de browser).
+- Layouts aninhados para sidebar, header, guards de autenticação.
+- `loading.tsx` e `error.tsx` em cada rota que faz fetch.
+- Metadata em `layout.tsx` ou `page.tsx` via `generateMetadata`.
+
+## Composição por Role
+
+A interface é adaptativa via `ROLE_PERMISSIONS` (definido em `packages/config/src/permissions.ts`):
+
+- **Sidebar:** renderiza `config.sidebar.map(section => ...)`.
+- **Dashboard:** renderiza `config.dashboardModules.map(id => <Module />)`.
+- **Client tabs:** renderiza `config.clientTabs.map(id => <Tab />)`.
+- **Ações:** renderiza botões filtrados por `config.clientActions`.
+
+Zero condicionais `if (role === 'admin')` espalhadas nos componentes. Toda lógica de visibilidade vem do mapa.
+
+## Componentes
+
+- **Funcionais apenas.** Sem classes.
+- **Props tipadas** com interface dedicada. `interface ClientCardProps { ... }`.
+- **Custom hooks** para lógica reutilizável: `useCurrentUser`, `useClientUpdates`, `usePermissions`.
+- **Colocação:** hooks, utils e types próximos de onde são usados. Shared vai pra `packages/`.
+
+## Data Fetching
+
+- **Server Components:** fetch direto no componente, sem `useEffect`.
+- **Client Components:** React Query (TanStack Query) com `queryClient.invalidateQueries` no realtime.
+- **Mutations:** React Query mutations com optimistic updates onde faz sentido.
+- **Realtime:** Supabase Realtime via custom hook. Invalida queries do React Query no evento.
+
+## Estilo
+
+- **Tailwind CSS** para estilos.
+- **shadcn/ui** como base de componentes (copiados, não dependência npm).
+- **`cn()` utility** para merge de classes condicionais.
+- Sem CSS modules, sem styled-components, sem CSS-in-JS.
+
+## Forms
+
+- **React Hook Form + Zod resolver.** Schema Zod do `@nexus/validators`, compartilhado com o backend.
+- Um schema Zod = uma source of truth para validação front e back.

@@ -1,0 +1,73 @@
+---
+description: Arquitetura DDD leve do backend NestJS - layering, patterns, regras de módulo
+globs: "apps/api/**/*.ts"
+alwaysApply: false
+---
+
+# NestJS — Arquitetura DDD Leve
+
+## Estrutura de Módulo
+
+Todo módulo segue 4 camadas com responsabilidades claras:
+
+```
+modules/{nome}/
+├── {nome}.module.ts          # NestJS module (registra providers, imports)
+├── controllers/              # Camada HTTP — DTOs in, responses out
+├── use-cases/                # Orquestração — chama domain + infra, nunca tem regra de negócio
+├── domain/                   # Regras de negócio puras — entities, value objects, interfaces
+│   ├── {nome}.entity.ts
+│   ├── {nome}.repository.ts  # Interface (contrato)
+│   ├── events/
+│   └── exceptions/
+├── infra/                    # Implementações — Drizzle repos, adapters externos
+│   ├── drizzle-{nome}.repository.ts
+│   └── mappers/
+└── dto/                      # Zod schemas para validação de entrada
+```
+
+## Regras por Camada
+
+### Controller
+- Recebe HTTP request, valida DTO (Zod pipe), delega pro UseCase, retorna response.
+- **Zero lógica de negócio.** Zero acesso a repository. Zero try/catch (o ExceptionFilter cuida).
+- Um método por rota. Nomes de métodos = verbos HTTP + recurso: `create`, `findById`, `submit`.
+
+### UseCase
+- Orquestra a operação: busca dados, chama métodos do domain, salva, emite eventos.
+- **Não decide regras de negócio** — delega pra entity.
+- Cada use-case é uma classe com um método `execute()`.
+- Injectable via NestJS DI. Recebe interfaces de repository, não implementações.
+
+### Domain (Entity)
+- Classe pura, sem dependência de framework (sem decorators NestJS, sem Drizzle).
+- Encapsula invariantes: transições de status, validações de negócio, cálculos.
+- Métodos expressivos: `client.submitForAnalysis(checklist)`, não `client.setStatus('analysis')`.
+- Testável sem mocks — instancia direto no teste.
+
+### Repository (Interface no Domain)
+- Define o contrato: `findById`, `save`, `findByFilters`.
+- Vive em `domain/`, nunca em `infra/`.
+- Retorna domain entities, não rows do banco.
+
+### Infra (Implementação)
+- Implementa interfaces do domain usando Drizzle.
+- Usa Mappers para converter DB row ↔ Domain entity.
+- Adapters externos (bureaus, APIs) também vivem aqui.
+
+## DI — Binding
+
+```typescript
+// No module.ts, binda interface → implementação:
+{
+  provide: CLIENT_REPOSITORY,  // injection token (symbol)
+  useClass: DrizzleClientRepository,
+}
+```
+
+## O que NÃO fazer
+
+- Service "god class" com 500+ linhas misturando orquestração e regras.
+- Repository que retorna rows do Drizzle diretamente pro controller.
+- Lógica de negócio no controller ou no interceptor.
+- Import circular entre módulos — use eventos (EventEmitter2) para comunicação.
