@@ -121,6 +121,7 @@ export class CreditController {
   }
 
   @Post('serasa')
+  @RequestTimeout(120_000)
   @Roles(
     'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
     'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
@@ -170,6 +171,7 @@ export class CreditController {
   }
 
   @Post('allcheck/sync')
+  @RequestTimeout(120_000)
   @Roles(
     'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
     'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
@@ -185,6 +187,7 @@ export class CreditController {
   // ---------------------------------------------------------------------------
 
   @Post('upminer')
+  @RequestTimeout(120_000)
   @Roles(
     'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
     'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
@@ -287,6 +290,7 @@ export class CreditController {
   }
 
   @Post('upminer/check-duplicates')
+  @RequestTimeout(120_000)
   @Roles(
     'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
     'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
@@ -328,6 +332,7 @@ export class CreditController {
   }
 
   @Post('upminer/dossier/:dossierId/pdf')
+  @RequestTimeout(120_000)
   @Roles(
     'sales_rep', 'sales_supervisor', 'sales_manager', 'sales_director',
     'credit_analyst', 'compliance_officer', 'approver', 'backoffice',
